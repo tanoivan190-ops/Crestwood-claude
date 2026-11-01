@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr" data-th="grey" data-flat>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dialogue PNJ</title>
+<!--
+  Dialogue avec un PNJ (location de BMX a l'aeroport...).
+  La camera du jeu est deja zoomee sur le visage du PNJ (serveur) : la page est transparente,
+  on ajoute seulement des bandes cinema et la bulle de dialogue en bas.
+  Serveur -> page : NpcApp.open(json)   (dialogue "@npc" 9710, SAMP.java)
+      {"name":"Kevin","role":"Location de BMX","text":"...","choices":[{"id":"rent","label":"Louer un BMX","sub":"150 FCFA"},{"id":"cancel","label":"Annuler"}]}
+  Page -> serveur : SampNpc.choose(id) -> /npcact <id>   ;   SampNpc.close() -> /npcact close
+-->
+<style>
+:root{
+  --panel:#2a2c34; --panel2:#363841; --card:#474953; --line:rgba(255,255,255,.08);
+  --text:#f4f5f8; --soft:#c9ccd6; --muted:#9a9eab; --blue:#8b8b8b; --red:#ff5a6a;
+  --font:"Poppins","Montserrat","Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;font-family:var(--font);color:var(--text);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+/* bandes cinema */
+.bar{position:fixed;left:0;right:0;height:9vh;background:rgba(0,0,0,0.62);z-index:1;transition:transform .45s cubic-bezier(.2,.9,.3,1)}
+.bar.top{top:0;transform:translateY(-100%)}
+.bar.bot{bottom:0;transform:translateY(100%)}
+body.on .bar{transform:none}
+
+/* bulle de dialogue */
+.box{position:fixed;left:50%;bottom:calc(9vh + 2.4vh);z-index:2;width:min(92vw,860px);
+  transform:translate(-50%,30px);opacity:0;transition:transform .35s cubic-bezier(.2,.9,.3,1.1),opacity .25s;
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(10px,2vw,18px);align-items:start;
+  padding:clamp(12px,2.6vh,20px) clamp(14px,2.4vw,22px);border-radius:4px;
+  background:linear-gradient(180deg,rgba(54,56,65,0.62),rgba(42,44,52,0.62));border:1px solid var(--line);
+  box-shadow:0 22px 60px rgba(0,0,0,.55)}
+body.on .box{transform:translate(-50%,0);opacity:1}
+
+.avatar{width:clamp(46px,11vh,68px);height:clamp(46px,11vh,68px);border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 30%,#666666,rgba(0,0,0,0.624) 72%);box-shadow:0 0 0 3px rgba(139,139,139,0.25),0 8px 22px rgba(0,0,0,.4)}
+.avatar svg{width:56%;height:56%}
+
+.who{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.name{font-size:clamp(15px,3.4vh,20px);font-weight:800;letter-spacing:.02em}
+.role{font-size:clamp(10px,2.2vh,12px);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);
+  padding:3px 9px;border-radius:3px;background:rgba(139,139,139,0.14)}
+.text{margin-top:6px;min-height:2.8em;font-size:clamp(12px,2.9vh,16px);line-height:1.45;color:var(--soft)}
+.text .cur{display:inline-block;width:.5em;animation:blink 1s steps(1) infinite;color:var(--blue)}
+@keyframes blink{50%{opacity:0}}
+
+.choices{grid-column:1 / -1;display:flex;gap:clamp(8px,1.4vw,12px);margin-top:clamp(4px,1vh,8px)}
+.choice{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:clamp(42px,9vh,54px);padding:0 16px;
+  border-radius:4px;background:var(--card);font-weight:800;font-size:clamp(12px,2.8vh,15px);letter-spacing:.04em;
+  transition:transform .12s,background .15s;opacity:0;transform:translateY(8px)}
+.choice.show{opacity:1;transform:none;transition:opacity .25s,transform .25s}
+.choice:active{transform:scale(.97)}
+.choice.primary{background:var(--blue);box-shadow:0 8px 20px rgba(139,139,139,0.35)}
+.choice.cancel{background:rgba(255,255,255,.08);color:var(--soft)}
+.choice .sub{font-size:.82em;font-weight:700;padding:3px 9px;border-radius:3px;background:rgba(0,0,0,.22)}
+.choice svg{width:1.3em;height:1.3em;flex:none}
+</style>
+<link rel="stylesheet" href="../common/crestwood-theme.css" />
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+  <div class="bar top"></div>
+  <div class="bar bot"></div>
+
+  <div class="box" id="box">
+    <div class="avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    </div>
+    <div>
+      <div class="who"><span class="name" id="name"></span><span class="role" id="role"></span></div>
+      <div class="text" id="text"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+<script>
+(function () {
+  var native = window.SampNpc || {};
+  var $ = function (id) { return document.getElementById(id); };
+  var typing = null, busy = false;
+
+  var ICON_BIKE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M15 6h2l3 11M5.5 17l4-7h6l-3.5 7h-6.5M9 6h3"/></svg>';
+  var ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+
+  // texte qui s'ecrit comme une replique ; toucher la bulle l'affiche d'un coup
+  function typeText(full, done) {
+    var el = $('text'), i = 0;
+    if (typing) clearInterval(typing);
+    typing = setInterval(function () {
+      i += 2;
+      el.innerHTML = esc(full.slice(0, i)) + '<span class="cur">|</span>';
+      if (i >= full.length) { clearInterval(typing); typing = null; el.textContent = full; done(); }
+    }, 22);
+    $('box').onclick = function (e) {
+      if (!typing || e.target.closest('.choice')) return;
+      clearInterval(typing); typing = null; el.textContent = full; done();
+    };
+  }
+
+  function showChoices(list) {
+    var box = $('choices');
+    box.innerHTML = '';
+    list.forEach(function (c, k) {
+      var b = document.createElement('button');
+      var cancel = c.id === 'cancel';
+      b.className = 'choice ' + (cancel ? 'cancel' : 'primary');
+      b.innerHTML = (cancel ? ICON_X : ICON_BIKE) + '<span>' + esc(c.label) + '</span>' + (c.sub ? '<span class="sub">' + esc(c.sub) + '</span>' : '');
+      b.addEventListener('click', function () { choose(c.id); });
+      box.appendChild(b);
+      setTimeout(function () { b.classList.add('show'); }, 60 + k * 90);
+    });
+  }
+
+  function choose(id) {
+    if (busy) return;
+    busy = true;
+    document.body.classList.remove('on');
+    setTimeout(function () { try { native.choose(id); } catch (e) {} }, 180);
+  }
+
+  window.NpcApp = {
+    open: function (json) {
+      var d;
+      try { d = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { d = null; }
+      if (!d || !d.name) { try { native.close(); } catch (e) {} return; }
+      busy = false;
+      $('name').textContent = d.name;
+      $('role').textContent = d.role || '';
+      $('role').style.display = d.role ? '' : 'none';
+      $('choices').innerHTML = '';
+      document.body.classList.add('on');
+      var list = Array.isArray(d.choices) && d.choices.length ? d.choices : [{ id: 'cancel', label: 'Fermer' }];
+      typeText(String(d.text || ''), function () { showChoices(list); });
+    }
+  };
+
+  // bouton retour du telephone (ou clavier) = annuler
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' || e.key === 'Backspace') choose('cancel'); });
+
+  try { native.ready(); } catch (e) {}
+
+  // apercu dans un navigateur (sans le jeu)
+  if (!window.SampNpc) {
+    window.NpcApp.open({ name: 'Kevin', role: 'Location de BMX', text: "Salut Anzo ! Bienvenue a Crestwood. La ville est grande : avec un BMX tu iras plus vite a la mairie et au bureau de l'emploi. Je t'en loue un ?", choices: [{ id: 'rent', label: 'Louer un BMX', sub: '150 FCFA' }, { id: 'cancel', label: 'Annuler' }] });
+    native.choose = function (id) { console.log('choose', id); };
+  }
+})();
+</script>
+</body>
+</html>

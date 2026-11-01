@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#050506">
+  <title>Crestwood Roleplay — Chargement</title>
+  <link rel="stylesheet" href="loading.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+  <main class="screen" aria-live="polite">
+    <!-- Fond : affiche CREST WOOD RP (le mec sur la voiture) + voile sombre en bas -->
+    <div class="bg-fill" aria-hidden="true"></div>
+    <div class="bg" aria-hidden="true"></div>
+    <div class="light" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <section id="card" class="card" data-state="idle" aria-label="Chargement de Crestwood Roleplay">
+      <div class="row">
+        <header class="head">
+          <div class="head-top">
+            <p id="stage" class="chip">Préparation</p>
+            <h1 id="title">Préparation du jeu</h1>
+          </div>
+          <p id="message" class="message">Connexion au serveur de mise à jour…</p>
+        </header>
+
+        <!-- Les 4 étapes : le JS ajoute la classe "done" ou "active" sur chaque <li> -->
+        <ol id="steps" class="steps">
+          <li><i>1</i><span>Préparation</span></li>
+          <li><i>2</i><span>Téléchargement</span></li>
+          <li><i>3</i><span>Installation</span></li>
+          <li><i>4</i><span>Prêt</span></li>
+        </ol>
+
+        <strong id="percent" class="percent">0 %</strong>
+      </div>
+
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="bar" class="bar"><span class="shine"></span></div>
+      </div>
+
+      <div class="row foot">
+        <div class="status">
+          <span class="status-dot"></span>
+          <p><b id="status">En attente</b><span id="detail">Le jeu sera débloqué dès que l’installation est complète.</span></p>
+        </div>
+        <div class="meta">
+          <span id="bytes">En attente des données…</span>
+          <span id="speed"></span>
+          <span id="eta"></span>
+        </div>
+        <div class="actions">
+          <button id="skip" class="btn" type="button" hidden>Entrer en jeu</button>
+          <button id="retry" class="btn" type="button" hidden>Réessayer</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lecteur de musique -->
+  <div id="player" class="player" aria-label="Lecteur de musique">
+    <div id="trackTitle" class="track-title">&nbsp;</div>
+    <div class="player-controls">
+      <button id="prev" class="pbtn" type="button" aria-label="Piste précédente"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
+      <button id="play" class="pbtn" type="button" aria-label="Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <button id="next" class="pbtn" type="button" aria-label="Piste suivante"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l10.5 7L4 19z"/></svg></button>
+      <input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume">
+    </div>
+  </div>
+  <script src="loading.js"></script>
+</body>
+</html>

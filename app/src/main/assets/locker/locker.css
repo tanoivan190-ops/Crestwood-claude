@@ -1,0 +1,106 @@
+/* Vestiaire de faction Crestwood : meme charte bleue que le panneau admin (ink / royal / sky). */
+:root{
+    --ink:#03060d; --night:rgba(0,0,0,0.624); --deep:rgba(0,0,0,0.624);
+    --royal:#676767; --blue:#858585; --sky:#bababa;
+    --text:#eeeeee; --soft:#d0d0d0; --muted:#b0b0b0;
+    --line:rgba(186,186,186,0.16); --line-strong:rgba(186,186,186,0.38);
+    --danger:#ff6b72; --ok:#5fdca0; --gold:#ffb454;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;
+    font-family:"Inter","Segoe UI",Roboto,Arial,sans-serif;color:var(--text);user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.hidden{display:none!important}
+
+.lk{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(3,6,13,0.496);padding:env(safe-area-inset-top,0) 2vw env(safe-area-inset-bottom,0)}
+.lk-panel{position:relative;width:min(94vw,860px);height:min(90vh,500px);display:flex;flex-direction:column;
+    background:linear-gradient(180deg,rgba(0,0,0,0.599),rgba(0,0,0,0.606));
+    border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;
+    box-shadow:0 18px 60px rgba(0,0,0,0.48),0 0 0 1px rgba(103,103,103,0.12)}
+
+.lk-head{display:flex;align-items:center;gap:10px;padding:1.4vh 16px;border-bottom:1px solid var(--line)}
+.lk-title{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.lk-dot{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px var(--blue);flex:none}
+.lk-title h1{margin:0;font-size:clamp(14px,3.6vh,20px);letter-spacing:.02em;text-transform:uppercase;
+    font-family:"Oxanium","Arial Narrow","Roboto Condensed",Arial,sans-serif}
+.lk-period{color:var(--blue)}
+.lk-title p{margin:2px 0 0;font-size:clamp(10px,2.4vh,12px);color:var(--muted)}
+.lk-state{font-size:clamp(10px,2.4vh,12px);font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:.6vh 11px;border-radius:3px;border:1px solid var(--line-strong);color:var(--sky);background:rgba(133,133,133,0.1)}
+.lk-state.on{color:var(--ok);border-color:rgba(95,220,160,.5);background:rgba(95,220,160,.1)}
+.lk-close{width:clamp(30px,7vh,38px);height:clamp(30px,7vh,38px);border-radius:50%;flex:none;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:16px}
+.lk-close:active{background:rgba(255,107,114,.35)}
+
+.lk-body{flex:1;min-height:0;display:flex;gap:14px;padding:12px 16px 14px}
+.lk-preview{width:30%;min-width:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    border-radius:4px;background:radial-gradient(circle at 50% 35%,rgba(133,133,133,0.22),rgba(255,255,255,.02) 70%);
+    border:1px solid var(--line);padding:8px}
+.lk-preview svg{height:100%;max-height:100%;width:auto;min-height:0;flex:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.lk-preview-note{margin:0;font-size:clamp(9px,2.3vh,11px);color:var(--muted);text-align:center}
+.lk-part{transition:opacity .15s}
+.lk-part.off{opacity:0}
+
+.lk-options{flex:1;min-width:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.lk-card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:4px;padding:1.4vh 14px}
+.lk-card h3{margin:0 0 8px;font-size:clamp(11px,2.7vh,13px);color:var(--sky);text-transform:uppercase;letter-spacing:.07em}
+
+.lk-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lk-seg-btn{padding:1.2vh 12px;border-radius:4px;font-weight:700;font-size:clamp(11px,2.8vh,13px);
+    background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.lk-seg-btn.on{background:var(--royal);border-color:var(--blue);color:#fff}
+
+.lk-toggles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lk-toggle{display:flex;flex-direction:column;align-items:center;gap:2px;padding:1.2vh 8px;border-radius:4px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);font-weight:700;font-size:clamp(11px,2.8vh,13px)}
+.lk-toggle small{font-weight:600;font-size:clamp(8px,2.1vh,10px);color:var(--muted)}
+.lk-toggle.on{background:rgba(133,133,133,0.2);border-color:var(--blue)}
+.lk-toggle.on small{color:var(--ok)}
+
+.lk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lk-chip{padding:.7vh 10px;border-radius:3px;font-size:clamp(10px,2.6vh,12px);font-weight:700;
+    background:rgba(133,133,133,0.12);border:1px solid var(--line-strong)}
+.lk-chip:active{background:var(--royal)}
+
+.lk-actions{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:auto}
+.lk-btn{padding:1.5vh 12px;border-radius:4px;font-weight:800;font-size:clamp(11px,2.9vh,14px);text-align:center;
+    background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.lk-btn:active{background:rgba(133,133,133,0.3)}
+.lk-btn.primary{background:var(--royal);border-color:var(--blue);color:#fff}
+.lk-btn.locked{opacity:.4;pointer-events:none}
+
+.lk-toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:88%;padding:1vh 16px;border-radius:3px;
+    font-size:clamp(11px,2.8vh,13px);font-weight:700;background:rgba(0,0,0,0.599);border:1px solid var(--ok);color:var(--ok);
+    box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:5}
+.lk-toast.err{border-color:var(--danger);color:var(--danger)}
+
+/* ===== Thème Crestwood (même style que les panneaux faction / gouvernement / menu RP) ===== */
+:root{--royal:#8b8b8b;--blue:#8b8b8b;--sky:#bdbdbd;--text:#f4f5f8;--soft:#c9ccd6;--muted:#9a9eab;
+    --line:rgba(255,255,255,.07);--line-strong:rgba(255,255,255,.12);--ok:#3ad070;--danger:#ff5a6a}
+html,body{font-family:"Poppins","Montserrat","Segoe UI",Roboto,Arial,sans-serif}
+.lk{background:radial-gradient(ellipse at 50% 50%,rgba(6,8,14,.35),rgba(6,8,14,0.56))}
+.lk-panel{border:0;border-radius:4px;background:#33353e;box-shadow:0 0 0 clamp(6px,1.6vh,12px) rgba(255,255,255,.07),0 30px 80px rgba(0,0,0,.55)}
+.lk-head{border-bottom:0;background:#2a2c34}
+.lk-dot{box-shadow:0 0 0 4px rgba(139,139,139,0.2)}
+.lk-title h1{font-family:inherit;font-weight:800}
+.lk-state{border:0;background:rgba(139,139,139,0.2);color:#e7e7e7}
+.lk-state.on{background:rgba(58,208,112,.18);color:var(--ok)}
+.lk-close{border:0;background:rgba(255,255,255,.07)}
+.lk-preview{border:0;border-radius:4px;background:radial-gradient(circle at 50% 35%,rgba(139,139,139,0.25),rgba(42,44,52,0.58) 72%)}
+.lk-card{position:relative;border:0;border-radius:4px;background:linear-gradient(180deg,#4f515b,#474953);box-shadow:0 6px 16px rgba(0,0,0,.18);padding:1.4vh 14px 1.4vh 18px}
+.lk-card::before{content:"";position:absolute;left:0;top:16%;bottom:16%;width:3px;border-radius:0 3px 3px 0;background:var(--blue)}
+.lk-card h3{color:#fff}
+.lk-seg-btn,.lk-toggle{border:0;background:rgba(20,22,28,.3)}
+.lk-seg-btn.on{background:var(--blue);box-shadow:0 6px 16px rgba(139,139,139,0.35)}
+.lk-toggle.on{background:rgba(139,139,139,0.3);box-shadow:inset 0 0 0 1px rgba(139,139,139,0.7)}
+.lk-chip{border:0;background:rgba(20,22,28,.3)}
+.lk-chip:active{background:var(--blue)}
+.lk-btn{border:0;border-radius:4px;background:rgba(255,255,255,.07)}
+.lk-btn.primary{background:var(--blue);box-shadow:0 6px 16px rgba(139,139,139,0.35)}
+.lk-toast{border:0;border-radius:4px;background:rgba(22,60,38,0.62);color:#bff5d2}
+.lk-toast.err{background:rgba(70,20,26,0.62);color:#ffc9cf}
+
+/* [Crestwood] vestiaires des autres factions : tenue simple, pas d'equipement de police */
+body.lk-simple #lkToggles, body.lk-simple #lkPresets, body.lk-simple .lk-options .lk-card:nth-of-type(2),
+body.lk-simple #lkVest, body.lk-simple #lkBelt, body.lk-simple #lkHat { display: none !important; }

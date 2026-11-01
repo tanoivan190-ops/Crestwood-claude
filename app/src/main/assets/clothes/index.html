@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Crestwood · Estúdio de estilo</title><link rel="stylesheet" href="clothes.css">  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<header class="brand"><b>CW<sup>®</sup></b><span>ESTÚDIO DE ESTILO<small>CRESTWOOD ROLEPLAY</small></span></header>
+<nav id="categories" aria-label="Categorias"></nav>
+<div class="live">● PRÉVIA AO VIVO <small id="model-label"></small></div>
+<section id="camera" aria-label="Controles da câmera"><div class="eyebrow">EXPLORE SEU VISUAL <span>360°</span></div><label>Girar personagem<input id="rotation" aria-label="Girar personagem" type="range" min="0" max="360" value="0"></label><div class="zoom"><span>Aproximação</span><button id="zoom-out" aria-label="Afastar câmera">−</button><button id="zoom-in" aria-label="Aproximar câmera">+</button><button id="reset-camera">Redefinir</button></div></section>
+<main id="panel">
+<header class="heading"><div><p>SEU ESTILO, SUAS REGRAS</p><h1 id="category-title">Camisas</h1></div><button id="close" aria-label="Cancelar e fechar">×</button></header>
+<div class="body-select"><label for="body">Personagem</label><select id="body"><option value="0">Masculino · clássico</option><option value="4">Masculino · alternativo</option><option value="1">Feminino · clássico</option><option value="3">Feminino · alternativo</option><option value="2">Masculino · coleção original</option></select></div>
+<div class="tabs"><button id="catalog-mode" class="active">Coleção</button><button id="original-mode">Ajustes originais</button></div>
+<div id="status" role="status">Carregando seu guarda-roupa…</div>
+<section id="selection"><div class="eyebrow">PEÇA SELECIONADA <span id="piece-number">ORIGINAL</span></div><h2 id="piece-name">Seu visual anterior</h2><div class="stepper"><button id="previous" aria-label="Peça anterior">←</button><span id="piece-count"></span><button id="next" aria-label="Próxima peça">→</button></div></section>
+<div id="collection-title" class="eyebrow">EXPLORE A COLEÇÃO <button id="restore-piece">Visual anterior</button></div>
+<div id="items" aria-label="Peças disponíveis"></div><div id="fields"></div>
+<footer><p>As alterações aparecem no personagem em tempo real.</p><div><button id="cancel">Descartar</button><button id="save">Salvar visual <span>↗</span></button></div></footer>
+</main><div id="toast" role="status"></div>
+<script src="south/catalogue.js"></script><script src="clothes.js"></script></body></html>

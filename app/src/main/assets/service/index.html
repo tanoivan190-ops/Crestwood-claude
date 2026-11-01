@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr" data-th="green">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Service</title>
+<!--
+  Service de faction Crestwood : le panneau s'adapte au metier (medecins, mecanos, taxis, journalistes,
+  Burger Shot, concession, armee, organisation, tueurs a gages, police / FBI / gouvernement).
+  Serveur -> page : SvcApp.openFromNative(json) / SvcApp.onUpdateFromNative(json)   ("@svc" 9750-9752)
+  Page -> serveur : SampSvc.action(type, {"arg":"..."}) -> /svcact <type> <arg>   (liste blanche cote Java)
+  Vue "offer" : un vendeur (Burger Shot / concession) propose un article au joueur, qui accepte ou refuse.
+-->
+<link rel="stylesheet" href="crestwood-ui.css">
+<style>
+  .top .duty { cursor: pointer; }
+  .top .duty i { width: 9px; height: 9px; border-radius: 50%; background: #7e7e7e; box-shadow: 0 0 0 3px rgba(126,126,126,0.2); }
+  .top .duty.on { border-color: rgba(133,133,133,0.6); }
+  .top .duty.on i { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .view { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 1.4vw; }
+  .col { display: flex; flex-direction: column; min-height: 0; padding: 1.8vh 1.3vw; gap: 1.2vh; }
+  .hero { flex: none; display: flex; align-items: center; gap: 12px; padding: 1.2vh 12px; border-radius: 4px;
+    background: linear-gradient(100deg, rgba(128, 128, 128, 0.22), rgba(255,255,255,.02)); background: linear-gradient(100deg, color-mix(in srgb, var(--c) 22%, transparent), rgba(255,255,255,.02)) /*cw*/; border: 1px solid rgba(128, 128, 128, 0.22); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent) /*cw*/; }
+  .hero .badge { flex: none; width: 9vh; width: clamp(38px, 9vh, 50px) /*cw*/; aspect-ratio: 1; border-radius: 4px; display: grid; place-items: center; background: rgba(128, 128, 128, 0.22); background: color-mix(in srgb, var(--c) 28%, rgba(0,0,0,.3)) /*cw*/; height: 9vh; /*cw*/ }
+  .hero .badge svg { width: 58%; height: 58%; fill: var(--c); }
+  .hero b { display: block; font-size: 3.2vh; font-size: clamp(13px, 3.2vh, 17px) /*cw*/; font-weight: 900; }
+  .hero small { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .hero .stat { margin-left: auto; text-align: right; }
+  .hero .stat b { font-size: 3.6vh; font-size: clamp(14px, 3.6vh, 19px) /*cw*/; color: var(--c); font-variant-numeric: tabular-nums; }
+  .sec { flex: none; font-size: 10.5px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; margin-top: .4vh; }
+  .list { display: grid; gap: 6px; align-content: start; }
+  .row { display: flex; align-items: center; gap: 10px; padding: .9vh 10px; border-radius: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06); }
+  .row .av { flex: none; width: 32px; height: 32px; border-radius: 4px; display: grid; place-items: center; font-size: 12px; font-weight: 900; background: rgba(128, 128, 128, 0.22); background: color-mix(in srgb, var(--c) 22%, transparent) /*cw*/; color: var(--c); }
+  .row .t { flex: 1; min-width: 0; }
+  .row .t b { display: block; font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .t small { display: block; font-size: 11px; color: var(--muted); }
+  .row .acts { flex: none; display: flex; gap: 6px; }
+  .bar { height: 5px; margin-top: 4px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--green); }
+  .bar i.low { background: var(--red); } .bar i.mid { background: var(--gold); }
+  .mini { height: 32px; padding: 0 12px; border-radius: 3px; font-size: 11.5px; font-weight: 800; border: 1px solid rgba(133,133,133,0.5); background: rgba(133,133,133,0.12); color: #e9fff4; white-space: nowrap; }
+  .mini.ghost { border-color: var(--line-strong); background: rgba(255,255,255,.06); }
+  .mini.red { border-color: rgba(255,77,77,.55); background: rgba(255,77,77,.14); }
+  .mini.gold { border-color: rgba(245,196,81,.6); background: rgba(245,196,81,.14); }
+  .mini:active { transform: scale(.94); }
+  .mini:disabled { opacity: .4; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, min17vw); grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 17vw, 168px), 1fr)) /*cw*/; gap: 8px; }
+  .item { display: flex; flex-direction: column; gap: 4px; padding: 1.1vh 11px; border-radius: 4px; text-align: left; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07); }
+  .item b { font-size: 12.5px; font-weight: 800; }
+  .item small { font-size: 11px; color: var(--muted); }
+  .item .p { font-size: 13px; font-weight: 900; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .item.on { border-color: var(--c); background: rgba(128, 128, 128, 0.22); background: color-mix(in srgb, var(--c) 14%, transparent) /*cw*/; box-shadow: 0 0 0 1px var(--c) inset; }
+  .item:active { transform: scale(.97); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { height: 32px; padding: 0 12px; border-radius: 3px; font-size: 11.5px; font-weight: 800; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--muted); }
+  .chip.on { color: #ffffff; background: linear-gradient(145deg, var(--green), var(--green-deep)); border-color: transparent; }
+  .inline { display: flex; gap: 8px; align-items: center; }
+  .note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .big { font-size: 6vh; font-size: clamp(20px, 6vh, 34px) /*cw*/; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .meter { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 1.2vh 14px; border-radius: 4px; background: rgba(0,0,0,.25); border: 1px solid var(--line); }
+  .live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 900; letter-spacing: .1em; color: #ff8a3d; }
+  .live i { width: 9px; height: 9px; border-radius: 50%; background: #ff8a3d; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  textarea.field { height: auto; min-height: 64px; padding: 10px 14px; border-radius: 4px; resize: none; line-height: 1.4; }
+  textarea { font: inherit; color: inherit; }
+  .offer { margin: auto; width: 92vw; width: min(92vw, 460px) /*cw*/; max-height: 100%; overflow-y: auto; padding: 2.2vh 22px; display: flex; flex-direction: column; align-items: center; gap: 1vh; text-align: center; }
+  .offer .badge { flex: none; width: 12vh; width: clamp(44px, 12vh, 64px) /*cw*/; height: 12vh; height: clamp(44px, 12vh, 64px) /*cw*/; border-radius: 4px; display: grid; place-items: center; background: rgba(128, 128, 128, 0.22); background: color-mix(in srgb, var(--c) 26%, transparent) /*cw*/; }
+  .offer .badge svg { width: 56%; height: 56%; fill: var(--c); }
+  .offer h2 { font-size: 4vh; font-size: clamp(16px, 4vh, 21px) /*cw*/; font-weight: 900; }
+  .offer p { font-size: 13px; color: var(--muted); }
+  .offer .price { font-size: 5.6vh; font-size: clamp(20px, 5.6vh, 30px) /*cw*/; font-weight: 900; color: var(--gold); }
+  .offer .row2 { display: flex; gap: 10px; margin-top: .6vh; }
+  .ttl { font-size: 11px; color: var(--muted); }
+  .offer .foot { font-size: 11px; }
+  @media (max-width: 760px) { .view { grid-template-columns: 1fr; } .col.side { display: none; } }
+</style>
+<link rel="stylesheet" href="../common/crestwood-theme.css" />
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="t0" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-9 10c0-5 4-8 9-8s9 3 9 8H3Z"/></symbol>
+    <symbol id="t1" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm0 5 1.3 2.7 3 .4-2.2 2.1.5 3L12 13.8l-2.6 1.4.5-3-2.2-2.1 3-.4L12 7Z"/></symbol>
+    <symbol id="t2" viewBox="0 0 24 24"><path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7V2Z"/></symbol>
+    <symbol id="t3" viewBox="0 0 24 24"><path d="M3 5h14v14H3V5Zm16 3 3-2v12l-3-2V8ZM6 9v2h8V9H6Zm0 4v2h5v-2H6Z"/></symbol>
+    <symbol id="t4" viewBox="0 0 24 24"><path d="m12 2 10 5v2H2V7l10-5ZM4 10h3v8H4v-8Zm6.5 0h3v8h-3v-8ZM17 10h3v8h-3v-8ZM2 19h20v3H2v-3Z"/></symbol>
+    <symbol id="t5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm-1 2h2v4h4v2h-4v4h-2v-4H7v-2h4V7Z"/></symbol>
+    <symbol id="t7" viewBox="0 0 24 24"><path d="M21 7.5a5.5 5.5 0 0 1-7.4 5.2l-7.4 7.4a2 2 0 0 1-2.8-2.8l7.4-7.4A5.5 5.5 0 0 1 17.9 2l-3.2 3.2.6 3.4 3.4.6L21.9 6c-.6.5-.9 1-.9 1.5Z"/></symbol>
+    <symbol id="t8" viewBox="0 0 24 24"><path d="M12 2c3 0 6 2 6 6v3h2v11H4V11h2V8c0-4 3-6 6-6Zm0 2c-2 0-4 1.3-4 4v3h8V8c0-2.7-2-4-4-4Zm0 10a2 2 0 0 0-1 3.7V20h2v-2.3A2 2 0 0 0 12 14Z"/></symbol>
+    <symbol id="t9" viewBox="0 0 24 24"><path d="M12 2 3 6v2h18V6l-9-4ZM4 9l2 13h12l2-13H4Zm8 2 1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 17.2l-2.5 1.4.6-2.8L8 13.9l2.8-.3L12 11Z"/></symbol>
+    <symbol id="t10" viewBox="0 0 24 24"><path d="M5 11 6.6 6.5A2 2 0 0 1 8.5 5h7a2 2 0 0 1 1.9 1.5L19 11a2 2 0 0 1 2 2v4h-2v2h-3v-2H8v2H5v-2H3v-4a2 2 0 0 1 2-2Zm2.1 0h9.8l-1.2-3.5H8.3L7.1 11ZM6.5 15a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm11 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></symbol>
+    <symbol id="t11" viewBox="0 0 24 24"><path d="M3 10c0-4 4-7 9-7s9 3 9 7H3Zm-1 2h20v2H2v-2Zm1 4h18c0 3-2 5-5 5H8c-3 0-5-2-5-5Z"/></symbol>
+    <symbol id="t12" viewBox="0 0 24 24"><path d="M9 2h6l1 3h1.5a2 2 0 0 1 1.9 1.5L21 11a2 2 0 0 1 1 1.7V18h-2v2h-3v-2H7v2H4v-2H2v-5.3A2 2 0 0 1 3 11l1.6-4.5A2 2 0 0 1 6.5 5H8l1-3Zm-2 7h10l-.8-2H7.8L7 9Zm-.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm11 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  </defs>
+</svg>
+
+<main class="app" id="app" hidden>
+  <header class="top">
+    <button class="round" id="close" type="button" aria-label="Fermer"><svg><use href="#i-x"/></svg></button>
+    <img class="brand" src="../hud/crestwood-roleplay.png" alt="Crestwood RP">
+    <div class="title"><h1 id="tTitle">Service</h1><small id="tSub">Crestwood</small></div>
+    <button class="pill duty" id="duty" type="button" hidden><i></i><b id="dutyTxt">Hors service</b></button>
+    <div class="pill"><small>Liquide</small><b id="cash" class="num">0 FCFA</b></div>
+  </header>
+  <section class="view" id="view"></section>
+  <div class="toast" id="toast" role="status" hidden></div>
+</main>
+<script src="service.js"></script>
+</body>
+</html>

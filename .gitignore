@@ -1,7 +1,6 @@
 build/
 .gradle/
 .idea/
-app/src/main/assets/
 app/src/main/jniLibs/
 DATA_MAPPINGS/
 *.apk

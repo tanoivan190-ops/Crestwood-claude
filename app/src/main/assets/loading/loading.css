@@ -1,0 +1,157 @@
+/* ==========================================================================
+   Crestwood Roleplay : écran de chargement (thème NOIR & BLANC, verre transparent)
+   Fond : scenes/crestwood-loading.webp (affiche CREST WOOD RP, le mec sur la voiture)
+   La page sert au launcher (installation des données) ET en jeu (connexion au serveur).
+   ========================================================================== */
+
+:root{
+  color-scheme:dark;
+  --ink:#050506;
+  --white:#ffffff;
+  --soft:rgba(255,255,255,.72);
+  --muted:rgba(255,255,255,.55);
+  --line:rgba(255,255,255,.18);
+  --glass:rgba(255,255,255,.07);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--ink);color:#fff;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+
+/* ---------- Fond ---------- */
+.screen{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;
+  padding:max(12px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+.bg,.bg-fill,.light,.vignette{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none}
+/* calque flou plein ecran (remplit les cotes) */
+.bg-fill{z-index:-4;background:url("scenes/crestwood-loading.webp") center/cover no-repeat var(--ink);
+  filter:blur(18px) brightness(.45);transform:scale(1.15)}
+/* affiche nette, placee en haut pour que le logo reste au-dessus du panneau */
+.bg{z-index:-3;background:url("scenes/crestwood-loading.webp") center top/auto 74% no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,#000 60%,transparent 75%);mask-image:linear-gradient(180deg,#000 60%,transparent 75%);
+  transform-origin:50% 30%;animation:kenburns 24s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.05)}}
+/* reflet lumineux qui balaie lentement l'affiche */
+.light{z-index:-2;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.07) 48%,transparent 60%);
+  background-size:300% 100%;animation:glint 9s ease-in-out infinite}
+@keyframes glint{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+.vignette{z-index:-1;background:
+  linear-gradient(0deg,rgba(0,0,0,.85) 0,rgba(0,0,0,.35) 26%,transparent 45%),
+  linear-gradient(180deg,rgba(0,0,0,.55),transparent 22%),
+  radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.55) 100%)}
+
+/* ---------- Couleurs selon l'état (data-state posé par le JS) ---------- */
+.card{--a:#ffffff;--glow:rgba(255,255,255,.45);--ring:rgba(255,255,255,.16)}
+.card[data-state=ready]{--a:#7dffb0;--glow:rgba(125,255,176,.45);--ring:rgba(125,255,176,.18)}
+.card[data-state=permission]{--a:#ffd27a;--glow:rgba(255,210,122,.45);--ring:rgba(255,210,122,.18)}
+.card[data-state=error]{--a:#ff6b7d;--glow:rgba(255,107,125,.45);--ring:rgba(255,107,125,.18)}
+
+/* ---------- Panneau en verre (bas de l'écran, le logo reste visible au-dessus) ---------- */
+.card{width:100%;max-width:1100px;margin:0 auto;padding:clamp(10px,2.6vh,16px) clamp(14px,2.4vw,22px);
+  border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+  backdrop-filter:blur(16px) saturate(120%);-webkit-backdrop-filter:blur(16px) saturate(120%);
+  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px rgba(255,255,255,.14);
+  animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+.row{display:flex;align-items:center;gap:clamp(10px,2vw,22px)}
+
+.head{flex:1 1 auto;min-width:0}
+.head-top{display:flex;align-items:center;gap:10px;min-width:0}
+.chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;margin:0;padding:2px 10px;border:1px solid var(--line);border-radius:999px;
+  background:var(--glass);font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--glow)}
+h1{margin:0;font-size:clamp(15px,4.6vh,22px);line-height:1.15;font-weight:800;letter-spacing:.02em;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.message{margin:3px 0 0;font-size:11px;line-height:1.4;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.percent{flex:0 0 auto;font-size:clamp(24px,8vh,40px);font-weight:900;line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 26px var(--glow)}
+
+/* ---------- Étapes : 4 petites pastilles reliées ---------- */
+.steps{display:flex;flex:0 1 300px;margin:0;padding:0;list-style:none}
+.steps li{position:relative;display:flex;flex:1;flex-direction:column;align-items:center;gap:4px;min-width:0;
+  font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4);transition:color .3s}
+.steps li::before{content:"";position:absolute;top:8px;right:50%;width:100%;height:1px;background:rgba(255,255,255,.16);transition:background .3s}
+.steps li:first-child::before{display:none}
+.steps i{position:relative;z-index:1;display:grid;place-items:center;width:17px;height:17px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.6);color:rgba(255,255,255,.6);font-size:8.5px;font-weight:700;font-style:normal;transition:all .3s}
+.steps span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steps li.active{color:#fff}
+.steps li.active i{border-color:var(--a);background:var(--a);color:#000;box-shadow:0 0 0 4px var(--ring),0 0 14px var(--glow)}
+.steps li.active::before,.steps li.done::before{background:rgba(255,255,255,.7)}
+.steps li.done{color:var(--soft)}
+.steps li.done i{border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.14);font-size:0}
+.steps li.done i::after{content:"";width:7px;height:4px;margin-top:-2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
+
+/* ---------- Barre de progression ---------- */
+.track{position:relative;height:5px;margin:clamp(8px,2.2vh,12px) 0;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.12)}
+.bar{position:relative;width:0;height:100%;border-radius:inherit;
+  background:linear-gradient(90deg,rgba(255,255,255,.55),var(--a));box-shadow:0 0 12px var(--glow);
+  transition:width .25s cubic-bezier(.2,.8,.2,1)}
+.shine{position:absolute;top:0;right:0;bottom:0;left:0;border-radius:inherit;
+  background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.7) 49%,transparent 64%);
+  transform:translateX(-120%);animation:sweep 2s linear infinite}
+.card[data-state=ready] .shine,.card[data-state=error] .shine,.card[data-state=permission] .shine{display:none}
+.track.busy .bar{width:30%!important;animation:busy 1.4s ease-in-out infinite alternate}
+@keyframes busy{from{transform:translateX(0)}to{transform:translateX(233%)}}
+@keyframes sweep{to{transform:translateX(120%)}}
+
+/* ---------- Ligne du bas : état + octets/vitesse + boutons ---------- */
+.foot{align-items:flex-start}
+.status{display:flex;flex:1 1 auto;align-items:flex-start;gap:9px;min-width:0}
+.status-dot{flex:0 0 auto;width:7px;height:7px;margin-top:4px;border-radius:50%;background:var(--a);box-shadow:0 0 0 3px var(--ring),0 0 10px var(--glow);animation:pulse 1.8s ease-in-out infinite}
+.card[data-state=ready] .status-dot,.card[data-state=error] .status-dot{animation:none}
+.status p{margin:0;min-width:0}
+.status b{display:block;font-size:11.5px;font-weight:700;color:#fff}
+.status span{display:block;margin-top:1px;font-size:10px;line-height:1.4;color:var(--muted)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px transparent,0 0 10px var(--glow)}}
+.meta{display:flex;flex:0 0 auto;flex-direction:column;align-items:flex-end;gap:1px;font-size:10px;color:var(--soft);text-align:right;font-variant-numeric:tabular-nums}
+.meta span:empty{display:none}
+
+/* ---------- Boutons (Entrer en jeu / Réessayer) : verre transparent ---------- */
+.actions{display:flex;flex:0 0 auto;gap:8px}
+.actions:not(:has(.btn:not([hidden]))){display:none}
+.btn{padding:8px 20px;border:1px solid rgba(255,255,255,.75);border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.35);
+  color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.btn[hidden]{display:none}
+.btn:active{transform:scale(.96);background:rgba(255,255,255,.32)}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* ---------- Lecteur de musique (haut droite, verre) ---------- */
+.player{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));z-index:5;
+  display:flex;align-items:center;gap:10px;max-width:min(420px,56vw);padding:5px 8px 5px 14px;
+  border:1px solid var(--line);border-radius:999px;background:rgba(0,0,0,.28);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
+.track-title{min-width:0;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;letter-spacing:.06em;color:var(--soft)}
+.track-title::before{content:"♪ ";color:#fff}
+.player-controls{display:flex;align-items:center;gap:2px}
+.pbtn{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:transparent;color:#fff;opacity:.9}
+.pbtn svg{width:15px;height:15px;fill:currentColor}
+.pbtn:active{transform:scale(.88);background:rgba(255,255,255,.18)}
+#vol{-webkit-appearance:none;appearance:none;width:70px;height:22px;margin:0 4px;background:transparent;outline:0}
+#vol::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,#fff var(--v,50%),rgba(255,255,255,.25) var(--v,50%))}
+#vol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.6)}
+
+/* ---------- Petits écrans ---------- */
+@media (max-width:700px){
+  .steps{display:none}
+  .meta{display:none}
+  .player{max-width:70vw}
+  .track-title{max-width:120px}
+}
+@media (max-height:440px){
+  .card{padding:9px 16px;border-radius:14px}
+  .message,.status span{display:none}
+  .track{margin:7px 0}
+  .percent{font-size:28px}
+  .steps span{display:none}
+  .steps{flex-basis:170px}
+  .meta{flex-direction:row;gap:12px}
+}
+
+/* Accessibilité : pas d'animation si l'utilisateur les désactive */
+@media (prefers-reduced-motion:reduce){
+  .bg,.light,.shine,.status-dot,.card{animation:none}
+  .track.busy .bar{animation-duration:3s}
+}

@@ -1,0 +1,86 @@
+/* Inventaire Crestwood v2 : panneaux noirs translucides, centre degage (le personnage reste visible) */
+:root{ --bg:rgba(0,0,0,0.496); --bg2:rgba(0,0,0,.42); --cell:rgba(0,0,0,.34); --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.22);
+  --text:#f4f4f4; --soft:#c8c8c8; --muted:#8e8e8e; --ok:#3ad070; --err:#ff5a6a; --acc:#ffffff;
+  --font:"Inter","Poppins","Segoe UI",Roboto,Arial,sans-serif; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;font-family:var(--font);color:var(--text);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.iv{position:fixed;inset:0;display:grid;grid-template-columns:clamp(120px,17vw,190px) minmax(0,1fr) clamp(170px,23vw,250px);gap:clamp(8px,1.6vw,18px);
+  padding:clamp(10px,3vh,24px) clamp(10px,2vw,22px);background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.12) 30%,rgba(0,0,0,.12) 70%,rgba(0,0,0,.55));animation:in .2s ease-out}
+@keyframes in{from{opacity:0}to{opacity:1}}
+
+/* ---------- gauche : joueur + raccourcis ---------- */
+.iv-left{display:flex;gap:10px;min-height:0}
+.iv-me{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center}
+.iv-av{width:clamp(40px,11vh,64px);height:clamp(40px,11vh,64px);border-radius:50%;display:grid;place-items:center;background:#fff;color:#111;font-weight:900;font-size:clamp(16px,4.6vh,26px);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.iv-me>b{margin-top:6px;font-size:clamp(10px,2.6vh,13px)}
+.iv-me>small{font-size:clamp(8px,2.1vh,10.5px);color:var(--soft)}
+.iv-money{display:flex;align-items:center;gap:6px;margin-top:clamp(8px,3vh,18px)}
+.iv-coin{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--soft);display:grid;place-items:center;font-size:9px;font-weight:900;color:var(--soft)}
+.iv-money b{font-size:clamp(9px,2.3vh,11.5px)}
+.iv-wt{font-size:clamp(7.5px,1.9vh,9.5px)!important;color:var(--muted)!important}
+.iv-wt b{color:var(--text)}
+.iv-quick{display:flex;align-items:center;gap:6px;border-left:1px solid var(--line);padding-left:8px}
+.iv-vlabel{writing-mode:vertical-rl;transform:rotate(180deg);font-size:clamp(7.5px,1.9vh,9.5px);color:var(--soft);letter-spacing:.06em}
+.iv-qslots{display:flex;flex-direction:column;gap:clamp(4px,1.4vh,9px)}
+.qs{position:relative;width:clamp(38px,10.5vh,58px);height:clamp(38px,10.5vh,58px);border-radius:4px;background:var(--cell);border:1px solid var(--line);display:grid;place-items:center}
+.qs img{width:62%;height:62%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.48))}
+.qs .n{position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:17px;height:17px;border-radius:4px;background:#fff;color:#111;font-size:10px;font-weight:900;display:grid;place-items:center}
+.qs .c{position:absolute;left:4px;top:2px;font-size:8.5px;color:var(--soft)}
+.qs.target{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+
+/* ---------- centre : onglets + grille ---------- */
+.iv-center{display:flex;flex-direction:column;min-width:0;min-height:0}
+.iv-tabs{display:flex;align-items:center;gap:clamp(8px,1.6vw,16px);padding-bottom:clamp(6px,1.6vh,10px);border-bottom:1px solid var(--line)}
+.iv-tab{font-size:clamp(10px,2.6vh,13px);font-weight:800;color:var(--muted);padding:4px 2px;position:relative}
+.iv-tab.on{color:var(--text)}
+.iv-tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;background:#fff;border-radius:2px}
+.iv-badge{display:inline-grid;place-items:center;min-width:15px;height:15px;padding:0 4px;border-radius:4px;background:#fff;color:#111;font-size:9px;font-weight:900;margin-left:3px}
+.iv-weight{margin-left:auto;display:flex;align-items:baseline;gap:6px}
+.iv-bar{width:clamp(70px,14vw,170px);height:3px;border-radius:2px;background:rgba(255,255,255,.12);align-self:center;overflow:hidden}
+.iv-bar i{display:block;height:100%;width:0;background:#fff;transition:width .3s}
+.iv-bar.heavy i{background:var(--err)}
+.iv-weight b{font-size:clamp(11px,2.9vh,15px)}
+.iv-weight small{font-size:clamp(8px,2vh,10px);color:var(--soft)}
+.iv-grid{flex:1;min-height:0;margin-top:clamp(6px,1.8vh,12px);display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:clamp(3px,.8vh,6px);overflow-y:auto;scrollbar-width:none}
+.iv-grid::-webkit-scrollbar{display:none}
+.cell{position:relative;aspect-ratio:1/1;max-height:100%;border-radius:4px;background:var(--cell);border:1px solid var(--line);display:grid;place-items:center;transition:background .15s,border-color .15s}
+.cell img{width:58%;height:58%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.52))}
+.cell .q{position:absolute;left:5px;top:3px;font-size:clamp(7.5px,1.9vh,9.5px);color:var(--soft);font-weight:700}
+.cell .w{position:absolute;right:5px;bottom:3px;font-size:clamp(7px,1.7vh,8.5px);color:var(--muted)}
+.cell.filled:active{transform:scale(.97)}
+.cell.sel{border-color:#fff;background:rgba(255,255,255,.12)}
+.iv-note{margin-top:6px;text-align:center;font-size:clamp(8px,2vh,10px);color:var(--muted);min-height:1em}
+
+/* ---------- droite : detail ---------- */
+.iv-right{position:relative;display:flex;flex-direction:column;min-height:0}
+.iv-close{position:absolute;right:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-size:14px;z-index:2}
+.iv-detail{flex:1;min-height:0;margin-top:40px;display:flex;flex-direction:column;gap:clamp(6px,1.6vh,10px);padding:clamp(10px,2.4vh,16px);border-radius:4px;background:var(--bg);border:1px solid var(--line);overflow-y:auto;scrollbar-width:none}
+.iv-detail::-webkit-scrollbar{display:none}
+.d-empty{margin:auto;text-align:center;font-size:clamp(9px,2.3vh,11.5px);color:var(--muted);line-height:1.5}
+.d-img{height:clamp(54px,16vh,96px);display:grid;place-items:center;border-radius:4px;background:rgba(255,255,255,.04)}
+.d-img img{height:80%;width:auto;max-width:80%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.48))}
+.d-name{font-size:clamp(11px,2.9vh,15px);font-weight:800}
+.d-meta{font-size:clamp(8px,2vh,10px);color:var(--muted)}
+.d-desc{font-size:clamp(8.5px,2.1vh,10.5px);color:var(--soft);line-height:1.4}
+.d-qty{display:flex;align-items:center;gap:8px}
+.d-qty button{width:28px;height:28px;border-radius:4px;background:rgba(255,255,255,.08);font-weight:900}
+.d-qty b{min-width:26px;text-align:center}
+.d-qty small{margin-left:auto;color:var(--muted);font-size:10px}
+.btn{width:100%;padding:clamp(6px,1.8vh,10px);border-radius:4px;font-size:clamp(9px,2.4vh,12px);font-weight:800;background:rgba(255,255,255,.08);border:1px solid var(--line)}
+.btn.main{background:#fff;color:#111;border-color:#fff}
+.btn.red{color:#ffb3bb;border-color:rgba(255,90,106,.35)}
+.btn:disabled{opacity:.35}
+.d-slots{display:flex;gap:5px}
+.d-slots button{flex:1;padding:5px 0;border-radius:4px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:10px;font-weight:800}
+.d-slots button.on{background:#fff;color:#111}
+.d-lbl{font-size:clamp(8px,2vh,10px);color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.d-people{display:flex;flex-direction:column;gap:5px}
+.d-people button{display:flex;justify-content:space-between;padding:7px 9px;border-radius:4px;background:rgba(255,255,255,.06);font-size:11px;font-weight:700}
+.d-people button small{color:var(--muted)}
+
+.iv-toast{position:fixed;left:50%;bottom:clamp(10px,3vh,22px);transform:translateX(-50%) translateY(10px);padding:7px 14px;border-radius:4px;background:rgba(0,0,0,0.656);border:1px solid var(--line2);font-size:clamp(9px,2.3vh,11.5px);opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
+.iv-toast.show{opacity:1;transform:translateX(-50%)}
+.iv-toast.err{border-color:rgba(255,90,106,.5);color:#ffc5cc}
+
+@media (max-width:620px){ .iv{grid-template-columns:clamp(96px,22vw,140px) minmax(0,1fr) clamp(150px,30vw,200px)} .iv-me{display:none} }

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Services</title>
+<!--
+  Services Crestwood : station-service (vue "fuel") et location de vehicules (vue "rent").
+  Serveur -> page : SvcApp.openFromNative(json) / SvcApp.onUpdateFromNative(json)  (dialogues "@svc" 9810/9811, 9812 = fermer)
+  Page -> serveur : SampSvc.action("fill"|"rent"|"rentend", {"arg":"..."}) -> /svcact ...
+-->
+<style>
+:root{--bg:rgba(0,0,0,0.528);--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--text:#f4f4f4;--soft:#c8c8c8;--muted:#8e8e8e;--ok:#3ad070;--err:#ff5a6a;--amber:#ffb84d;
+  --font:"Inter","Poppins","Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;font-family:var(--font);color:var(--text);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.ov{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(0,0,0,.2),rgba(0,0,0,0.48));animation:f .2s}
+@keyframes f{from{opacity:0}to{opacity:1}}
+.panel{width:min(94vw,760px);max-height:92vh;display:flex;flex-direction:column;border-radius:4px;background:var(--bg);border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,0.48);overflow:hidden}
+.head{display:flex;align-items:center;gap:12px;padding:clamp(10px,2.6vh,16px) clamp(14px,2vw,20px);border-bottom:1px solid var(--line)}
+.ic{width:clamp(34px,8vh,44px);height:clamp(34px,8vh,44px);border-radius:4px;display:grid;place-items:center;background:rgba(255,255,255,.08)}
+.ic svg{width:60%;height:60%;fill:#fff}
+.head h1{font-size:clamp(14px,3.8vh,19px);font-weight:800}
+.head p{font-size:clamp(9px,2.3vh,11.5px);color:var(--soft)}
+.x{margin-left:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07)}
+.body{flex:1;min-height:0;overflow-y:auto;padding:clamp(10px,2.6vh,18px) clamp(14px,2vw,20px);display:flex;flex-direction:column;gap:clamp(8px,2vh,14px);scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.wallet{display:flex;gap:8px}
+.wallet div{flex:1;padding:8px 12px;border-radius:4px;background:var(--card)}
+.wallet small{display:block;font-size:9.5px;color:var(--muted)}
+.wallet b{font-size:clamp(11px,2.8vh,14px)}
+.gauge{padding:clamp(10px,2.4vh,14px);border-radius:4px;background:var(--card)}
+.gauge .top{display:flex;justify-content:space-between;align-items:baseline;font-size:clamp(10px,2.6vh,13px);font-weight:700}
+.gauge .top b{font-size:clamp(16px,4.6vh,24px)}
+.bar{position:relative;height:10px;margin-top:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#fff;transition:width .3s}
+.bar i.add{background:var(--ok);opacity:.55}
+.bar i.low{background:var(--err)}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.opt{padding:clamp(8px,2vh,12px) 6px;border-radius:4px;background:var(--card);border:1px solid var(--line);text-align:center}
+.opt b{display:block;font-size:clamp(11px,2.8vh,14px)}
+.opt small{font-size:9.5px;color:var(--muted)}
+.opt.on{background:#fff;color:#111;border-color:#fff}
+.opt.on small{color:#555}
+.opt:disabled{opacity:.3}
+.pay{display:flex;gap:8px}
+.btn{flex:1;padding:clamp(9px,2.4vh,13px);border-radius:4px;font-size:clamp(10px,2.6vh,13px);font-weight:800;background:rgba(255,255,255,.08);border:1px solid var(--line)}
+.btn.main{background:#fff;color:#111;border-color:#fff}
+.btn:disabled{opacity:.35}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.veh{display:flex;flex-direction:column;gap:4px;padding:clamp(10px,2.4vh,14px);border-radius:4px;background:var(--card);border:1px solid var(--line);text-align:left}
+.veh b{font-size:clamp(11px,2.8vh,14px)}
+.veh small{font-size:10px;color:var(--muted)}
+.veh .p{margin-top:4px;font-weight:800}
+.veh.on{border-color:#fff;background:rgba(255,255,255,.12)}
+.note{font-size:clamp(9px,2.2vh,11px);color:var(--muted);text-align:center}
+.active{padding:12px;border-radius:4px;background:rgba(58,208,112,.1);border:1px solid rgba(58,208,112,.3);display:flex;align-items:center;gap:10px;font-size:12px}
+.active .btn{flex:none;padding:8px 14px}
+.toast{position:fixed;left:50%;bottom:4vh;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,0.68);border:1px solid var(--line);font-size:12px;opacity:0;transition:.2s;pointer-events:none}
+.toast.show{opacity:1}.toast.err{color:#ffc5cc;border-color:rgba(255,90,106,.5)}
+.hidden{display:none!important}
+</style>
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<main class="ov">
+  <section class="panel">
+    <header class="head">
+      <div class="ic" id="ic"></div>
+      <div><h1 id="title">Services</h1><p id="sub"></p></div>
+      <button class="x" id="close" type="button" aria-label="Fermer">&#10005;</button>
+    </header>
+    <div class="body" id="body"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  "use strict";
+  const bridge = window.SampSvc || null;
+  const $ = (id) => document.getElementById(id);
+  const ICONS = {
+    fuel: '<svg viewBox="0 0 24 24"><path d="M4 3h10a1 1 0 0 1 1 1v8h1.5a2 2 0 0 1 2 2v4a1 1 0 0 0 2 0V9.4l-2.7-2.7 1.4-1.4 3.3 3.3V18a3 3 0 0 1-6 0v-4H15v7H3V4a1 1 0 0 1 1-1Zm1 2v5h8V5H5Z"/></svg>',
+    rent: '<svg viewBox="0 0 24 24"><path d="M7 14a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm5.6-4H22v4h-2v2h-3v-2h-4.4a5.5 5.5 0 1 1 0-4Z"/></svg>'
+  };
+  const S = { view: "", d: {}, pick: 100, model: 0, bank: 0 };
+  const money = (v) => (Math.max(0, Math.floor(Number(v) || 0))).toLocaleString("fr-FR") + " FCFA";
+  function send(t, a) { if (!bridge || typeof bridge.action !== "function") { console.log("[svc]", t, a); return; } try { bridge.action(t, JSON.stringify({ arg: a == null ? "" : String(a) })); } catch (_) {} }
+  let tt = 0;
+  function toast(m, ok) { if (!m) return; const t = $("toast"); t.textContent = m; t.className = "toast show" + (ok ? "" : " err"); clearTimeout(tt); tt = setTimeout(() => { t.className = "toast"; }, 2600); }
+  function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function wallet(b) {
+    const w = el("div", "wallet", "<div><small>Liquide</small><b>" + money(S.d.cash) + "</b></div><div><small>Banque</small><b>" + (Number(S.d.card) ? money(S.d.bank) : "—") + "</b></div>");
+    b.appendChild(w);
+  }
+  function payRow(b, label, enabled, fn) {
+    const r = el("div", "pay");
+    const c = el("button", "btn main", esc(label) + " · liquide"); c.type = "button"; c.disabled = !enabled;
+    c.addEventListener("click", () => { c.disabled = true; fn("cash"); });
+    const k = el("button", "btn", "Carte bancaire"); k.type = "button"; k.disabled = !enabled || !Number(S.d.card);
+    k.addEventListener("click", () => { k.disabled = true; fn("bank"); });
+    r.appendChild(c); r.appendChild(k); b.appendChild(r);
+  }
+
+  function renderFuel(b) {
+    $("ic").innerHTML = ICONS.fuel; $("title").textContent = "Station-service";
+    const d = S.d, fuel = Math.max(0, Math.min(100, Number(d.fuel) || 0)), price = Number(d.price) || 6;
+    $("sub").textContent = d.vid ? (d.veh || "Véhicule") + " · " + price + " FCFA par %" : "Gare ton véhicule à côté de la pompe";
+    wallet(b);
+    if (!Number(d.vid)) { b.appendChild(el("p", "note", "Aucun véhicule à remplir à côté de toi. Gare-le près de la pompe, descends, puis touche la main.")); return; }
+    if (Number(d.bike)) { b.appendChild(el("p", "note", "Un vélo n'a pas besoin d'essence !")); return; }
+    if (S.pick <= fuel) S.pick = 100;
+    const g = el("div", "gauge", '<div class="top"><span>Réservoir</span><b>' + Math.round(fuel) + ' %</b></div><div class="bar"><i class="add" style="width:' + S.pick + '%"></i><i class="' + (fuel < 15 ? "low" : "") + '" style="width:' + fuel + '%"></i></div>');
+    b.appendChild(g);
+    const o = el("div", "opts");
+    [25, 50, 75, 100].forEach((p) => {
+      const cost = Math.max(0, Math.ceil((p - fuel) * price));
+      const btn = el("button", "opt" + (S.pick === p ? " on" : ""), "<b>" + (p === 100 ? "Le plein" : p + " %") + "</b><small>" + (p > fuel + 0.5 ? money(cost) : "déjà atteint") + "</small>");
+      btn.type = "button"; btn.disabled = p <= fuel + 0.5;
+      btn.addEventListener("click", () => { S.pick = p; render(); });
+      o.appendChild(btn);
+    });
+    b.appendChild(o);
+    const cost = Math.max(0, Math.ceil((S.pick - fuel) * price));
+    payRow(b, "Payer " + money(cost), S.pick > fuel + 0.5, (m) => send("fill", S.pick + " " + m));
+  }
+
+  function renderRent(b) {
+    $("ic").innerHTML = ICONS.rent; $("title").textContent = "Location de véhicules";
+    const d = S.d, min = Number(d.min) || 30, list = Array.isArray(d.list) ? d.list : [];
+    $("sub").textContent = "Pour " + min + " minutes · le véhicule est rendu automatiquement";
+    wallet(b);
+    if (Number(d.active)) {
+      const left = Math.max(0, Math.floor((Number(d.left) || 0) / 60));
+      const a = el("div", "active", "<span style=\"flex:1\">Location en cours · encore " + left + " min</span>");
+      const r = el("button", "btn", "Rendre"); r.type = "button"; r.addEventListener("click", () => { r.disabled = true; send("rentend"); });
+      a.appendChild(r); b.appendChild(a);
+    }
+    const g = el("div", "list");
+    list.forEach((v) => {
+      const [model, name, price] = v;
+      const c = el("button", "veh" + (S.model === model ? " on" : ""), "<b>" + esc(name) + "</b><small>" + min + " minutes</small><span class=\"p\">" + money(price) + "</span>");
+      c.type = "button"; c.addEventListener("click", () => { S.model = model; render(); });
+      g.appendChild(c);
+    });
+    b.appendChild(g);
+    const sel = list.find((v) => v[0] === S.model);
+    payRow(b, sel ? "Louer · " + money(sel[2]) : "Choisis un véhicule", !!sel && !Number(d.active), (m) => send("rent", S.model + " " + m));
+  }
+
+  function render() {
+    const b = $("body"); b.innerHTML = "";
+    if (S.view === "fuel") renderFuel(b); else renderRent(b);
+  }
+  function apply(raw) {
+    let d = raw; if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { d = {}; } }
+    if (!d) return;
+    if (d.view) { if (d.view !== S.view) { S.pick = 100; S.model = 0; } S.view = d.view; S.d = d; }
+    render();
+    if (d.msg) toast(d.msg, Number(d.ok) === 1);
+  }
+  $("close").addEventListener("click", () => { if (bridge && typeof bridge.close === "function") { try { bridge.close(); } catch (_) {} } });
+  window.SvcApp = { openFromNative: apply, onUpdateFromNative: apply };
+  if (!bridge) {
+    const v = (location.hash || "#fuel").slice(1);
+    apply(v === "rent" ? { view: "rent", min: 30, list: [[462, "Faggio (scooter)", 150], [481, "BMX", 50], [510, "VTT", 80], [496, "Blista Compact", 600], [461, "PCJ-600", 900]], active: 0, cash: 5000, bank: 84000, card: 1 }
+      : { view: "fuel", vid: 12, veh: "Sultan", fuel: 23, price: 6, cash: 5000, bank: 84000, card: 1 });
+  }
+  try { if (bridge && typeof bridge.ready === "function") bridge.ready(); } catch (_) {}
+})();
+</script>
+</body>
+</html>

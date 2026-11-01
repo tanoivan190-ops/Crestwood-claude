@@ -1,0 +1,55 @@
+/* ==========================================================================
+   Crestwood RP - finition "pro" des panneaux (chargee en DERNIER par chaque panneau)
+   - coins carres (4 px max), filets fins, pas de halos
+   - verre sombre transparent : le jeu floute (fond natif, voir SAMP.java "fond flou") se voit derriere
+   - animations courtes et sobres (plus de rebond)
+   Le HUD, le telephone, l'ecran de chargement et l'editeur de vetements ne chargent PAS ce fichier.
+   ========================================================================== */
+:root{
+  --pro-glass: rgba(10, 12, 16, 0.62);
+  --pro-glass-2: rgba(255, 255, 255, 0.045);
+  --pro-line: rgba(255, 255, 255, 0.11);
+  --pro-line-strong: rgba(255, 255, 255, 0.22);
+  --pro-text: #f2f3f5;
+  --pro-muted: #a3a8b1;
+  --pro-radius: 3px;
+
+  /* variables du theme commun : verre plus transparent, plus de halo */
+  --cw-glass: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(10,12,16,0.62) 40%, rgba(10,12,16,0.66));
+  --cw-glow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 18px 40px rgba(0,0,0,0.35);
+  --cw-edge: linear-gradient(var(--pro-line), var(--pro-line));
+}
+
+/* la page elle-meme reste transparente : c'est le jeu floute qu'on voit autour du panneau */
+html[data-th]:not([data-flat]){
+  background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.05), rgba(0,0,0,0.30)) !important;
+}
+
+/* conteneurs principaux du theme commun : filet fin, pas de bordure degradee lumineuse */
+html[data-th] :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.frame,.glass:not(.top):not(.round)){
+  border: 1px solid var(--pro-line) !important;
+  background: var(--cw-glass) !important;
+  box-shadow: var(--cw-glow) !important;
+  animation: proIn .18s ease-out both !important;
+}
+@keyframes cwPop  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes cwRise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes proIn  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* typographie nette */
+html, body{ -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1, h2, h3, h4{ letter-spacing: 0.01em; }
+
+/* champs et boutons : carres, filet fin */
+input, select, textarea{ border-radius: var(--pro-radius); }
+input:focus, select:focus, textarea:focus{ outline: none; border-color: var(--pro-line-strong) !important; box-shadow: 0 0 0 1px var(--pro-line-strong) !important; }
+button{ border-radius: var(--pro-radius); }
+button:active:not(:disabled){ transform: scale(0.985) !important; }
+
+/* barres de defilement fines et carrees */
+::-webkit-scrollbar{ width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.22); border-radius: 0; }
+::-webkit-scrollbar-track{ background: transparent; }
+
+/* plus de reflet "brillant" anime sur les boutons du theme */
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm)::after{ display: none !important; }

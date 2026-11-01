@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Banque Crestwood</title>
+<link rel="stylesheet" href="bank.css">
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<main class="bk" id="bankContainer" style="display:none">
+  <section class="bk-panel">
+    <header class="bk-head">
+      <div class="bk-logo"><svg viewBox="0 0 24 24"><path d="M12 2 2 7v2h20V7L12 2Zm-7 9v7H3v3h18v-3h-2v-7h-3v7h-2.5v-7h-3v7H8v-7H5Z"/></svg></div>
+      <div><h1>Banque de Crestwood</h1><p>Bonjour, <b id="playerName">—</b></p></div>
+      <button class="bk-x" type="button" onclick="closeBank(false)" aria-label="Fermer">&#10005;</button>
+    </header>
+
+    <div class="bk-body">
+      <div class="bk-left">
+        <div class="bk-card">
+          <div class="bk-card-top"><span>CRESTWOOD</span><svg viewBox="0 0 24 24"><path d="M3 9a9 9 0 0 1 18 0M6.5 12a5.5 5.5 0 0 1 11 0M10 15a2 2 0 0 1 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div class="bk-chip"></div>
+          <div class="bk-num" id="cardNumber">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; ----</div>
+          <div class="bk-card-bot"><small>Solde disponible</small><b id="bankBalance">0 FCFA</b></div>
+        </div>
+        <div class="bk-cash"><small>Argent liquide sur toi</small><b id="playerCash">0 FCFA</b></div>
+        <div class="bk-actions">
+          <button type="button" onclick="openActionModal('retirer')"><svg viewBox="0 0 24 24"><path d="M12 4v12m-5-5 5 5 5-5M5 20h14"/></svg><span>Retirer</span></button>
+          <button type="button" onclick="openActionModal('deposer')"><svg viewBox="0 0 24 24"><path d="M12 20V8m-5 5 5-5 5 5M5 4h14"/></svg><span>Déposer</span></button>
+          <button type="button" onclick="openActionModal('virer')"><svg viewBox="0 0 24 24"><path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4"/></svg><span>Virement</span></button>
+        </div>
+      </div>
+      <div class="bk-right">
+        <div class="bk-sec">Dernières opérations</div>
+        <div class="bk-history" id="historyList"><div class="empty-history">Aucune opération récente</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- creation du code -->
+  <div class="bk-ov" id="registerOverlay">
+    <div class="bk-box">
+      <h2>Crée ton code secret</h2>
+      <p>4 chiffres, il te sera demandé à chaque ouverture et pour chaque opération.</p>
+      <div class="pin" id="regPinDisplay">••••</div>
+      <div class="pad" data-type="reg"></div>
+      <button class="bk-btn main" type="button" onclick="saveInitialPin()">Enregistrer le code</button>
+    </div>
+  </div>
+
+  <!-- code secret (connexion / validation) -->
+  <div class="bk-ov" id="authOverlay">
+    <div class="bk-box">
+      <h2>Code secret</h2>
+      <p id="authSubtitle">Entre ton code pour accéder au compte</p>
+      <div class="pin" id="authPinDisplay">••••</div>
+      <div class="pad" data-type="auth"></div>
+      <div class="bk-row">
+        <button class="bk-btn" id="btnAuthCancel" type="button" onclick="cancelAuth()">Annuler</button>
+        <button class="bk-btn main" id="btnAuthConfirm" type="button" onclick="confirmAuth()">Accéder au compte</button>
+      </div>
+      <button class="bk-link" type="button" onclick="closeBank(false)">Quitter la banque</button>
+    </div>
+  </div>
+
+  <!-- montant -->
+  <div class="bk-ov" id="actionModal">
+    <div class="bk-box">
+      <h2 id="modalTag">Retirer</h2>
+      <p id="modalHint"></p>
+      <input class="bk-in" id="inputPassport" type="number" inputmode="numeric" placeholder="ID du joueur">
+      <input class="bk-in" id="inputAmount" type="number" inputmode="numeric" placeholder="Montant">
+      <div class="bk-quick" id="quickAmounts"></div>
+      <div class="bk-row">
+        <button class="bk-btn" type="button" onclick="closeOverlay('actionModal')">Annuler</button>
+        <button class="bk-btn main" id="btnModalConfirm" type="button" onclick="proceedToAuth()">Continuer</button>
+      </div>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="bank.js"></script>
+</body>
+</html>

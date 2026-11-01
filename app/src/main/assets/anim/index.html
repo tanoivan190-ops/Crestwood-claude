@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr" data-th="grey">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Animations</title>
+<!--
+  Page des animations Crestwood (ouverte par le bouton « Animations » du HUD).
+  Page -> jeu    : SampAnim.action(type, {"arg":"..."})  (SAMP.java -> SampAnimBridge)
+                   types : anim <cle> | stop | close ;  SampAnim.ready() quand la page est affichee
+  Les cles sont celles de g_RpAnims (server/basicgm/basicgm1.pwn) : /rpact anim <cle> ou /rpact animstop.
+  Page volontairement legere (pas de flou, pas de grosses ombres, syntaxe compatible vieilles WebView).
+-->
+<style>
+:root{
+  --bg:#262830; --panel:#30323b; --card:#3d3f49; --card2:#484b57; --line:rgba(255,255,255,.08);
+  --text:#f4f5f8; --soft:#c9ccd6; --muted:#9a9eab;
+  --blue:#8b8b8b; --green:#3ad070; --cyan:#a6a6a6; --amber:#ffb84d; --red:#ff5a6a; --pink:#ff7ac6;
+  --font:"Poppins","Montserrat","Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;font-family:var(--font);color:var(--text);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:rgba(6,8,14,0.48)}
+.panel{width:94vw;max-width:820px;height:90vh;max-height:430px;display:flex;flex-direction:column;border-radius:4px;background:var(--panel);border:1px solid var(--line);overflow:hidden}
+.top{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg)}
+.ttl{flex:1;min-width:0}
+.ttl b{display:block;font-size:17px;font-weight:800;line-height:1.1}
+.ttl small{display:block;margin-top:2px;font-size:10.5px;color:var(--soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop{flex:none;height:36px;padding:0 14px;border-radius:4px;background:rgba(255,90,106,.18);color:#ff9aa5;font-size:12.5px;font-weight:800}
+.stop:active{background:rgba(255,90,106,.4);color:#fff}
+.close{flex:none;width:36px;height:36px;border-radius:4px;background:var(--card);font-size:18px;font-weight:800;line-height:36px;text-align:center}
+.close:active{background:var(--red)}
+.cats{flex:none;display:flex;gap:8px;padding:10px 14px 4px;overflow-x:auto;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{flex:none;height:32px;padding:0 15px;border-radius:4px;background:var(--card);font-size:12.5px;font-weight:700;color:var(--soft)}
+.chip.on{background:var(--blue);color:#fff}
+.grid{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 14px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;align-content:start;scrollbar-width:none}
+.grid::-webkit-scrollbar{display:none}
+.an{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:62px;padding:8px 6px;border-radius:4px;background:var(--card);font-size:12px;font-weight:700;text-align:center;line-height:1.15}
+.an i{font-style:normal;font-size:20px;line-height:1}
+.an:active{background:var(--card2)}
+.an.on{background:rgba(139,139,139,0.28);border:1px solid var(--blue)}
+.an.busy{opacity:.55}
+.hint{flex:none;padding:6px 14px 9px;font-size:10.5px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:14px;padding:8px 16px;border-radius:4px;background:rgba(22,60,38,0.62);color:#bff5d2;font-size:12px;font-weight:700;margin-left:-110px;width:220px;text-align:center}
+</style>
+<link rel="stylesheet" href="../common/crestwood-theme.css" />
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<div class="ov" id="ov">
+  <div class="panel" id="panel">
+    <div class="top">
+      <div class="ttl"><b>Animations</b><small id="sub">Touche une animation pour la jouer.</small></div>
+      <button type="button" class="stop" id="btnStop">Arrêter</button>
+      <button type="button" class="close" id="btnClose" aria-label="Fermer">✕</button>
+    </div>
+    <div class="cats" id="cats"></div>
+    <div class="grid" id="grid"></div>
+    <div class="hint">Impossible en véhicule ou menotté. Bouge ou appuie sur « Arrêter » pour stopper l'animation.</div>
+  </div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var bridge = window.SampAnim || null;
+
+  /* [cle, nom, categorie, icone] : les cles sont celles de g_RpAnims cote serveur */
+  var ANIMS = [
+    ["salut", "Saluer", "g", "👋"], ["pointer", "Pointer", "g", "👉"], ["crier", "Crier", "g", "📢"], ["non", "Non de la tête", "g", "🙅"],
+    ["rire", "Rire", "g", "😂"], ["bras", "Bras croisés", "g", "😐"], ["reflechir", "Réfléchir", "g", "🤔"], ["regarder", "Regarder autour", "g", "👀"],
+    ["gang1", "Signe 1", "g", "✌️"], ["gang2", "Signe 2", "g", "🤟"], ["mainsair", "Mains en l'air", "g", "🙌"],
+    ["assis", "Assis (homme)", "r", "🪑"], ["assisf", "Assise (femme)", "r", "🪑"], ["allonge", "Allongé", "r", "🛌"], ["bronzer", "Bronzer", "r", "😎"],
+    ["dormir", "Dormir", "r", "😴"], ["adosse", "Adossé", "r", "🧍"], ["fumer", "Fumer", "r", "🚬"], ["boire", "Boire", "r", "🥤"],
+    ["telephone", "Téléphoner", "r", "📱"], ["taichi", "Tai-chi", "r", "🧘"],
+    ["danse1", "Danse 1", "d", "💃"], ["danse2", "Danse 2", "d", "🕺"], ["danse3", "Danse 3", "d", "💃"], ["danse4", "Danse 4", "d", "🕺"],
+    ["danse5", "Danse 5", "d", "💃"], ["rap", "Rap", "d", "🎤"],
+    ["reparer", "Réparer", "w", "🔧"], ["fouiller", "Fouiller", "w", "🔍"], ["ordi", "Ordinateur", "w", "💻"], ["cpr", "Massage cardiaque", "w", "❤️"],
+    ["garde", "Monter la garde", "w", "🛡️"], ["blesse", "Blessé au sol", "w", "🤕"], ["peur", "Se protéger", "w", "😨"]
+  ];
+  var CATS = [["all", "Tout"], ["g", "Gestes"], ["r", "Repos"], ["d", "Danse"], ["w", "Travail"]];
+  var state = { cat: "all", cur: "", locked: false };
+  var toastTimer = 0;
+
+  function $(id) { return document.getElementById(id); }
+
+  function send(type, arg) {
+    if (!bridge || typeof bridge.action !== "function") { console.log("[anim]", type, arg); return; }
+    try { bridge.action(type, JSON.stringify({ arg: arg == null ? "" : String(arg) })); } catch (e) { }
+  }
+
+  function toast(msg) {
+    var t = document.querySelector(".toast");
+    if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); }
+    t.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 1800);
+  }
+
+  function nameOf(key) {
+    for (var i = 0; i < ANIMS.length; i++) if (ANIMS[i][0] === key) return ANIMS[i][1];
+    return "";
+  }
+
+  function renderCats() {
+    var box = $("cats");
+    box.innerHTML = "";
+    CATS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (state.cat === c[0] ? " on" : "");
+      b.textContent = c[1];
+      b.addEventListener("click", function () { state.cat = c[0]; renderCats(); renderGrid(); });
+      box.appendChild(b);
+    });
+  }
+
+  function renderGrid() {
+    var grid = $("grid");
+    grid.innerHTML = "";
+    var frag = document.createDocumentFragment();
+    ANIMS.forEach(function (a) {
+      if (state.cat !== "all" && a[2] !== state.cat) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "an" + (state.cur === a[0] ? " on" : "");
+      b.setAttribute("data-k", a[0]);
+      b.innerHTML = "<i>" + a[3] + "</i><span>" + a[1] + "</span>";
+      frag.appendChild(b);
+    });
+    grid.appendChild(frag);
+  }
+
+  function refreshSub() {
+    $("sub").textContent = state.cur ? ("En cours : " + nameOf(state.cur)) : "Touche une animation pour la jouer.";
+  }
+
+  /* le serveur ignore deux actions trop rapprochees (450 ms) : on bloque les boutons un instant */
+  function lock() {
+    state.locked = true;
+    $("grid").classList.add("busy");
+    setTimeout(function () { state.locked = false; $("grid").classList.remove("busy"); }, 520);
+  }
+
+  $("grid").addEventListener("click", function (ev) {
+    var node = ev.target;
+    while (node && node !== this && !(node.getAttribute && node.getAttribute("data-k"))) node = node.parentNode;
+    if (!node || node === this) return;
+    if (state.locked) return;
+    var key = node.getAttribute("data-k");
+    state.cur = key;
+    lock();
+    refreshSub();
+    renderGrid();
+    send("anim", key);
+    toast(nameOf(key));
+  });
+
+  $("btnStop").addEventListener("click", function () {
+    if (state.locked) return;
+    state.cur = "";
+    lock();
+    refreshSub();
+    renderGrid();
+    send("stop", "");
+  });
+
+  $("btnClose").addEventListener("click", function () { send("close", ""); });
+  $("ov").addEventListener("click", function (ev) { if (ev.target === $("ov")) send("close", ""); });
+
+  /* appele par le jeu si besoin (ex. { "cur": "danse2" }) */
+  window.AnimApp = {
+    onNative: function (raw) {
+      try {
+        var d = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (d && typeof d.cur === "string") { state.cur = d.cur; refreshSub(); renderGrid(); }
+      } catch (e) { }
+    }
+  };
+
+  renderCats();
+  renderGrid();
+  refreshSub();
+  if (bridge && typeof bridge.ready === "function") { try { bridge.ready(); } catch (e) { } }
+})();
+</script>
+</body>
+</html>

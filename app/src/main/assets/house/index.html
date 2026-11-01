@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" data-th="green">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Immobilier</title>
+<!--
+  Immobilier Crestwood : la maison devant laquelle (ou dans laquelle) se trouve le joueur + la liste des biens.
+  Serveur -> page : HouseApp.openFromNative(json) / HouseApp.onUpdateFromNative(json)   ("@house" 9730-9732)
+  Page -> serveur : SampHouse.action(type, {"arg":"..."}) -> /houseact <type> <arg>    (liste blanche cote Java)
+-->
+<link rel="stylesheet" href="crestwood-ui.css">
+<style>
+  .view { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 1.4vw; }
+  .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vh; padding: 2vh 1.4vw; text-align: center; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: 0; border-radius: 4px; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--c) 22%, transparent), transparent 62%); pointer-events: none; }
+  .house-art { position: relative; width: clamp(90px, 30vh, 150px); aspect-ratio: 1; }
+  .house-art svg { width: 100%; height: 100%; }
+  .hero h2 { position: relative; font-size: clamp(17px, 4.4vh, 24px); font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; }
+  .hero .sub { position: relative; font-size: 12px; color: var(--muted); }
+  .hero .price { position: relative; font-size: clamp(20px, 5.2vh, 28px); font-weight: 900; color: var(--gold); }
+  .hero .chips { position: relative; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .side { display: flex; flex-direction: column; gap: 1.2vh; padding: 1.8vh 1.4vw; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .fact { padding: 1vh 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
+  .fact small { display: block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .fact b { display: block; margin-top: 3px; font-size: clamp(13px, 3vh, 16px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .safe { display: flex; flex-direction: column; gap: 8px; padding: 1.2vh 12px; border-radius: 4px; border: 1px solid rgba(245, 196, 81, 0.35); background: linear-gradient(90deg, rgba(245, 196, 81, 0.1), rgba(255, 255, 255, 0.02)); }
+  .safe .row { display: flex; gap: 8px; align-items: center; }
+  .safe h3 { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); display: flex; justify-content: space-between; }
+  .hint { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .list { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; align-content: start; padding: 1.6vh 1.2vw; }
+  .card { display: flex; align-items: center; gap: 10px; padding: 1.2vh 12px; border-radius: 4px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); }
+  .card.mine { border-color: rgba(133,133,133,0.45); background: linear-gradient(90deg, rgba(133,133,133,0.12), rgba(255, 255, 255, 0.03)); }
+  .card .ic { flex: none; width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; background: rgba(163,163,163,0.15); }
+  .card.mine .ic { background: rgba(133,133,133,0.18); }
+  .card .ic svg { width: 22px; height: 22px; fill: var(--text); }
+  .card .t { flex: 1; min-width: 0; }
+  .card .t b { display: block; font-size: 13.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .t small { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
+  .mini { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--line); }
+  .mini svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .mini:active { transform: scale(0.9); background: rgba(133,133,133,0.25); }
+  .wrap-list { display: flex; flex-direction: column; }
+  .wrap-list .ph { padding: 1.6vh 1.2vw 0; }
+  /* [v15] encheres */
+  .safe.auction .quick { flex-wrap: wrap; }
+  .safe.auction .quick .chip-btn { padding: 6px 10px; font-size: 11px; }
+  .safe.auction .field { flex: 1; min-width: 0; }
+</style>
+<link rel="stylesheet" href="../common/crestwood-theme.css" />
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<main class="app" id="app" hidden>
+  <header class="top">
+    <button class="round" id="close" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <img class="brand" src="../hud/crestwood-roleplay.png" alt="Crestwood RP">
+    <div class="title"><h1>Immobilier</h1><small id="subtitle">Maisons de Crestwood</small></div>
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="door" id="tabDoor" aria-selected="true">Cette maison</button>
+      <button type="button" role="tab" data-tab="list" aria-selected="false">Biens</button>
+    </nav>
+    <div class="pill"><small>Banque</small><b id="bank">0 FCFA</b></div>
+  </header>
+
+  <section class="view" data-view="door">
+    <div class="glass hero" id="hero"></div>
+    <div class="glass side scroll" id="side"></div>
+  </section>
+
+  <section class="glass wrap-list" data-view="list" hidden>
+    <div class="ph"><span id="listTitle">Mes maisons et maisons aux enchères</span><span id="listCount"></span></div>
+    <div class="list scroll" id="list"></div>
+  </section>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card">
+      <h2 id="mTitle"></h2>
+      <p id="mText"></p>
+      <div class="row">
+        <button class="chip-btn ghost" type="button" id="mNo"><span class="ico"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>Annuler</button>
+        <button class="chip-btn" type="button" id="mYes"><span class="ico"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>Confirmer</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+</main>
+<script src="house.js"></script>
+</body>
+</html>

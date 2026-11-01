@@ -140,6 +140,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(false);
         updateWebView.addJavascriptInterface(new LauncherUpdateBridge(), "AndroidLoading");
         updateWebView.setWebViewClient(new WebViewClient() {
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                return true;
+            }
             @Override public void onPageFinished(WebView view, String url) { renderUpdateState(); }
         });
         updateOverlay.addView(updateWebView, new FrameLayout.LayoutParams(

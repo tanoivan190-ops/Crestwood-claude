@@ -189,6 +189,10 @@ public class DialogManager {
         ws.setSupportZoom(false);
         web.addJavascriptInterface(new DialogBridge(), "AndroidDialog");
         web.setWebViewClient(new WebViewClient() {
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                mWebReady = false;
+                return true;
+            }
             @Override public void onPageFinished(WebView view, String url) {
                 mWebReady = true;
                 if (mPendingJson != null && isShow) {

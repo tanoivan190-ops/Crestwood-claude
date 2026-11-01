@@ -41,6 +41,10 @@ public class LoadingScreen {
         // sans ca la WebView peint un fond BLANC tant que la page n'est pas affichee (l'"ecran blanc" du 32 bits)
         loadingWebView.setBackgroundColor(0xFF050506);
         loadingWebView.setWebViewClient(new WebViewClient() {
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                if (handler != null) handler.post(LoadingScreen.this::hide);
+                return true;
+            }
             @Override public void onPageFinished(WebView view, String url) {
                 // La data peut etre deja prete avant la fin du chargement de la page : on remet l'etat "connexion".
                 if (completed) evaluate("window.LoadingBridge&&LoadingBridge.connecting()");

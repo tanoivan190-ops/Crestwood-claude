@@ -11,13 +11,12 @@ android {
         applicationId = "com.crestwood.rp"
         minSdk = 28
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.11-crestwood"
+        versionCode = 5
+        versionName = "2.10-32bits"
 
         multiDexEnabled = true
 
         ndk {
-            abiFilters.add("arm64-v8a")
             abiFilters.add("armeabi-v7a")
         }
 

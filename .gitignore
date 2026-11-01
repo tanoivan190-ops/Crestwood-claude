@@ -1,15 +1,14 @@
 build/
 .gradle/
 .idea/
-app/src/main/jniLibs/
 DATA_MAPPINGS/
 *.apk
 *.aab
 *.keystore
 *.jks
 *.img
-*.so
 *.zip
 *.rar
 local.properties
 .env
+app/src/main/jniLibs/arm64-v8a/

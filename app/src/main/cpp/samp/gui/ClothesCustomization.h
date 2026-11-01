@@ -1,0 +1,113 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+
+// ============================================================
+// ClothesCustomization — sistema de customização de personagem
+// portado do BRL (todas as funções: pele, rosto, sobrancelha,
+// barba, cabelo, maquiagem, roupas, calçados, tatuagens e
+// equipamento policial).
+//
+// O estado fica em ClothesLook e o ApplyCurrent() aplica as
+// texturas no ped local através do BrlTextureShader.
+// ============================================================
+
+struct ClothesLook
+{
+    // Identidade
+    uint8_t skinTone     = 1; // 1..6
+    uint8_t face         = 1; // varia conforme tom de pele
+    // Cabelo
+    uint8_t hairStyle    = 1;
+    uint8_t hairColor    = 1;
+    // Sobrancelha (0 = nenhuma)
+    uint8_t eyebrowStyle = 0;
+    uint8_t eyebrowColor = 1;
+    // Barba (masculino, 0 = nenhuma)
+    uint8_t beardStyle   = 0;
+    uint8_t beardColor   = 1;
+    // Maquiagem (feminino, 0 = nenhuma)
+    uint8_t makeupStyle  = 0;
+    uint8_t makeupColor  = 1;
+    // Roupas
+    uint8_t topStyle     = 1;
+    uint8_t topColor     = 1;
+    uint8_t bottomStyle  = 1;
+    uint8_t bottomColor  = 1;
+    uint8_t shoesStyle   = 1;
+    uint8_t shoesColor   = 1;
+    // Tatuagens (0 = nenhuma)
+    uint8_t tattooArmLeft  = 0;
+    uint8_t tattooArmRight = 0;
+    uint8_t tattooLegLeft  = 0;
+    uint8_t tattooLegRight = 0;
+    uint8_t tattooBack     = 0;
+    uint8_t tattooFront    = 0;
+    // Equipamento policial (0/1)
+    uint8_t policeBelt = 0;
+    uint8_t policeVest = 0;
+    uint8_t policeHat  = 0;
+    // Lasouth store IDs, appended to preserve existing saved values. 0 = original outfit.
+    uint8_t southTop = 0;
+    uint8_t southBottom = 0;
+    uint8_t southShoes = 0;
+    uint8_t southBackpack = 0;
+    uint8_t southMask = 0;
+    uint8_t southEar = 0;
+    uint8_t southClock = 0;
+    // Accessoires du pack AVZ (0 = aucun ; couleur = numero de texture). Voir ClothesAvz.h.
+    // Chapeau / lunettes / masque : tete ; boucles / collier / montre : bijoux ; sac a dos : dos.
+    // Homme (163) : les 7 ; femme (9) : masque, boucles, montre, sac a dos.
+    uint8_t hatStyle      = 0; uint8_t hatColor      = 1;
+    uint8_t glasseStyle   = 0; uint8_t glasseColor   = 1;
+    uint8_t maskStyle     = 0; uint8_t maskColor     = 1;
+    uint8_t earStyle      = 0; uint8_t earColor      = 1;
+    uint8_t necklaceStyle = 0; uint8_t necklaceColor = 1;
+    uint8_t clockStyle    = 0; uint8_t clockColor    = 1;
+    uint8_t backpackStyle = 0; uint8_t backpackColor = 1;
+};
+
+class ClothesCustomization
+{
+public:
+    // Estado atual (editável antes de chamar ApplyCurrent).
+    static ClothesLook& Look();
+
+    // Zera as opções para os padrões do gênero (0 = masculino, 1 = feminino).
+    static void Reset(int gender);
+
+    // Aplica o estado atual no ped local (texturas via BrlTextureShader).
+    static void ApplyCurrent();
+
+    // Remove todas as texturas custom do jogador local.
+    static void ClearLocal();
+
+    // Joueurs distants : applique / retire l'apparence d'un autre joueur (thread du jeu).
+    // modelId = skin du joueur (9, 163, 246 ou 280).
+    static void ApplyRemote(uint16_t playerId, const ClothesLook& look, uint16_t modelId);
+    static void ClearRemote(uint16_t playerId);
+
+    // Renderiza o painel ImGui com TODAS as opções (usado na criação).
+    static void RenderPanel();
+
+    // True se o ped local está com um dos skins suportados (9/163/246/280).
+    static bool IsSupportedLocalSkin();
+
+    // Demande au serveur d'appliquer un skin du registre (SkinRegistry.h).
+    // Le serveur fait SetPlayerSkin : le skin est donc visible par TOUS les joueurs.
+    static bool RequestSkin(uint16_t modelId);
+
+    // --- Panneau HTML (assets/clothes/index.html) ---
+    // JSON des options disponibles pour le skin local actuel :
+    // {"model":163,"gender":0,"canSwitchGender":true,"fields":[{"key","label","tab","min","max","val"},...]}
+    // A appeler depuis le thread du jeu.
+    static std::string BuildOptionsJson();
+
+    // Change une option par sa cle (ex. "topStyle", "topColor"), borne la valeur, remet la couleur a 1
+    // quand le style change, puis applique sur le ped local. Retourne false si la cle est inconnue.
+    static bool SetOption(const std::string& key, int value);
+
+private:
+    static bool IsSupportedSkin(uint16_t modelId);
+};

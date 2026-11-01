@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Page JOUER : photo Brabus CREST WOOD RP en fond, boutons en verre transparent (blanc) -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ImageView
+        android:id="@+id/homeBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/launcher_home_background"
+        android:importantForAccessibility="no" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/launcher_background" />
+
+    <!-- Reseaux sociaux (haut gauche) -->
+    <LinearLayout
+        android:id="@+id/socialBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <ImageButton android:id="@+id/planetButton" android:layout_width="38dp" android:layout_height="38dp" android:background="@drawable/social_button" android:padding="10dp" android:scaleType="fitCenter" android:src="@drawable/ic_planet_svg" android:tint="#FFFFFF" android:contentDescription="Site web"/>
+        <ImageButton android:id="@+id/youtubeButton" android:layout_width="38dp" android:layout_height="38dp" android:layout_marginStart="10dp" android:background="@drawable/social_button" android:padding="10dp" android:scaleType="fitCenter" android:src="@drawable/ic_youtube_svg" android:tint="#FFFFFF" android:contentDescription="YouTube"/>
+        <ImageButton android:id="@+id/discordButton" android:layout_width="38dp" android:layout_height="38dp" android:layout_marginStart="10dp" android:background="@drawable/social_button" android:padding="10dp" android:scaleType="fitCenter" android:src="@drawable/ic_discord_svg" android:tint="#FFFFFF" android:contentDescription="Discord"/>
+    </LinearLayout>
+
+    <!-- Statut serveur (haut droite) -->
+    <LinearLayout
+        android:id="@+id/statusPill"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="21dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="14dp"
+        android:background="@drawable/glass_pill"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <View android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/status_dot" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="SERVEUR OFFICIEL"
+            android:letterSpacing="0.14"
+            android:textColor="#E6FFFFFF"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/title1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="CRESTWOOD ROLEPLAY" />
+    <TextView
+        android:id="@+id/title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="SA:MP 2.11" />
+
+    <!-- Carte serveur -->
+    <LinearLayout
+        android:id="@+id/serverCard"
+        android:layout_width="230dp"
+        android:layout_height="52dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="74dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="12dp"
+        android:background="@drawable/menu_panel"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="6dp"
+            android:background="@drawable/social_button"
+            android:src="@drawable/ic_city_svg"
+            android:contentDescription="Crestwood" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/serverName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CRESTWOOD ROLEPLAY"
+                android:letterSpacing="0.08"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/serverAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="51.38.205.167:15118"
+                android:textColor="#A6FFFFFF"
+                android:textSize="9sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Pseudo -->
+    <LinearLayout
+        android:id="@+id/userCard"
+        android:layout_width="230dp"
+        android:layout_height="44dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="22dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="12dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/menu_panel"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:padding="5dp"
+            android:src="@drawable/ic_user_svg"
+            android:contentDescription="Joueur" />
+        <EditText
+            android:id="@+id/nickInput"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:hint="Prénom_Nom"
+            android:inputType="textPersonName"
+            android:maxLength="24"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#80FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Bouton JOUER -->
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="190dp"
+        android:layout_height="52dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="22dp"
+        android:background="@drawable/menu_play_outline"
+        android:drawableEnd="@drawable/ic_arrow_svg"
+        android:drawablePadding="8dp"
+        android:paddingStart="30dp"
+        android:paddingEnd="22dp"
+        android:stateListAnimator="@null"
+        android:text="JOUER"
+        android:letterSpacing="0.28"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:shadowColor="#99000000"
+        android:shadowRadius="6" />
+
+    <TextView
+        android:id="@+id/connectionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/startButton"
+        android:layout_alignEnd="@id/startButton"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:text=""
+        android:textColor="#E6FFFFFF"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/bugText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="" />
+    <TextView
+        android:id="@+id/authorText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="" />
+</RelativeLayout>

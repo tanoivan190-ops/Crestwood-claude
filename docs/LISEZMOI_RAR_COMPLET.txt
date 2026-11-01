@@ -1,0 +1,21 @@
+SOURCE RAR + SYSTEMES AJOUTES (vetements GARDES) - 31/10/2026
+=============================================================
+Base : Crestwoodrpsourcecodebyanzo.rar. Ajoute depuis la source v15 :
+ Serveur : tablette RP, codes promo, centrale police/FBI/armee, RP Plus (chat proximite, /me /do...,
+   services de factions, /112), telephone (SIM, SMS, appels, Wave), vocal de proximite, garage partout
+   (livraison), maisons + encheres 24 h, peche, kit de depart, braquage mini-banque, station-service +
+   location, mappings importes + RemoveBuilding, panneau /mappings /points, streamer v2, JBL + barre rapide,
+   admin 0-10 + onglet Monde, zones vertes, admin invisible, blesses / /reanimer, ceinture, prime de
+   presence, heure reelle.
+ Vetements : IDENTIQUES au RAR (editeur /vetements /clothes /skin, bouton TENUE du HUD, 46 valeurs,
+   corps 163 / 9, page assets/clothes du RAR, code C++ du RAR). PAS de boutiques Utgawa, pas de points
+   vetements, pas de "Magasins de vetements" dans le panneau admin.
+ Client : WorldMarkers, CombatButtons, CwSettings (parametres style GTA V, FPS), RemoveBuilding 64 bits,
+   icones des boutons, bouton micro VOCAL, compteur reel, pages garage / jbl / mapadmin / svc / config,
+   roue du HUD avec Garage, badge zone verte.
+ Garde du RAR : tools/pawn-windows (compilateur Windows), outils d'import des vetements, ROUPAS_LASOUTH.md,
+   images de chargement crestwood-scene-1..5.
+ Retire du RAR : ic_launcher_foreground.xml (doublon du logo, bloquait la compilation), rus.txt.
+
+CRASH A LA CONNEXION : voir LISEZMOI_STRUCTURE_ET_CRASH.txt (client 64 bits remplace par le moteur 2.10,
+meme structure que CAMPINA).

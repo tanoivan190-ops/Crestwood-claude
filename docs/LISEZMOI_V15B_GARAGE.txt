@@ -1,0 +1,29 @@
+CRESTWOOD RP - v15b (31/10/2026) : garage partout + suppression des vetements
+==============================================================================
+Serveur : server/basicgm/basicgm1.amx recompile (0 erreur). Client : recompiler l'APK (32 + 64 bits).
+
+1) GARAGE (nouvelle page, style garage RP bleu transparent) - assets/garage/
+   - S'ouvre PARTOUT : /garage, la roue du HUD (nouvelle icone garage), la tablette RP (raccourci "Garage")
+     ou la main d'interaction devant un garage.
+   - A gauche : le vehicule choisi (silhouette, plaque, carburant en litres, coffre en kg, etat) + actions.
+     A droite : onglets Tous / Voitures / Motos / Bateaux / Camions / Avions, cartes "Selectionner".
+   - Sortir : devant un garage -> le vehicule sort a la sortie du garage (GPS).
+              ailleurs -> livre a cote de toi pour 500 FCFA (liquide, sinon banque). Dehors et a pied.
+   - Ranger : devant un garage -> vehicule a moins de 35 m du garage.
+              ailleurs -> vehicule a moins de 25 m de toi, vide.
+   - Localiser (GPS) et Vendre (60 % du prix, vehicule range) comme avant. Max 2 vehicules sortis.
+   - Reglages : GAR_DELIVERY_FEE et GAR_VALET_RANGE en haut du module GARAGES de basicgm1.pwn.
+
+2) VETEMENTS : GARDES dans cette version (source RAR + systemes ajoutes).
+   (La suppression des vetements faite dans la v15b n'est PAS appliquee ici.)
+
+v15d (31/10/2026)
+-----------------
+- CRASH A LA CONNEXION (logcat) : tous les plantages arrivent juste apres la connexion, au moment ou le jeu
+  essayait d'installer / d'habiller les corps de vetements de l'APK (skins 289 / 163 / 12 :
+  "no anim hierarchy on DFF", "no texture dictionary", "Last rendered object: 289 / 163"), puis plantage dans
+  le pilote graphique (libGLES_mali). Ton logcat vient d'un APK d'AVANT la v15b (il charge encore ces corps).
+  ATTENTION : dans cette version les vetements sont GARDES, donc ce code est toujours la.
+- Icone Garage de la roue refaite comme les autres (trait noir, PNG 100x100) : hud/assets/radial/slot-9-garage.png
+- Skin de depart 19 / femme aleatoire : PAS applique ici, car les vetements ne marchent que sur les corps
+  de l'APK (289 homme / 12 femme).

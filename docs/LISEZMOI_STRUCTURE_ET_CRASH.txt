@@ -1,0 +1,147 @@
+CRESTWOOD RP - NOUVELLE STRUCTURE (comme CAMPINA) + CRASH A LA CONNEXION + WEBVIEW FLUIDE
+=========================================================================================
+31/10/2026
+
+1) POURQUOI CA CRASHAIT EN ENTRANT
+   Le logcat (b3c82545-logcat.txt) montre, a chaque lancement, un plantage juste apres
+   "DoInitStuff end" (connexion au serveur) :
+     - dans libopenal.so (le son du moteur 2.11),
+     - puis dans libGLES_mali.so (pilote graphique) avec des adresses qui sont des pixels
+       (0xff564444ff...) = memoire ecrasee.
+   Ces plantages venaient TOUS du client 64 bits "moteur 2.11" (libGame.so + libopenal.so +
+   libc++_shared...). Ton telephone est en 64 bits, donc il utilisait ce client-la.
+   Le client 32 bits (moteur 2.10, libGTASA.so) est celui qui marche.
+
+2) LA NOUVELLE STRUCTURE (identique a CAMPINA)
+   AVANT :
+     app/src/main/cpp/samp     -> client 64 bits, moteur 2.11 (libGame.so)     <- celui qui crashait
+     app/src/main/cpp/samp32   -> client 32 bits, moteur 2.10 (libGTASA.so)
+     com/gta/game/SAMP.java (64 bits) + com/gta/game32/SAMP.java (32 bits) : deux copies a maintenir
+   MAINTENANT :
+     app/src/main/cpp/samp     -> UN SEUL client pour armeabi-v7a ET arm64-v8a, moteur 2.10
+                                  (c'est l'ancien samp32 ; offsets 32/64 bits choisis par VER_x32)
+     app/src/main/jniLibs/arm64-v8a   : libGTASA.so + libOpenAL64.so + libSCAnd.so (2.10 64 bits, de CAMPINA)
+     app/src/main/jniLibs/armeabi-v7a : libGTASA.so + libOpenAL32.so + libSCAnd.so + libImmEmulatorJ.so
+     Java : une seule activite de jeu com.gta.game32.SAMP pour les deux architectures
+            (le lanceur MainActivity la lance toujours).
+   Supprime : le client 2.11 (cpp/samp 2.11, libGame.so, libopenal.so, libVendor_mpg123.so,
+              libc++_shared.so, libz.so, libdatastore_shared_counter.so), com/gta/game/SAMP.java,
+              com/gta/game/GTASA.java, com/rockstargames/gtasa/*, et le wrapper "oswrapper" du 2.11
+              (on garde DataInstaller + TextureFormatProbe pour l'installation de la data), cpp/cpp.zip.
+   REGLE : chaque nouveau systeme natif se fait UNE fois dans cpp/samp et UNE fois dans game32/SAMP.java.
+
+3) VERIFICATIONS FAITES SUR LE CLIENT UNIFIE
+   - Les 600+ adresses "VER_x32 ? 32 : 64" ont ete comparees aux symboles du libGTASA.so 64 bits :
+     3 adresses Crestwood etaient fausses (copiees du moteur 2.11) et sont corrigees :
+     CSprite::CalcScreenCoors (0x5F449C -> 0x6E9DF8) dans PlayerTap.cpp, WorldMarkers.cpp,
+     playerbubblepool.cpp (main 3D, marqueurs, bulles).
+   - Le tir en vehicule (drive-by) ne s'accrochait jamais : mauvais nom de symbole
+     (GetCarGunFiredEv -> GetCarGunFiredEbb), corrige.
+   - Les recherches de symboles visent uniquement libGTASA.so (plus de libGame.so).
+   - Toute la source compile en mode 64 bits (tailles des structures verifiees).
+   - Toutes les methodes "native" du Java ont leur fonction JNI.
+
+4) WEBVIEW FLUIDE (comme CAMPINA)
+   AVANT : une seule WebView. Chaque fermeture de panneau (banque, garage, admin...) RECHARGEAIT
+           hud/index.html : ecran vide, minimap et compteur reconstruits = saccade a chaque fois.
+   MAINTENANT : deux couches WebView accelerees materiellement
+     - hudMain  : le HUD, charge UNE fois, jamais recharge ;
+     - hudPanel : les panneaux, au-dessus. A la fermeture, le HUD reapparait instantanement.
+     Les scripts envoyes au panneau sont aussi recus par le HUD (il reste a jour pendant un panneau).
+     Chaque couche a ses propres ponts JS pour les zones tactiles (pas de conflit HUD / panneau).
+     Si le moteur de rendu WebView plante, les deux couches sont recreees proprement.
+   + assets/common/cw-perf.css (charge par toutes les pages) : plus de flou backdrop-filter
+     (recalcule a chaque image au-dessus du jeu = tres lourd sur mobile), transparence gardee.
+   + Le compteur de vitesse ne telecharge plus de polices Google a chaque affichage du HUD.
+   + Les console.log des pages ne vont plus dans le logcat (seulement erreurs / avertissements).
+
+5) VETEMENTS = IDENTIQUES AU RAR
+   Serveur : module VETEMENTS du RAR (46 valeurs, corps 163 / 9, /vetements /clothes /skin, /clothact).
+             Supprimes : boutiques Utgawa (UTGAWA_LOJAS), points vetements (/vetadd /vetdel /vetlist,
+             t-shirt 3D, main "Vetements"), "Magasins de vetements" du panneau admin (cshop*).
+   Client : code C++ des vetements du RAR, page assets/clothes du RAR, bouton TENUE du HUD du RAR.
+
+6) A FAIRE DE TON COTE
+   - Recompiler l'APK (GitHub Actions) : version 2.10-unifie, versionCode 3, fichier CrestwoodRP-<type>.apk.
+   - Desinstaller l'ancienne version avant d'installer (les bibliotheques 64 bits ont change).
+   - La data du jeu est la meme que pour le 32 bits (moteur 2.10).
+   - Serveur : server/basicgm/basicgm1.amx est deja recompile (0 erreur).
+
+7) PANNEAUX HTML : STYLE PRO, COINS CARRES, JEU FLOUTE DERRIERE
+   - Fond flou NATIF (SAMP.java, "fond flou des panneaux") : quand un panneau plein ecran est ouvert,
+     l'image du jeu est copiee ~5 fois / seconde (PixelCopy, 6 a 10x plus petite), floutee (RenderEffect
+     sur Android 12+, agrandissement lisse sinon), assombrie de 40 % et posee entre le jeu et le panneau.
+     Le jeu continue de bouger derriere. (Le flou CSS ne peut pas voir le jeu : autre surface.)
+     Pas de fond flou pour l'editeur de vetements, la camera et le telephone (ils montrent le jeu net).
+   - Coins carres : tous les rayons des panneaux limites a 4 px (les vrais cercles 50 % sont gardes).
+   - Verre sombre transparent : les fonds sombres des panneaux sont plus transparents (opacite 58-78 %).
+   - assets/common/cw-pro.css (charge par tous les panneaux, pas par le HUD / telephone / chargement /
+     vetements) : filets fins, plus de halos ni de bordures lumineuses, animations courtes sans rebond,
+     champs et barres de defilement carres.
+   - Pour changer l'arrondi partout : --pro-radius dans cw-pro.css ; pour la transparence : --pro-glass
+     et --cw-glass ; pour la force du flou : createBlurEffect(18f...) et le 0x66000000 (assombrissement)
+     dans SAMP.java.
+
+8) CRASH "ERREUR DE CHARGEMENT MODELE" (logs crestwood_samp_log / crestwood_32_log du 31/10 18:24)
+   - Le nouveau client 2.10 64 bits demarre bien (libGTASA.so charge, SA-MP initialise, connexion).
+   - Juste apres la connexion, TryLoadModel 1862 / 2226 echouait (= "Error loading model" dans le chat),
+     puis plantages en chaine (lecture de fichier avec pointeur nul dans CdStreamThread, pilote graphique...).
+   - Cause : game/Streaming.cpp avait perdu la ligne de CAMPINA "ms_disableStreaming = false" (6 endroits).
+     Pendant la connexion le moteur coupe le streaming : aucun modele ne se chargeait, TryLoadModel attendait
+     3 s pour rien, puis le code utilisait des modeles non charges.
+   - Correctif : game/Streaming.cpp = celui de CAMPINA + nos 2 ajouts (budget memoire 160-512 Mo, verification
+     des archives IMG). Les objets, LSPD et JBL se chargent de nouveau.
+   - En plus (CAMPINA, game/Timer.cpp) : au retour d'arriere-plan, le menu pause natif est vide et les touchers
+     restes appuyes sont relaches (sinon le jeu pouvait rester bloque dans le menu).
+
+9) CRASH APRES "Error loading model 1862" (logs du 31/10 18:49)
+   - SouthModelLoader::PreloadBodies relancait le remplacement LSPD/JBL toutes les 1,5 s SANS FIN et chaque
+     essai bloquait le thread de rendu 2 x 3 s (TryLoadModel). Jeu fige -> plantage du pilote graphique.
+   - Maintenant : non bloquant (le modele est demande au streaming, verifie aux essais suivants),
+     20 essais maximum puis abandon propre.
+   - Diagnostic ajoute dans crestwood_samp_log.txt :
+       "IMG ... : slot N, handle CdStream X"  (ouverture des archives par le moteur)
+       "[stream] ECHEC modele N : etat=... img=... cdPos=... cdSize=... streamingCoupe=... canal0/1=..."
+     -> si un modele refuse encore de se charger, ces lignes disent exactement pourquoi.
+
+10) LSPD (modele 1862) ET JBL (modele 2226) RETIRES (31/10, demande d'Anzo)
+   - Client : plus aucun remplacement de modele au demarrage (SouthModelLoader::PreloadBodies ne fait plus
+     rien), dossiers assets/models/lspd et assets/models/jbl supprimes.
+   - Serveur : mapping LSPD (MapImp_PoliceLS) plus charge et batiments d'origine du LSPD remis (plus de
+     RemoveBuilding 4019 / 4025). JBL : retiree de la superette, commandes /jbl /musique /posejbl...
+     supprimees (/hotbar, la barre rapide, reste). basicgm1.amx recompile.
+
+11) "Error loading model 1913 / 18631" + crash en jeu (31/10 19:55)
+   - Le monde se charge (moteur) mais le chargement "a la demande" des objets / skins / vehicules
+     (CStreaming::TryLoadModel) echouait : il utilisait une version reecrite en C++ de RequestModel /
+     LoadAllRequestedModels qui ne charge rien en 64 bits.
+   - TryLoadModel appelle maintenant les fonctions D'ORIGINE du moteur (libGTASA, par symbole), 40 essais.
+   - Securite : un objet dont le modele n'a pas pu etre charge n'a pas d'entite -> toutes les fonctions de
+     CObject (deplacer, tourner, texture, attacher, surf...) verifient maintenant l'entite avant de s'en servir
+     (avant : crash direct).
+
+12) CRASH CdStreamThread -> OS_FileSetPosition (SIGSEGV 0x8) (log du 31/10 20:14)
+   - Le moteur a demande le modele 1913 dans une archive IMG qui n'avait PAS pu s'ouvrir : son fichier
+     est NULL dans gImgHandleArray et CdStreamRead ne le verifie pas -> plantage du thread de lecture.
+   - Correctifs (game/Streaming.cpp) :
+     * CdStreamRead verifie l'archive : si elle n'est pas ouverte, la lecture est refusee (log
+       "[stream] lecture REFUSEE : archive IMG N") au lieu de planter.
+     * Ouverture des archives (InitImageList ET lignes IMG de gta.dat) : vrai test de reussite (avant, un
+       echec renvoyait 0 = le handle de GTA3.IMG) + essais avec '/' et en minuscules.
+       Log : "IMG xxx : slot N, handle H -> OUVERTE" ou "-> ECHEC D'OUVERTURE".
+   - Si une archive est en ECHEC dans crestwood_samp_log.txt, c'est que le fichier manque dans la data
+     (ex. texdb/player.img, texdb/cutscene.img) : il faut l'ajouter au pack de data.
+
+13) LOGIN QUI N'ARRIVE PAS (jeu fige par "Error loading model 1913 / 18631" en boucle)
+   - Chaque objet dont le modele ne charge pas bloquait le jeu ~2 s (+2 s pour l'objet de secours 18631).
+   - TryLoadModel : un modele en echec n'est plus reessaye pendant 60 s (retour immediat), attente max 0,5 s.
+
+14) RETOUR AU CLIENT 2.11 EN 64 BITS (31/10, soir)
+   - Le log du 31/10 21:17 montre que le moteur 2.10 en 64 bits ne trouve pas des objets de ta data
+     (cdSize=0 pour 1913 / 18631) et plante au spawn dans le rendu : ta data est une data 2.11.
+   - Structure remise : app/src/main/cpp/samp = client 2.11 (arm64-v8a, libGame.so),
+     app/src/main/cpp/samp32 = client 2.10 (armeabi-v7a, libGTASA.so). Java : com.gta.game.SAMP (64) et
+     com.gta.game32.SAMP (32), le lanceur choisit selon le telephone.
+   - Le client 2.11 a recu : vetements identiques au RAR, PAS de LSPD / JBL (plus de remplacement de
+     modeles au demarrage = la cause probable de l'ancien crash 2.11), WebView deux couches + fond flou,
+     bouton TENUE, panneaux pro. Icones Crestwood des boutons desactivees par defaut (parametres du jeu).

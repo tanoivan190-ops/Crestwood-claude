@@ -1,0 +1,37 @@
+MAGASINS DE VETEMENTS + SPAWN RP  (Crestwood RP)
+================================================
+
+1) SPAWN
+   Tous les joueurs apparaissent sur la place devant la mairie de Los Santos
+   (1481.0, -1745.0, 14.0), avec un petit decalage au hasard, tournes vers la mairie.
+   Constantes : RP_SPAWN_X / RP_SPAWN_Y / RP_SPAWN_Z / RP_SPAWN_A dans basicgm1.pwn
+   (juste avant OnGameModeInit). Verifie le point en jeu avec /position et ajuste si besoin.
+   Le choix de la camera de selection de classe a ete deplace au meme endroit.
+
+2) MAGASIN DE VETEMENTS
+   Creation par un admin (niveau 4 mini) :
+     Panneau admin (/adminpanel) > onglet "Factions" > "Magasins de vetements"
+     > "Creer un magasin ici"   (a pied, a l'endroit voulu)
+   Commandes equivalentes : /adminact cshopadd 0 | cshopdel <id> | cshopgoto <id>
+
+   Cote joueur, en deux temps :
+     - PROCHE : un pin blanc (icone "i", pickup 1239) + texte 3D "Magasin de vetements".
+     - TOUT PRES (moins de 1,6 m, CSHOP_RANGE) : la main NOIRE dans un petit contour BLEU
+       apparait a l'ecran ; un appui ouvre l'editeur de vetements (dialogue 9551).
+   Un policier en tenue de service doit d'abord remettre sa tenue civile au vestiaire.
+
+   Donnees : table "clothshops" de scriptfiles/crestwood_clothes.db.
+   Un premier magasin est cree automatiquement (une seule fois) a (1474, -1745, 13.55),
+   a 7 m du spawn. Supprime-le depuis le panneau si tu n'en veux pas.
+
+3) FICHIERS MODIFIES
+   server/basicgm/basicgm1.pwn   module MAGASINS DE VETEMENTS, interaction id "clothshop"
+                                 (INTERACT_CLOTHSHOP = 9, cle 90), actions admin cshop*,
+                                 spawn RP
+   assets/admin/admin.js         carte "Magasins de vetements" (onglet Factions)
+   assets/hud/hud.js             libelle "Vetements"
+   assets/hud/hud.css            bouton d'interaction : main noire, contour bleu (toutes les cibles)
+
+4) A FAIRE APRES CES MODIFICATIONS
+   Recompiler basicgm1.amx (commande dans AGENTS.md) : l'.amx du zip n'est PAS regenere.
+   Puis reconstruire l'APK (assets/admin et assets/hud ont change).

@@ -1,0 +1,24 @@
+CORRECTION BUILD ARM64 (31/10/2026)
+===================================
+Erreur GitHub Actions : app/src/main/cpp/samp/voice_new/Channel.cpp : use of undeclared identifier 'FLog'
+
+Cause : le repo contient encore des fichiers de l'ancienne structure "client unifie" qui ne sont plus
+dans ce source (retour 2.11). Pousser le zip n'efface pas les anciens fichiers.
+
+1) Garde-fou deja applique dans app/src/main/cpp/samp/CMakeLists.txt (exclusion de ces fichiers du build).
+2) Nettoyage conseille du repo (a lancer a la racine du repo, puis commit + push) :
+
+git rm -r --ignore-unmatch \
+  app/src/main/cpp/samp/voice_new \
+  app/src/main/cpp/samp/game_sa \
+  app/src/main/cpp/samp/nv_event.cpp app/src/main/cpp/samp/nv_event.h \
+  app/src/main/cpp/samp/game/CRenderTarget.cpp \
+  app/src/main/cpp/samp/game/ES2VertexBuffer.cpp \
+  app/src/main/cpp/samp/game/RQ_Commands.cpp \
+  app/src/main/cpp/samp/game/Shadows.cpp \
+  app/src/main/cpp/samp/game/multitouch.cpp \
+  app/src/main/cpp/samp/game/opengl.cpp
+git commit -m "Retire les fichiers fantomes de l'ancienne structure unifiee"
+git push
+
+Astuce : pour repartir exactement du zip, supprimer tout le contenu du repo (sauf .git) avant de copier le zip.

@@ -1,0 +1,136 @@
+#ifndef CW_CHAT_BUBBLES
+#define CW_CHAT_BUBBLES 0
+#endif
+#include "../../vendor/encoding/encoding.h"
+#include "../gui.h"
+#include "../../main.h"
+#include "../../game/game.h"
+#include "../../net/netgame.h"
+#include <algorithm>
+#include "../settings.h"
+#include "java/jniutil.h"
+
+extern UI* pUI;
+extern CGame* pGame;
+extern CNetGame* pNetGame;
+extern CSettings* pSettings;
+extern CJavaWrapper *pJavaWrapper;
+
+Chat::Chat()
+        : ListBox()
+{
+
+}
+
+void Chat::addChatMessage(const std::string& message, const std::string& nick, const ImColor& nick_color)
+{
+    addPlayerMessage(message, nick, nick_color);
+}
+
+void Chat::addInfoMessage(const std::string& format, ...)
+{
+    char tmp_buf[512];
+
+    va_list args;
+    va_start(args, format);
+    vsprintf(tmp_buf, format.c_str(), args);
+    va_end(args);
+
+    addMessage(std::string(tmp_buf), ImColor(0x00, 0xc8, 0xc8));
+}
+
+void Chat::addDebugMessage(const std::string& format, ...)
+{
+    char tmp_buf[512];
+
+    va_list args;
+    va_start(args, format);
+    vsprintf(tmp_buf, format.c_str(), args);
+    va_end(args);
+
+    addMessage(std::string(tmp_buf), ImColor(0xbe, 0xbe, 0xbe));
+}
+
+void Chat::addClientMessage(const std::string& message, const ImColor& color)
+{
+    addMessage(message, color);
+}
+
+static uint32_t ChatRgb(const ImColor& c)
+{
+    auto ch = [](float v) { return (uint32_t)(v < 0.0f ? 0 : v > 1.0f ? 255 : (int)(v * 255.0f)); };
+    return (ch(c.Value.x) << 16) | (ch(c.Value.y) << 8) | ch(c.Value.z);
+}
+
+void Chat::addMessage(const std::string& message, const ImColor& color)
+{
+    if (pJavaWrapper) pJavaWrapper->HudChatMessage("", message, ChatRgb(color));   // [Crestwood] chat HTML
+    if (this->itemsCount() > UISettings::chatMaxMessages())
+    {
+        this->removeItem(0);
+    }
+
+    MessageItem* item = new MessageItem(message, color);
+    this->addItem(item);
+    /*if(!active())*/ this->setScrollY(1.0f);
+}
+
+void Chat::addPlayerMessage(const std::string& message, const std::string& nick, const ImColor& nick_color)
+{
+    if (pJavaWrapper) pJavaWrapper->HudChatMessage(nick, message, ChatRgb(nick_color));   // [Crestwood] chat HTML
+    if (this->itemsCount() > UISettings::chatMaxMessages())
+    {
+        this->removeItem(0);
+    }
+
+    PlayerMessageItem* item = new PlayerMessageItem(message, nick, nick_color);
+    this->addItem(item);
+    /*if(!active())*/ this->setScrollY(1.0f);
+}
+
+void Chat::draw(ImGuiRenderer* renderer)
+{
+    ListBox::draw(renderer);
+}
+
+void Chat::activateEvent(bool active)
+{
+    if (active)
+    {
+        this->setScrollable(true);
+    }
+    else
+    {
+        this->setScrollable(false);
+    }
+}
+
+void Chat::touchPopEvent()
+{
+    if (pUI->playertablist()->visible()) return;
+
+    pUI->keyboard()->show(this);
+}
+
+void Chat::keyboardEvent(const std::string& input)
+{
+    if (input.length() > 0 && pNetGame)
+    {
+        // le HUD / les pages envoient de l'UTF-8 : le serveur SA-MP et les autres clients attendent du Windows-1252
+        // (sinon "é" arrive en "Ã©" chez les autres joueurs et dans la base du serveur)
+        const std::string cp = Encoding::utf2cp(input);
+        if (input[0] == '/') pNetGame->SendChatCommand(cp.c_str());
+        else
+        {
+            pNetGame->SendChatMessage(cp.c_str());
+
+            // bulle au-dessus de sa propre tete (texte deja en UTF-8)
+            CPlayerPool* pPlayerPool = pNetGame->GetPlayerPool();
+            if (CW_CHAT_BUBBLES && pPlayerPool && pPlayerPool->GetLocalPlayer() && pNetGame->GetPlayerBubblePool()) // bulles desactivees : le chat HTML suffit
+            {
+                pNetGame->GetPlayerBubblePool()->NewChat(pPlayerPool->GetLocalPlayerID(), input.c_str(),
+                                                         pPlayerPool->GetLocalPlayer()->GetPlayerColorAsRGBA(), true);
+            }
+        }
+    }
+}

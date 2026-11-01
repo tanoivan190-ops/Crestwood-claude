@@ -1,0 +1,202 @@
+===============================================================================
+                CRESTWOOD RP - LISTE DE TOUTES LES COMMANDES (structure unifiee)
+===============================================================================
+<obligatoire>  [facultatif]   id = numero du joueur
+Les commandes en (...) sont des alias qui font la meme chose.
+Niveaux staff : 1 Assistant, 2 Moderateur, 3 Moderateur+, 4 Administrateur,
+5 Administrateur+, 6 Chef admin, 7 Gestionnaire, 8 Responsable, 9 Developpeur, 10 Fondateur.
+
+-------------------------------------------------------------------------------
+ 1. GENERAL
+-------------------------------------------------------------------------------
+/aide (/help /commandes /cmds)    Liste des commandes en jeu, par categorie
+/interagir (/inter)               Agit avec ce qui est proche (icone de main)
+/interaction                      Menu avec le joueur le plus proche (saluer, argent, papiers)
+                                  (ou double tap sur un joueur)
+/entrer  /sortir                  Passer une porte / un portail d'interieur
+/papiers (/id)                    Ta carte d'identite (creation la 1re fois)
+/permis (/licences)               Tes permis et licences
+/position                         Affiche tes coordonnees X Y Z
+/gps                              Efface le GPS (ou remet celui de ta mission)
+/mairie (/city)                   GPS vers la mairie de Los Santos
+/rp (/menu)                       Tablette RP
+/rpaide                           Aide des commandes RP
+/kit (/kitdepart)                 Kit de depart (une seule fois par compte)
+/debloquer                        Te debloquer si tu es fige
+/vocal                            Etat du vocal de proximite (micro)
+/report (/support)                Contacter le staff (report)
+
+-------------------------------------------------------------------------------
+ 2. CHAT & ACTIONS RP
+-------------------------------------------------------------------------------
+(texte normal)                    Parler aux joueurs proches (18 m)
+/me <action>                      Action RP           ex : /me sort son telephone
+/do <description>                 Description RP      ex : /do La porte est fermee
+/ame <action>                     Action en bulle au-dessus de la tete seulement
+/try <action>                     Action avec resultat aleatoire (reussi / rate)
+/b <texte>                        Chat HRP local
+/s <texte> (/crier)               Crier (40 m)
+/c <texte> (/chuchoter)           Chuchoter (3 m)
+/pm <id> <texte>                  Message prive HRP
+/de [faces]                       Lancer un de (6 faces par defaut, jusqu'a 100)
+/pileface (/piece)                Pile ou face
+/ceinture (/belt)                 Attacher / detacher sa ceinture (dans un vehicule)
+/hopital                          Inconscient depuis 60 s : partir a l'hopital
+/accepter  /refuser               Repondre a une offre (soin, reparation, facture...)
+/prime <id> <montant>             Mettre une prime sur la tete d'un joueur
+/112 <police|medecin|mecano|taxi> <message>  (/appel)   Appel d'urgence (GPS aux membres)
+
+-------------------------------------------------------------------------------
+ 3. ARGENT, BANQUE, TELEPHONE
+-------------------------------------------------------------------------------
+/argent                           Ton liquide et ton solde bancaire
+/banque                           Ouvre la banque (pres d'un point banque)
+/payer <id> <montant>             Donner du liquide a un joueur proche
+/numero (/monnumero)              Ton numero de telephone
+/donnernumero <id>                Donner ton numero a un joueur a cote
+
+-------------------------------------------------------------------------------
+ 4. BOUTIQUE, INVENTAIRE, OBJETS
+-------------------------------------------------------------------------------
+/boutique (/shop)                 Superette 24/7 (ou GPS vers la plus proche)
+/inventaire                       Ton sac
+/hotbar <1-5>                     Utiliser un objet de la barre rapide
+
+-------------------------------------------------------------------------------
+ 4b. VETEMENTS (systeme du RAR)
+-------------------------------------------------------------------------------
+/vetements (/clothes /skin)       Editeur d'apparence du personnage (aussi bouton TENUE du HUD)
+/tenues                           Garde-robe (tenue civile, vestiaire, apparence)
+
+-------------------------------------------------------------------------------
+ 5. VEHICULES, GARAGE, ESSENCE
+-------------------------------------------------------------------------------
+/garage                           Tes vehicules, PARTOUT (ou la roue du HUD) : sortir, ranger,
+                                  localiser, vendre. Loin d'un garage : livraison 500 FCFA
+/lock                             Verrouiller / deverrouiller
+/moteur                           Demarrer / couper le moteur
+/vmenu (/vehmenu)                 Gestion du vehicule (moteur, coffre, capot, portes)
+/essence                          Station-service (pres d'une pompe)
+/rendrelocation                   Rendre le vehicule de location
+
+-------------------------------------------------------------------------------
+ 6. MAISONS & ENCHERES
+-------------------------------------------------------------------------------
+/maison (/house)                  Page Immobilier (devant une porte, ou liste des biens)
+/encheres                         Encheres en cours (24 h, 500 000 a 50 000 000 FCFA)
+/encherir <maison> <montant>      Faire une offre sur une maison
+
+-------------------------------------------------------------------------------
+ 7. EMPLOIS & PECHE
+-------------------------------------------------------------------------------
+/emplois (/jobs)                  Agence pour l'emploi (metiers + GPS)
+/contrat                          Contrat de travail (au siege d'un metier)
+/travail                          Prendre son service
+/finservice                       Terminer son service
+/demissionner                     Quitter son emploi
+/peche                            Pecher (sur un ponton)
+
+-------------------------------------------------------------------------------
+ 8. ZONES VERTES
+-------------------------------------------------------------------------------
+/zonesvertes (/zoneverte)         Liste des zones vertes (armes rangees, pas de violence)
+
+-------------------------------------------------------------------------------
+ 9. FACTIONS (membres)
+-------------------------------------------------------------------------------
+/faction (/corporation)           Menu de ta faction (invite, kick, rank, roster, quit...)
+/factions (/corporations)         Liste des factions
+/effectifs                        Membres de ta faction en ligne
+/r <texte>                        Radio de faction
+/d <texte>                        Radio des departements
+/changefskin <emplacement>        Changer de tenue de faction
+/vestiaire                        Vestiaire de police (tenue de service)
+/facturer <id> <prix>             Facturer un client (toutes les factions)
+Medecin     : /soigner <id> <prix>   /reanimer <id>   /blesses
+Mecanicien  : /reparer <id> <prix>
+Burger      : /servir <id> <prix>
+Journaliste : /annonce <texte>
+Tueur a gages : /primes
+
+-------------------------------------------------------------------------------
+ 10. POLICE / FBI / ARMEE
+-------------------------------------------------------------------------------
+Icone Police du HUD               Menottes, fouille, amende, prison... (pres d'un joueur)
+/mdt (/centrale)                  Centrale (agents, avis de recherche, renforts, dossiers)
+/renfort [message]                Demande de renfort (GPS a toutes les forces de l'ordre)
+/m <texte> (/megaphone)           Megaphone (60 m)
+/recherche <id> <1-6> <raison>    Avis de recherche
+/effacer <id>                     Retirer un avis de recherche
+/wanted                           Liste des avis de recherche
+/badge                            Montrer son insigne
+/barrage  /retirerbarrage         Poser / retirer un barrage routier (4 max)
+/dossier <Prenom_Nom> <texte>     Note d'enquete (police + FBI)
+/alerte <texte>                   Alerte militaire a tout le serveur (armee)
+/unjail <id>                      Liberer un detenu
+
+-------------------------------------------------------------------------------
+ 11. GOUVERNEMENT
+-------------------------------------------------------------------------------
+/gouv <texte>                     Annonce gouvernementale a tout le serveur
+/tresor                           Caisse de l'Etat et TVA
+/taxe <0-30>                      TVA des boutiques (grade 3+)
+/subvention <id> <montant>        Aide depuis la caisse de l'Etat (grade 4+)
+/delivrer <id> [permis]           Delivrer un permis (conduire, armes, poidslourds, navire)
+/retirerpermis <id> [permis]      Retirer un permis
+/verifier <id>                    Voir les papiers et permis d'un joueur
+
+-------------------------------------------------------------------------------
+ 12. STAFF / ADMINISTRATION
+-------------------------------------------------------------------------------
+/adminpanel                       (1)  Panneau d'administration (onglets Joueurs, Reports,
+                                       Factions, Monde, Serveur, Staff, Commandes)
+/a <texte>                        (1)  Chat du staff
+/admins                           (1)  Staff connecte
+/reports                          (1)  Liste des reports
+/invisible (/invis)               (1)  Mode invisible
+/leveravis <id>                   (1)  Lever un avis de recherche
+/blesses                          (1)  Joueurs inconscients (GPS)
+/lieux (/mappings /points)        (1/4) Lieux, mappings, portails et points (banques, 24/7,
+                                       pompes, location, emplois)
+/tplieu <id>                      (1)  Se teleporter a un lieu
+/reanimer <id>                    (2)  Reanimer un joueur inconscient
+/maisons                          (4)  Liste des maisons
+/allermaison <id>                 (4)  Aller devant une maison
+/pontons                          (4)  Liste des pontons de peche
+/setgang <id> <gang> <grade>      (4)  Mettre un joueur dans un gang
+/setfaction <joueur> <id> [grade] (4)  Mettre un joueur dans une faction (0 = civil)
+/editfaction <id> <option> <val>  (4)  Modifier une faction (name, shortname, type, color,
+                                       rankcount, rankname, skin, paycheck, leader)
+     (/modifierfaction)
+/giveitem <objet|all> [qte]       (4)  Te donner un objet
+/v <modele> [c1] [c2]             (5)  Creer un vehicule      (/vehicule /spawncar)
+/vdel                             (5)  Supprimer ton vehicule cree
+/vreparer                         (5)  Reparer ton vehicule
+/heurereelle                      (5)  Activer / couper l'heure reelle (Abidjan)
+/createfaction <type> <nom>       (6)  Creer une faction      (/creerfaction)
+/removefaction <id>               (6)  Supprimer une faction  (/supprimerfaction)
+/setentree <id>                   (6)  Placer la porte d'un interieur ici
+/setprison  /setprisonexit        (6)  Placer la cellule / la sortie de prison
+/creermaison <type 1-5> <prix>    (6)  Creer une maison (porte a ta position)
+/supprmaison <id>                 (6)  Supprimer une maison (enchere remboursee)
+/creerpeche                       (6)  Creer un ponton de peche
+/supprpeche <id>                  (6)  Supprimer un ponton
+/creerzoneverte <rayon> <nom>     (6)  Creer une zone verte a ta position
+/supprzoneverte <id>              (6)  Supprimer une zone verte
+/garageadd [nom]                  (6)  Creer un garage (point a pied)
+/garagedel <id>                   (6)  Supprimer un garage
+/garagespawn <id>                 (6)  Sortie des vehicules du garage (au volant)
+/garages                          (6)  Liste des garages
+/makeadmin <id> <0-10> (/setadmin)(7)  Donner un niveau staff (en dessous du tien)
+/givemoney <id> <montant>         (8)  Donner / retirer de l'argent liquide
+/givebank <id> <montant>          (8)  Crediter / debiter un compte bancaire
+/donnerveh <joueur> <modele> [prix] (8) Donner un vehicule (range dans son garage)
+
+Les autres actions staff (ban avec duree, kick, prison, gel, meteo, heure, annonces,
+teleportation, zones vertes, pompes, encheres...) se font dans le panneau /adminpanel.
+
+-------------------------------------------------------------------------------
+ COMMANDES INTERNES (envoyees par les pages, a ne pas taper)
+-------------------------------------------------------------------------------
+/adminact /authact /bankact /fishact /garact /houseact /invact /jblact /jobact /lockeract
+/mapact /phoneact /policeact /repact /rpact /shopact /svcact /uiact

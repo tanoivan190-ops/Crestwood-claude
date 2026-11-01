@@ -1,0 +1,30 @@
+SKINS : noms + affichage en jeu + visible par tous les joueurs
+==============================================================
+CLIENT (app/src/main/cpp/samp/)
+ - gui/SkinRegistry.h (NOUVEAU) : table id/modèle/nom des 57 skins
+ - gui/ClothesCustomization.h/.cpp : en-tête "SKIN : nom (ID n)", message
+   "Skin fixe", liste repliable "Skins disponibles"; toucher un skin envoie
+   la demande au serveur (RequestSkin)
+ - gui/CharacterCreator.h : kCmdSkinReq = 4
+ - net/netgame.h/.cpp : SendCharSkinRequest(uint16_t) (packet 253, cmd 4)
+CLOTHES CRESTWOOD (skin 289) : voir data-clothes/LISEZMOI_CLOTHES.txt
+ - gui/ClothesCatalog.h (NOUVEAU, genere par tools/build_catalog.py)
+ - ClothesCustomization.cpp : ApplyCustomCurrent + panneau avec le NOM de chaque vetement
+ - CharacterCreator.cpp : 289 ajoute aux skins geres
+SERVEUR (server/GmLurion/)
+ - include/skins.inc (NOUVEAU) + gamemodes/GM.pwn : le serveur reçoit la
+   demande, vérifie que le skin est dans le registre, fait SetPlayerSkin
+   (=> TOUS les joueurs le voient) et le réapplique à chaque spawn (session).
+   /skins et /skin <id> restent réservés aux admins RCON.
+DATA (data-skins/) : à ajouter à la data du jeu (files.zip / texdb/gta3.img)
+ - models/skins/ : 52 skins renommés au nom IDE (voir RENOMMAGE.txt)
+ - models/skins_optionnel/lapd1.* : Skin280 du pack, NON installé par défaut
+   (casserait la personnalisation du policier de base 280)
+ - skins.dat : registre
+NOTES
+ - Le choix de skin n'est mémorisé que pendant la session (pas en base).
+ - Seuls 9/163/246/280/289 gèrent peau/vêtements ; les autres sont fixes.
+ - Les joueurs doivent avoir les modèles dans leur data pour les voir : si la
+   data est téléchargée depuis files.zip, ajoute-y les modèles de data-skins/.
+ - Non compilé ici (pas de NDK/pawncc) : à compiler et tester.
+ - Si tu ajoutes un skin : SkinRegistry.h + skins.dat + skins.inc.

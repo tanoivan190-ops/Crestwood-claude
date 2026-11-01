@@ -1,0 +1,37 @@
+MICRO (VOCAL) + TELEPHONE (PUCE, NUMERO, SMS, APPELS, WAVE)  (Crestwood RP - 30/10/2026)
+=====================================================================================
+
+1) POURQUOI LE MICRO NE PASSAIT PAS
+   a) La gamemode n'avait AUCUN code vocal : le plugin SampVoice ne transmet rien tant que le script ne
+      cree pas de canal pour chaque joueur. -> Module "VOCAL DE PROXIMITE" ajoute dans basicgm1.pwn.
+   b) Client : le micro n'etait initialise qu'une fois, a la connexion. Si l'autorisation Android du micro
+      arrivait apres, il restait mort. -> Il se relance maintenant quand on appuie sur le bouton micro (32 + 64 bits).
+   c) Client 64 bits : l'anti-echo recevait chaque voix separement -> bruit assourdissant des que 2 personnes
+      parlent. Retire (comme sur le client 32 bits). Un paquet perdu ne fait plus sauter le paquet suivant.
+
+2) INSTALLATION SERVEUR (OBLIGATOIRE)
+   - Plugin SampVoice 3.1 (meme version que le client de l'APK : protocole 11) :
+     https://github.com/CyberMor/sampvoice/releases/tag/v3.1  -> sampvoice.so dans plugins/
+   - server.cfg : plugins ... sampvoice.so   (APRES Pawn.RakNet s'il est la)
+   - Ouvrir le port UDP de SampVoice sur le VPS (voir la doc du plugin).
+   - Include fourni : server/basicgm/include/sampvoice.inc
+   - Sans le plugin : mettre CW_VOICE 0 en haut de basicgm1.pwn et recompiler (sinon la GM ne se charge pas).
+
+3) FONCTIONNEMENT
+   - Bouton micro du HUD : maintenir = parler. Les joueurs a moins de 25 m (VOICE_DISTANCE) entendent.
+   - Pendant un appel telephone : le bouton micro parle AUSSI dans l'appel (canal prive des 2 joueurs, quelle
+     que soit la distance).
+
+4) TELEPHONE
+   - Bord : cadre metal clair + liseret or + bezel noir, boutons lateraux visibles (assets/phone/index.html).
+   - PUCE : "Carte SIM" vendue au 24/7 (500 FCFA). Elle s'active toute seule a l'ouverture du telephone (ou en
+     l'utilisant dans l'inventaire) : numero a 9 chiffres 07xxxxxxx, garde pour toujours.
+   - Module serveur "TELEPHONE" (il n'existait pas) : contacts, SMS (Messages + WhatsApp), journal d'appels,
+     appels entre joueurs (sonnerie 30 s, refuser, raccrocher, manques), Wave (banque -> numero, meme hors ligne),
+     17 Police (message + point GPS aux policiers). 15 / 18 / Uber : "personne en service" (pas encore de metiers).
+   - PHONE_NEED_DEVICE 1 = il faut un iPhone dans l'inventaire pour utiliser le telephone (0 par defaut).
+   - Donnees : scriptfiles/crestwood_phone.db
+
+5) A FAIRE
+   - Reconstruire l'APK (C++ vocal 32/64, phone/index.html, inventaire).
+   - basicgm1.amx recompile (0 erreur, memes avertissements qu'avant).

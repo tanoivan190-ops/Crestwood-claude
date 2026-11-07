@@ -370,6 +370,18 @@ bool SouthModelLoader::IsLoaded(int modelId) {
 }
 
 bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
+#if VER_x32
+    // [fix 07/11] Moteur 32 bits (2.10) : le "mega DFF" Homme/Femme (5 Mo, ~1,1 Mo de sommets) depasse le tampon
+    // de sommets du moteur -> SIGSEGV dans RQVertexBuffer::Update des le premier rendu du skin 7
+    // (crestwood_samp_log : '[ped] rendu modele 7' puis plantage, copie de 0x1172EC octets).
+    // On garde donc le skin d'origine du jeu en 32 bits : le personnage s'affiche sans les vetements personnalises.
+    {
+        static bool s_logged = false;
+        if (!s_logged) { s_logged = true; FLog("[models] mega-skin %d ignore en 32 bits (tampon de sommets trop petit) : skin d'origine conserve", modelId); }
+    }
+    err = "mega-skin desactive en 32 bits";
+    return false;
+#endif
     if (!(modelId == 7 || modelId == 9 || modelId == 12 || modelId == 163)) {
         err = "unsupported model " + std::to_string(modelId);
         return false;

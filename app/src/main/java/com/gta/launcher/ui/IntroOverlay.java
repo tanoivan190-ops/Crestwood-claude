@@ -35,20 +35,26 @@ public final class IntroOverlay {
 
     // ---- Reglages faciles a modifier ----
     /** Photos du diaporama (dans l'ordre). Elles tournent en boucle jusqu'au final. */
-    private static final int[] SLIDES = { R.drawable.intro_slide_1, R.drawable.intro_slide_2 };
+    private static final int[] SLIDES = {
+            R.drawable.intro_slide_1, R.drawable.intro_slide_2, R.drawable.intro_marina, R.drawable.intro_police,
+            R.drawable.intro_slide_1, R.drawable.intro_gang, R.drawable.intro_slide_2, R.drawable.intro_vie };
     /** Legendes affichees sous chaque passage (meme index que le passage). */
     private static final String[][] CAPTIONS = {
             { "LOS SANTOS", "Bienvenue à Crestwood" },
             { "LIBERTÉ", "Roule. Construis. Règne." },
+            { "ICI, CHOISIS TON CAMP", "Deviens la loi, ou crée ta loi." },
+            { "DEVIENS LA LOI", "Policier, militaire et bien d'autres métiers t'attendent." },
             { "LA RUE", "Ton histoire commence ici" },
+            { "CHEF DE GANG", "Crée ta loi, montre ta détermination, domine tous les territoires." },
             { "CRESTWOOD RP", "Le roleplay comme jamais" },
+            { "CRESTWOOD RP", "Bien plus que le RP" },
     };
-    private static final int SLIDE_PASSES = 4;            // nombre de passages photo avant le final
-    private static final long SLIDE_MS = 4600L;           // duree d'un passage
+    private static final int SLIDE_PASSES = SLIDES.length; // un passage par photo
+    private static final long SLIDE_MS = 4300L;           // duree d'un passage
     private static final long CROSSFADE_MS = 1300L;      // fondu enchaine entre deux photos
     private static final long FINALE_MS = 5600L;          // duree de l'affiche finale (logo)
     private static final long FADE_OUT_MS = 1400L;        // fondu final (image + musique)
-    private static final long TOTAL_MS = SLIDE_PASSES * SLIDE_MS + FINALE_MS; // 24 s
+    private static final long TOTAL_MS = SLIDE_PASSES * SLIDE_MS + FINALE_MS; // ~40 s
     private static final long SKIP_ALLOWED_AT_MS = 12000L; // le joueur peut passer apres 12 s
     private static final int MUSIC_START_MS = 0;
     private static final float MUSIC_VOLUME = 0.9f;
@@ -170,6 +176,7 @@ public final class IntroOverlay {
         kp.topMargin = (int) dp(8);
         captionBox.addView(captionKicker, kp);
         captionLine = text("", 21f, Color.WHITE, true, 0.02f);
+        captionLine.setMaxWidth((int) dp(430)); // les phrases longues passent a la ligne
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.topMargin = (int) dp(5);
         captionBox.addView(captionLine, lp);

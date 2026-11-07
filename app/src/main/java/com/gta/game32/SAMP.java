@@ -40,6 +40,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.joom.paranoid.Obfuscate;
 import com.gta.game.HudWebView;
 import com.gta.game.R;
+import com.gta.game.WebCompat;
 import com.gta.game32.ui.AttachEdit;
 import com.gta.game32.ui.CustomKeyboard;
 import com.gta.game.ui.LoadingScreen;
@@ -818,7 +819,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         final HudWebView hudWebView = new HudWebView(this);
         addContentView(hudWebView, new FrameLayout.LayoutParams(-1, -1));
         hudWebView.setBackgroundColor(Color.TRANSPARENT);
-        hudWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        WebCompat.apply(hudWebView);   // materiel, ou logiciel si le rendu a deja plante sur ce telephone
 
         // Configuration WebView indispensable pour le rendu des pages HTML (login, HUD, etc.)
         WebSettings ws = hudWebView.getSettings();
@@ -844,6 +845,10 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         });
         hudWebView.setWebViewClient(new WebViewClient() {
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                if (detail != null && detail.didCrash()) {
+                    WebCompat.onRendererCrash(SAMP.this);
+                    CrashLog.log("[webview] rendu logiciel active pour les prochaines couches");
+                }
                 CrashLog.log("[webview] processus de rendu perdu (crash=" + (detail != null && detail.didCrash()) + ")");
                 runOnUiThread(() -> {
                     rpOpen = false; rpReady = false; reportOpen = false; reportReady = false; configOpen = false;

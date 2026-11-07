@@ -177,7 +177,7 @@ public class DialogManager {
     private void createWebDialog() {
         WebView web = new WebView(activity);
         web.setBackgroundColor(Color.TRANSPARENT);
-        web.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        com.gta.game.WebCompat.apply(web);
         web.setVerticalScrollBarEnabled(false);
         web.setHorizontalScrollBarEnabled(false);
         WebSettings ws = web.getSettings();
@@ -191,6 +191,7 @@ public class DialogManager {
         web.setWebViewClient(new WebViewClient() {
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
                 mWebReady = false;
+                if (detail != null && detail.didCrash()) com.gta.game.WebCompat.onRendererCrash(activity);
                 return true;
             }
             @Override public void onPageFinished(WebView view, String url) {

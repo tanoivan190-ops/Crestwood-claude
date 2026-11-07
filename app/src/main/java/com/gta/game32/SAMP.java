@@ -451,11 +451,11 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             final String capAuth = caption.replace("\u0000", "").replaceAll("\\{[0-9A-Fa-f]{6}\\}", "").trim();
             final boolean authJson = looksJson(content);
             if (capAuth.startsWith("@auth") || authJson) {
-                Log.i(TAG, "[auth] dialogue " + dialogId + " intercepte");
+                CrashLog.log("[auth] dialogue " + dialogId + " intercepte");
                 handleAuthDialog(dialogId, content);
                 return;
             }
-            Log.w(TAG, "[auth] dialogue " + dialogId + " NON intercepte, titre='" + caption + "'");
+            CrashLog.log("[auth] dialogue " + dialogId + " NON intercepte, titre='" + caption + "'");
         }
         // Administration : ids 9540 (ouvrir), 9541 (mise a jour), 9542 (fermer), titre "@admin", contenu JSON.
         if (dialogId >= 9540 && dialogId <= 9542) {
@@ -837,13 +837,14 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                 ConsoleMessage.MessageLevel lvl = m.messageLevel();
                 if (lvl == ConsoleMessage.MessageLevel.ERROR || lvl == ConsoleMessage.MessageLevel.WARNING) {
                     Log.w("HUD-JS", m.message() + " (" + m.sourceId() + ":" + m.lineNumber() + ")");
+                    CrashLog.log("[js] " + m.message() + " (" + m.sourceId() + ":" + m.lineNumber() + ")");
                 }
                 return true;
             }
         });
         hudWebView.setWebViewClient(new WebViewClient() {
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
-                Log.e(TAG, "[webview] processus de rendu perdu (crash=" + (detail != null && detail.didCrash()) + ")");
+                CrashLog.log("[webview] processus de rendu perdu (crash=" + (detail != null && detail.didCrash()) + ")");
                 runOnUiThread(() -> {
                     rpOpen = false; rpReady = false; reportOpen = false; reportReady = false; configOpen = false;
                     // une WebView dont le moteur de rendu est mort n'est plus utilisable : on recree les deux couches
@@ -852,11 +853,11 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                 return true;
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                Log.e(TAG, "[webview] erreur " + (request != null ? request.getUrl() : "?")
+                CrashLog.log("[webview] erreur " + (request != null ? request.getUrl() : "?")
                         + " : " + (error != null ? error.getDescription() : "?"));
             }
             @Override public void onPageFinished(WebView view, String url) {
-                Log.i(TAG, "[webview] page chargee : " + url);
+                CrashLog.log("[webview] page chargee : " + url);
                 String invJson = pendingInvJson;
                 if (invJson != null && url != null && url.endsWith("inventory/index.html")) {
                     pendingInvJson = null;
@@ -1142,7 +1143,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                 if (parent instanceof android.view.ViewGroup) ((android.view.ViewGroup) parent).removeView(v);
                 v.destroy();
             } catch (Throwable error) {
-                Log.e(TAG, "[webview] destruction", error);
+                CrashLog.log("[webview] destruction", error);
             }
         }
         stopBackdrop();
@@ -3580,7 +3581,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         hideLoadingScreen();
         runOnUiThread(() -> {
             if (hudWebView == null || isFinishing()) {
-                Log.e(TAG, "[auth] WebView indisponible, ouverture impossible");
+                CrashLog.log("[auth] WebView indisponible, ouverture impossible");
                 return;
             }
             if (dialogId == 9522) {            // fermeture demandee par le serveur (connexion reussie)
@@ -3600,7 +3601,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             hudWebView.evaluateJavascript("window.DXAuth && DXAuth.openFromNative(" + JSONObject.quote(json) + ")", null);
             return;
         }
-        Log.i(TAG, "[auth] ouverture de la page de connexion");
+        CrashLog.log("[auth] ouverture de la page de connexion");
         authOpen = true;
         authReady = false;
         configOpen = true;
@@ -3618,7 +3619,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         cancelAuthWatchdog();
         authWatchdog = () -> {
             if (authOpen && !authReady) {
-                Log.e(TAG, "[auth] la page ne s'est pas affichee a temps -> fermeture de secours");
+                CrashLog.log("[auth] la page ne s'est pas affichee a temps -> fermeture de secours");
                 Toast.makeText(SAMP.this, "Ecran de connexion indisponible, reessaie.", Toast.LENGTH_SHORT).show();
                 closeAuthPage();
                 requestAuthOpenLater(2000);
@@ -3632,7 +3633,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         authHandler.postDelayed(() -> {
             if (authOpen || authOpenAttempts >= 5 || isFinishing()) return;
             authOpenAttempts++;
-            Log.i(TAG, "[auth] ecran de connexion absent -> demande au serveur (essai " + authOpenAttempts + "/5)");
+            CrashLog.log("[auth] ecran de connexion absent -> demande au serveur (essai " + authOpenAttempts + "/5)");
             sendHudCommand("/authact open");
             requestAuthOpenLater(4000);
         }, delayMs);
@@ -3720,7 +3721,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         @JavascriptInterface public void ready() {
             authReady = true;
             runOnUiThread(() -> cancelAuthWatchdog());
-            Log.i(TAG, "[auth] page affichee");
+            CrashLog.log("[auth] page affichee");
         }
     }
 

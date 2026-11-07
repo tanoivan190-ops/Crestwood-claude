@@ -2073,6 +2073,19 @@ void InstallSpecialHooks()
 static void (*CPed__Render)(uintptr_t thiz);
 static void CPed__Render_hook(uintptr_t thiz)
 {
+    // [diag] trace du modele de ped dessine : le dernier "[ped]" avant un SIGSEGV dans RQVertexBuffer::Update
+    // designe le skin dont la geometrie est trop grosse / corrompue.
+    {
+        static uint32_t s_lastKey = 0xFFFFFFFFu;
+        static int s_traces = 0;
+        const uint16_t model = ((CPedGTA*)thiz)->m_nModelIndex;
+        const uint32_t key = ((uint32_t)model << 16) ^ (uint32_t)(thiz & 0xFFFF);
+        if (key != s_lastKey && s_traces < 60) {
+            s_lastKey = key;
+            s_traces++;
+            FLog("[ped] rendu modele %u (ped=%p)", (unsigned)model, (void*)thiz);
+        }
+    }
     BrlTextureShader::BeginPedRender((void*)thiz);
     CPed__Render(thiz);
     BrlTextureShader::EndPedRender();

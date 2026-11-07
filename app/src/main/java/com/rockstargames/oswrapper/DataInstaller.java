@@ -209,6 +209,7 @@ public final class DataInstaller {
         errorMessage = "";
         readyLatch = new CountDownLatch(1);
         ensurePRDownloaderInitialized(context);
+        DataInstallService.start(context); // garde le telechargement en vie si on quitte l'application
         new Thread(() -> install(context.getApplicationContext()), "crestwood-data-installer").start();
     }
 
@@ -1213,6 +1214,7 @@ public final class DataInstaller {
         installing = false;
         report(100, "Données installées", extractedBytesTotal, extractedBytesTotal);
         readyLatch.countDown();
+        DataInstallService.stop();
         Listener current = listener;
         if (current != null) current.onComplete(target);
     }
@@ -1222,6 +1224,7 @@ public final class DataInstaller {
         success = false;
         installing = false;
         readyLatch.countDown();
+        DataInstallService.stop();
         Listener current = listener;
         if (current != null) current.onError(errorMessage, error);
         Log.e(TAG, "Falha instalando a data", error);
@@ -1233,6 +1236,7 @@ public final class DataInstaller {
 
     /** Progression limitee a ~4 fois/s (sauf changement de phase / 100%) pour ne pas inonder l'UI (WebView). */
     private static void report(int percent, String phase, long done, long total) {
+        DataInstallService.notifyProgress(Math.max(0, Math.min(100, percent)), phase);
         Listener current = listener;
         if (current == null) return;
         int clamped = Math.max(0, Math.min(100, percent));

@@ -114,6 +114,11 @@
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
+        <service
+            android:name="com.rockstargames.oswrapper.DataInstallService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
     </application>
 
 </manifest>

@@ -1,0 +1,5 @@
+-d
+/tmp/claude-0/-home-claude/27f5d961-3055-5d3a-874a-58b2400ed90f/scratchpad/jc
+-cp
+/dev/null
+app/src/main/java/com/gta/game32/CrashLog.java

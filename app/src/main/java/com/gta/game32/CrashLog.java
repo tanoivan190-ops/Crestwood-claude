@@ -17,12 +17,14 @@ import java.util.Locale;
  * Journal du client 32 bits, ecrit AVANT le natif (chargement des .so, plantages Java).
  * Fichier : /storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_32_log.txt
  * (dossier propre a l'appli : toujours accessible en ecriture, sans permission).
+ * Une copie est aussi ecrite dans /storage/emulated/0/data/crestwood_32_log.txt (a cote de logcat.txt) si ce dossier est accessible.
  * C'est ce fichier qu'il faut recuperer quand un telephone 32 bits n'arrive pas a jouer.
  */
 public final class CrashLog {
     private static final String TAG = "CrestwoodLog";
     private static final String FILE_NAME = "crestwood_32_log.txt";
     private static File sFile;
+    private static File sMirror;
     private static boolean sHandlerInstalled;
     public static String sLibError = null;     // premiere erreur de chargement d'une bibliotheque native
 
@@ -52,14 +54,28 @@ public final class CrashLog {
         } catch (Throwable ignored) { }
     }
 
+    /** Copie du journal dans le dossier des donnees du jeu (accessible au gestionnaire de fichiers, a cote de logcat.txt). */
+    private static File mirrorFile() {
+        if (sMirror != null) return sMirror;
+        try {
+            File dir = new File("/storage/emulated/0/data");
+            if (!dir.exists()) dir.mkdirs();
+            if (dir.isDirectory() && dir.canWrite()) { sMirror = new File(dir, FILE_NAME); return sMirror; }
+        } catch (Throwable ignored) { }
+        return null;
+    }
+
     public static synchronized void log(String msg) {
         Log.i(TAG, msg);
+        String line = new SimpleDateFormat("dd/MM HH:mm:ss", Locale.ROOT).format(new Date()) + "  " + msg + "\n";
         File f = file();
-        if (f == null) return;
-        try (FileWriter w = new FileWriter(f, true)) {
-            String ts = new SimpleDateFormat("dd/MM HH:mm:ss", Locale.ROOT).format(new Date());
-            w.write(ts + "  " + msg + "\n");
-        } catch (Throwable ignored) { }
+        if (f != null) {
+            try (FileWriter w = new FileWriter(f, true)) { w.write(line); } catch (Throwable ignored) { }
+        }
+        File m = mirrorFile();
+        if (m != null) {
+            try (FileWriter w = new FileWriter(m, true)) { w.write(line); } catch (Throwable ignored) { }
+        }
     }
 
     public static void log(String msg, Throwable t) {

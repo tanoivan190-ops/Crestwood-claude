@@ -684,6 +684,7 @@ void FLog(const char* fmt, ...)
 		tries++;
 		static char path[256];
 		static const char* kPaths[] = {
+			"/storage/emulated/0/data/crestwood_samp_log.txt", // dossier des donnees : visible dans le gestionnaire de fichiers
 			"/storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_samp_log.txt",
 			"/sdcard/Android/data/com.crestwood.rp/files/crestwood_samp_log.txt",
 			"/data/data/com.crestwood.rp/files/crestwood_samp_log.txt",

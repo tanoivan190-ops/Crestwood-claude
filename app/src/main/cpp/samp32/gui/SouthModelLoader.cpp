@@ -615,6 +615,20 @@ bool SouthModelLoader::PreloadBodies() {
     // 20 essais maximum (~30 s), puis abandon propre (les objets d'origine restent).
     // [31/10] LSPD (1862) et JBL (2226) de l'APK RETIRES a la demande d'Anzo (plantages au chargement).
     // Plus aucun modele d'objet n'est remplace : on ne touche plus au streaming au demarrage.
+    // [fix 08/11b] 32 bits : mega-skins charges UNE FOIS au demarrage (un par appel), AVANT toute connexion.
+    // Aucun ped n'utilise encore ces modeles : plus de destruction / recreation du ped du joueur (qui lui
+    // faisait perdre animations et boutons). ApplyCurrent trouvera ensuite "already loaded".
+    {
+        static const int kBodies[] = { 7, 9, 12, 163 };
+        static size_t s_idx = 0;
+        if (s_idx < sizeof(kBodies) / sizeof(kBodies[0])) {
+            std::string e;
+            const bool ok = LoadForModel(kBodies[s_idx], e);
+            FLog("[models] prechargement mega-skin %d : %s (%s)", kBodies[s_idx], ok ? "ok" : "ECHEC", e.c_str());
+            ++s_idx;
+            return false;
+        }
+    }
     return true;
     static bool s_done = false;
     static uint32_t s_next = 0;

@@ -332,6 +332,13 @@ std::vector<CPedGTA*> ReleasePedsUsingModel(int modelId) {
             continue;
         }
         if (ped->m_pRwObject) {
+            // [fix 08/11] Detruire le clump detruit aussi ses associations d'animation : les taches du ped
+            // (CTaskComplexPlayerOnFoot : marche, course, poing) gardent alors des pointeurs morts -> plus de
+            // deplacement et boutons Courir / Poing masques. On vide donc les taches AVANT (elles se defont
+            // proprement), le jeu recree la tache par defaut (controle du joueur) a l'image suivante.
+            if (ped->m_pIntelligence) {
+                ped->m_pIntelligence->m_TaskMgr.FlushImmediately();
+            }
             ped->DeleteRwObject();
             released.push_back(ped);
         }
@@ -364,9 +371,8 @@ void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
             CHook::CallFunction<void>("_Z20RpAnimBlendClumpInitP7RpClump", clump);
             CHook::CallFunction<void>("_Z30RpAnimBlendClumpFillFrameArrayP7RpClumpPP18AnimBlendFrameData",
                                       clump, reinterpret_cast<void*>(ped->m_apBones.data()));
-            // ANIM_ID_IDLE = 3 : fonction DU JEU (la reimplementation locale de CAnimManager n'est pas fiable ici).
-            CHook::CallFunction<void*>("_ZN12CAnimManager14BlendAnimationEP7RpClump12AssocGroupId11AnimationIdf",
-                                       clump, (int)ped->m_nAnimGroup, 3, 4.0f);
+            // Pas d'animation lancee a la main : la tache par defaut du joueur (recreee par le jeu apres
+            // FlushImmediately) fait ses propres BlendAnimation (repos, marche, course).
         }
         if (ped->m_pRwObject) {
             ++recreated;

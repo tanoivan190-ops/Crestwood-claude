@@ -554,7 +554,12 @@ void MainLoop()
 					}
 					unsigned prim = 0;
 					if (pd->m_pIntelligence) for (int i = 0; i < 5; ++i) if (pd->m_pIntelligence->m_TaskMgr.m_aPrimaryTasks[i]) prim |= (1u << i);
-					FLog("[diag-anim] clump=%p init=%d assoc=%d premiereAnim=%d tachesPrimaires=0x%x", clump, init, nassoc, firstAnim, prim);
+					int tDef = -1, tSub = -1;
+					if (pd->m_pIntelligence) {
+						CTask* t = pd->m_pIntelligence->m_TaskMgr.m_aPrimaryTasks[4];
+						if (t) { tDef = (int)t->GetTaskType(); CTask* st = t->GetSubTask(); if (st) tSub = (int)st->GetTaskType(); }
+					}
+					FLog("[diag-anim] clump=%p init=%d assoc=%d premiereAnim=%d tachesPrimaires=0x%x tacheDefaut=%d sousTache=%d", clump, init, nassoc, firstAnim, prim, tDef, tSub);
 				}
 				FLog("[diag] modele=%d etat=%d veh=%d jet=%d stick=%d/%d on=%d moveBlend=%.2f pos=%.1f,%.1f,%.1f",
 					(int)pd->m_nModelIndex, (int)pd->m_nPedState, (int)lp->IsInVehicle(), (int)lp->IsInJetpackMode(),

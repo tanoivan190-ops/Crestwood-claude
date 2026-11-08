@@ -153,7 +153,7 @@ void InitGame(RPCParameters* rpcParams)
 	Log::addParameter("szHostName", pNetGame->m_szHostName);
 	Log::addParameter("iVehicleFriendlyFire", pNetGame->m_pNetSet->iVehicleFriendlyFire);
 
-	if (pUI) pUI->chat()->addDebugMessage("Connected to {B9C9BF}%.64s", Encoding::cp2utf(pNetGame->m_szHostName).c_str());
+	// [chat] message de connexion retire : 
 
 	pNetGame->SetGameState(GAMESTATE_CONNECTED);
 

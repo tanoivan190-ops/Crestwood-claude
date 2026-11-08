@@ -105,7 +105,7 @@ CNetGame::CNetGame(const char* szHostOrIp, int iPort, const char *szPlayerName, 
     if(pSettings)
         sampVer = pSettings->Get().szVersion;
 
-	if (pUI) pUI->chat()->addDebugMessage("{FFFFFF}2.1 Client started", sampVer);
+	// [chat] message de connexion retire : 
 }
 // 0.3.7
 CNetGame::~CNetGame()
@@ -503,7 +503,7 @@ void CNetGame::ProcessConnecting()
 	if (GetTickCount() - m_dwLastConnectAttempt > 1000/*3000*/)
 	{
 		//if (pUI) pUI->chat()->addDebugMessage("Connecting to %s:%d...", m_szHostOrIp, m_iPort);
-		if (pUI) pUI->chat()->addDebugMessage("Connecting to Server...");
+	// [chat] message de connexion retire : 
 
 		m_pRakClient->Connect(m_szHostOrIp, m_iPort, 0, 0, 2);
 		
@@ -593,7 +593,7 @@ void CNetGame::Packet_ConnectionSucceeded(Packet *pkt)
 	bsSuccAuth.Read(uiChallenge);
 	uiChallenge ^= iVersion;
 
-	if (pUI) pUI->chat()->addDebugMessage("Connected. Joining the game...");
+	// [chat] message de connexion retire : 
 
 	SetGameState(GAMESTATE_AWAIT_JOIN);
 

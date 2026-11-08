@@ -6,6 +6,7 @@
 // the sequence that was already proven to work on this client.
 //
 
+#include <dlfcn.h>
 #include "SouthModelLoader.h"
 
 #include <cstdio>
@@ -209,10 +210,24 @@ RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
         return nullptr;
     }
     const int16 txdIndex = modelInfo->m_nTxdIndex;
-    if (txdIndex < 0 || !CTxdStore::ms_pTxdPool) {
+    // [fix 08/11] CTxdStore::ms_pTxdPool de NOTRE classe n'est jamais renseigne (il vaut toujours nullptr) :
+    // le chargement du mega-skin echouait avec "no texture dictionary for model 7" et le ped restait blanc.
+    // On lit donc le vrai pool de textures du jeu (symbole exporte par libGTASA.so).
+    static CTxdPool* s_gamePool = nullptr;
+    CTxdPool* pool = CTxdStore::ms_pTxdPool;
+    if (!pool) {
+        if (!s_gamePool) {
+            if (void* sym = dlsym(CHook::lib, "_ZN9CTxdStore11ms_pTxdPoolE")) {
+                s_gamePool = *reinterpret_cast<CTxdPool**>(sym);
+            }
+            FLog("[models] pool de textures du jeu : %p", (void*)s_gamePool);
+        }
+        pool = s_gamePool;
+    }
+    if (txdIndex < 0 || !pool) {
         return nullptr;
     }
-    TxdDef* def = CTxdStore::ms_pTxdPool->GetAt(txdIndex);
+    TxdDef* def = pool->GetAt(txdIndex);
     if (!def) {
         return nullptr;
     }

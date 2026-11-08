@@ -371,8 +371,10 @@ void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
             CHook::CallFunction<void>("_Z20RpAnimBlendClumpInitP7RpClump", clump);
             CHook::CallFunction<void>("_Z30RpAnimBlendClumpFillFrameArrayP7RpClumpPP18AnimBlendFrameData",
                                       clump, reinterpret_cast<void*>(ped->m_apBones.data()));
-            // Pas d'animation lancee a la main : la tache par defaut du joueur (recreee par le jeu apres
-            // FlushImmediately) fait ses propres BlendAnimation (repos, marche, course).
+            // [fix 08/11b] Sans aucune association le jeu plante dans CPed::PlayFootSteps (GetFirstAssociation = null).
+            // On lance l'animation de repos du groupe "player" ; la tache du joueur prend ensuite le relais.
+            CHook::CallFunction<void*>("_ZN12CAnimManager14BlendAnimationEP7RpClump12AssocGroupId11AnimationIdf",
+                                       clump, 54 /*ANIM_GROUP_PLAYER*/, 3 /*ANIM_ID_IDLE*/, 4.0f);
         }
         if (ped->m_pRwObject) {
             ++recreated;

@@ -809,7 +809,11 @@ namespace {
 			}
 		}
 
+		static int s_diagCommits = 0;
+		const bool diag = s_diagCommits < 6;
+		if (diag) { s_diagCommits++; FLog("[vetements] application de %u textures (joueur %u, modele %u)", (unsigned)wanted.size(), (unsigned)g_ctxPlayer, (unsigned)g_ctxModel); }
 		for (const auto& [material, wantedTexture] : wanted) {
+			if (diag) FLog("[vetements]   %s <- %s (%s)", material.c_str(), wantedTexture.c_str(), BrlTextureShader::HasTexture(wantedTexture) ? "trouvee" : "INTROUVABLE");
 			// Vêtement dont la texture principale est introuvable : on n'affiche JAMAIS
 			// la texture vanilla du modèle, on masque la pièce (texture transparente).
 			const std::string& texture = (IsClothingTexture(wantedTexture) && !BrlTextureShader::HasTexture(wantedTexture))
@@ -1332,7 +1336,13 @@ void ClothesCustomization::ApplyCurrent()
     if (SkinBodies::IsCivilBody(realModel) && realModel != 289) {
         std::string error;
         // Shared model is loaded once per body, on the game thread, for local and remote players.
-        if (!SouthModelLoader::LoadForModel(realModel, error)) return;
+        const bool loaded = SouthModelLoader::LoadForModel(realModel, error);
+        {   // [diag] une ligne par resultat different (evite de saturer le journal)
+            static std::string s_lastDiag;
+            const std::string diag = std::string(loaded ? "ok" : "ECHEC") + " : " + error;
+            if (diag != s_lastDiag) { s_lastDiag = diag; FLog("[vetements] mega-skin modele %u -> %s", (unsigned)realModel, diag.c_str()); }
+        }
+        if (!loaded) return;
     }
 	const uint16_t modelId = CurrentLocalModelId();
 	if (!IsSupportedSkin(modelId) || !CurrentLocalPedReady()) {

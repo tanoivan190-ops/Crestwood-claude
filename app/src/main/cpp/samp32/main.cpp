@@ -543,6 +543,19 @@ void MainLoop()
 						cam->GetHeading(), pd->GetHeading(), plr, pud,
 						cam->GetPosition().x, cam->GetPosition().y, cam->GetPosition().z);
 				}
+				{   // animations et taches du joueur local
+					void* clump = pd->m_pRwObject;
+					int init = -1, nassoc = -1, firstAnim = -1;
+					if (clump) {
+						init = (int)CHook::CallFunction<unsigned int>("_Z29RpAnimBlendClumpIsInitializedP7RpClump", clump);
+						nassoc = (int)CHook::CallFunction<int>("_Z34RpAnimBlendClumpGetNumAssociationsP7RpClump", clump);
+						void* a = CHook::CallFunction<void*>("_Z35RpAnimBlendClumpGetFirstAssociationP7RpClump", clump);
+						if (a) firstAnim = (int)*reinterpret_cast<uint16_t*>(reinterpret_cast<uintptr_t>(a) + 0x2c);
+					}
+					unsigned prim = 0;
+					if (pd->m_pIntelligence) for (int i = 0; i < 5; ++i) if (pd->m_pIntelligence->m_TaskMgr.m_aPrimaryTasks[i]) prim |= (1u << i);
+					FLog("[diag-anim] clump=%p init=%d assoc=%d premiereAnim=%d tachesPrimaires=0x%x", clump, init, nassoc, firstAnim, prim);
+				}
 				FLog("[diag] modele=%d etat=%d veh=%d jet=%d stick=%d/%d on=%d moveBlend=%.2f pos=%.1f,%.1f,%.1f",
 					(int)pd->m_nModelIndex, (int)pd->m_nPedState, (int)lp->IsInVehicle(), (int)lp->IsInJetpackMode(),
 					sx, sy, son,

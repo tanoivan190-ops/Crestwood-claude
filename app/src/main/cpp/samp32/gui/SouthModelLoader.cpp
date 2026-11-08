@@ -20,6 +20,7 @@
 #include "game/Entity/CPedGTA.h"
 #include "game/Models/ClumpModelInfo.h"
 #include "game/Pools.h"
+#include "game/util.h"
 #include "game/Models/ModelInfo.h"
 #include "game/Models/PedModelInfo.h"
 #include "game/RW/RenderWare.h"

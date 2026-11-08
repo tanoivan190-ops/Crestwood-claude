@@ -23,6 +23,7 @@ public:
     // Loads and installs the model for this gender. Idempotent — a second call
     // returns true immediately. err always carries a human-readable step trace.
     static bool LoadForModel(int modelId, std::string& err);
+    static bool LoadForModelImpl(int modelId, std::string& err);
     static bool IsLoaded(int modelId);
 
     // [v14] modeles d'objets remplaces depuis l'APK (assets/models/<nom>) : LSPD, JBL...

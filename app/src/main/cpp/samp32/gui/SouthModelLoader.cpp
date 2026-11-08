@@ -72,6 +72,8 @@ constexpr uint32 kRwIdClump         = 0x10; // rwCLUMP
 struct SLoadedModel {
     RpClump* sourceClump{nullptr};
     bool     loaded{false};
+    bool     failed{false};      // [fix 08/11] un echec n'est PAS retente (relire 5 Mo a chaque image figeait le jeu)
+    std::string failReason;
 };
 
 std::unordered_map<int, SLoadedModel> s_models;
@@ -221,6 +223,11 @@ RpHAnimHierarchy* FindAnimHierarchyInClump(RpClump* clump) {
     RpHAnimHierarchy* hier = nullptr;
     if (clump) {
         RpClumpForAllAtomics(clump, FindAnyHierarchyCB, &hier);
+        if (!hier) {
+            // Un DFF fraichement lu n'a pas encore de hierarchie sur ses atomics : le jeu la pose
+            // dans CPedModelInfo::SetClump a partir de la hierarchie portee par les FRAMES.
+            hier = CHook::CallFunction<RpHAnimHierarchy*>("_Z25GetAnimHierarchyFromClumpP7RpClump", clump);
+        }
     }
     return hier;
 }
@@ -402,6 +409,19 @@ bool SouthModelLoader::IsLoaded(int modelId) {
 }
 
 bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
+    const bool ok = LoadForModelImpl(modelId, err);
+    if (!ok && (modelId == 7 || modelId == 9 || modelId == 12 || modelId == 163)) {
+        SLoadedModel& e = s_models[modelId];
+        if (!e.loaded && !e.failed) {
+            e.failed = true;
+            e.failReason = err;
+            FLog("[models] mega-skin %d : echec memorise, plus de nouvel essai (%s)", modelId, err.c_str());
+        }
+    }
+    return ok;
+}
+
+bool SouthModelLoader::LoadForModelImpl(int modelId, std::string& err) {
     if (!(modelId == 7 || modelId == 9 || modelId == 12 || modelId == 163)) {
         err = "unsupported model " + std::to_string(modelId);
         return false;
@@ -409,6 +429,13 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     if (IsLoaded(modelId)) {
         err = "already loaded";
         return true;
+    }
+    {
+        auto it = s_models.find(modelId);
+        if (it != s_models.end() && it->second.failed) {
+            err = it->second.failReason;   // deja tente : on renvoie le meme echec sans rien refaire
+            return false;
+        }
     }
 
     char dir[640];

@@ -147,7 +147,13 @@ uint16_t CPad__GetPedWalkLeftRight_hook(uintptr_t thiz)
 		// Local player
 		LocalPlayerKeys.wKeyLR = CPad__GetPedWalkLeftRight(thiz);
         if (g_HudStickOn.load()) LocalPlayerKeys.wKeyLR = (uint16_t)(int16_t)g_HudStickX.load();
-		return LocalPlayerKeys.wKeyLR;
+		// [fix 08/11c] le jeu oriente la marche par rapport a un angle de camera decale de 90 deg
+		// (horizAngle - orientation = pi/2 mesure dans [diag-cam2]) : on tourne le stick de +90 deg pour
+		// que "avant" aille vers l'avant a l'ecran. Les valeurs envoyees au serveur restent brutes.
+		{
+			int ud = g_HudStickOn.load() ? g_HudStickY.load() : (int)(int16_t)CPad__GetPedWalkUpDown(thiz);
+			return (uint16_t)(int16_t)ud;
+		}
 	}
 }
 
@@ -170,7 +176,10 @@ uint16_t CPad__GetPedWalkUpDown_hook(uintptr_t thiz)
 		// Local player
 		LocalPlayerKeys.wKeyUD = CPad__GetPedWalkUpDown(thiz);
         if (g_HudStickOn.load()) LocalPlayerKeys.wKeyUD = (uint16_t)(int16_t)g_HudStickY.load();
-		return LocalPlayerKeys.wKeyUD;
+		{
+			int lr = g_HudStickOn.load() ? g_HudStickX.load() : (int)(int16_t)CPad__GetPedWalkLeftRight(thiz);
+			return (uint16_t)(int16_t)(-lr);
+		}
 	}
 }
 

@@ -353,17 +353,20 @@ void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
         if (!ped || (int)ped->m_nModelIndex != modelId) {
             continue;
         }
-        // [fix 08/11] CreateRwObject (slot 8) recree seulement le clump : il manque l'initialisation des
-        // animations (RpAnimBlendClumpInit + FillFrameArray) que fait CPed::SetModelIndex. Sans elle, le ped
-        // n'a aucune donnee d'animation -> SIGSEGV dans CPed::PlayFootSteps / RpAnimBlendClumpGetFirstAssociation
-        // (crestwood_samp_log : fault 0x2c, r0 = 0). On rappelle donc la vraie CPed::SetModelIndex du jeu
-        // (comme MTA RestreamPeds), qui cree le clump ET initialise les animations.
-        CHook::CallFunction<void>("_ZN4CPed13SetModelIndexEj", ped, (uint32_t)modelId);
+        // [fix 08/11] CreateRwObject (slot 8) recree le clump mais pas les donnees d'animation que
+        // CPed::SetModelIndex initialise -> SIGSEGV dans CPed::PlayFootSteps (fault 0x2c). On garde
+        // CreateRwObject (qui laisse intact l'etat du joueur : controles, widgets) et on ajoute SEULEMENT
+        // l'initialisation des animations. (Appeler CPed::SetModelIndex en entier faisait disparaitre les touches.)
+        const auto table = *reinterpret_cast<uintptr_t**>(ped);
+        reinterpret_cast<void (*)(CPedGTA*)>(table[8])(ped);
         if (ped->m_pRwObject) {
-            // Remet la pose de base (sinon le ped reste fige / en T tant qu'aucune animation n'est lancee).
-            // ANIM_ID_IDLE = 3 : on appelle la fonction DU JEU (la reimplementation locale de CAnimManager n'est pas fiable ici).
+            RpClump* clump = reinterpret_cast<RpClump*>(ped->m_pRwObject);
+            CHook::CallFunction<void>("_Z20RpAnimBlendClumpInitP7RpClump", clump);
+            CHook::CallFunction<void>("_Z30RpAnimBlendClumpFillFrameArrayP7RpClumpPP18AnimBlendFrameData",
+                                      clump, reinterpret_cast<void*>(ped->m_apBones.data()));
+            // ANIM_ID_IDLE = 3 : fonction DU JEU (la reimplementation locale de CAnimManager n'est pas fiable ici).
             CHook::CallFunction<void*>("_ZN12CAnimManager14BlendAnimationEP7RpClump12AssocGroupId11AnimationIdf",
-                                       reinterpret_cast<RpClump*>(ped->m_pRwObject), (int)ped->m_nAnimGroup, 3, 4.0f);
+                                       clump, (int)ped->m_nAnimGroup, 3, 4.0f);
         }
         if (ped->m_pRwObject) {
             ++recreated;

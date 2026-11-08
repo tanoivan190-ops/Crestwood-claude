@@ -526,6 +526,23 @@ void MainLoop()
 
 	DoInitStuff();
 	Crestwood_ProcessHiddenPlayers();   // [v15] admins invisibles
+	{   // [diag 08/11] etat du joueur local toutes les 2 s (deplacement / boutons)
+		static uint32_t s_diagNext = 0; static int s_diagCount = 0;
+		void HudPad_GetStick(int*, int*, int*); int sx = 0, sy = 0, son = 0; HudPad_GetStick(&sx, &sy, &son);
+		if (pGame && pNetGame && s_diagCount < 40 && GetTickCount() >= s_diagNext) {
+			s_diagNext = GetTickCount() + 2000;
+			CPlayerPed* lp = pGame->FindPlayerPed();
+			if (lp && lp->m_pPed) {
+				++s_diagCount;
+				CPedGTA* pd = lp->m_pPed;
+				FLog("[diag] modele=%d etat=%d veh=%d jet=%d stick=%d/%d on=%d moveBlend=%.2f pos=%.1f,%.1f,%.1f",
+					(int)pd->m_nModelIndex, (int)pd->m_nPedState, (int)lp->IsInVehicle(), (int)lp->IsInJetpackMode(),
+					sx, sy, son,
+					pd->m_pPlayerData ? pd->m_pPlayerData->m_fMoveBlendRatio : -1.0f,
+					pd->GetPosition().x, pd->GetPosition().y, pd->GetPosition().z);
+			}
+		}
+	}
 	if (bGameInited) SouthModelLoader::PreloadBodies();   // [v13] corps Homme/Femme de l'APK sur leurs emplacements dedies
 
 	// [Crestwood] HUD HTML actif : chat SA-MP natif et barre de touches natives toujours masques

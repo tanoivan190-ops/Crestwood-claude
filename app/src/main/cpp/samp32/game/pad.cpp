@@ -51,6 +51,8 @@ static void HudPad_Pulse(uint32_t bits)
 }
 
 // x / y : -128..128 (gauche/haut negatifs, comme les axes du moteur)
+void HudPad_GetStick(int* x, int* y, int* on) { *x = g_HudStickX.load(); *y = g_HudStickY.load(); *on = g_HudStickOn.load() ? 1 : 0; }
+
 void HudPad_SetStick(int x, int y, bool active)
 {
     if (x < -128) x = -128; else if (x > 128) x = 128;

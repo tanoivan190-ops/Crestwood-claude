@@ -539,6 +539,8 @@ void MainLoop()
 				{   // camera / orientation : le stick est relatif a la camera
 					void HudPad_GetPad(int*, int*); int plr = 0, pud = 0; HudPad_GetPad(&plr, &pud);
 					CCamera* cam = reinterpret_cast<CCamera*>(g_libGTASA + (VER_x32 ? 0x00951FA8 : 0xBBA8D0));
+					{ const CCam& ac = cam->m_aCams[cam->m_nActiveCam % 3];
+					  FLog("[diag-cam2] orientation=%.2f horizAngle=%.2f alpha=%.2f mode=%d activeCam=%d", cam->m_fOrientation, ac.m_fHorizontalAngle, ac.Alpha, (int)ac.m_nMode, (int)cam->m_nActiveCam); }
 					FLog("[diag-cam] camHeading=%.2f pedHeading=%.2f padLR=%d padUD=%d camPos=%.1f,%.1f,%.1f",
 						cam->GetHeading(), pd->GetHeading(), plr, pud,
 						cam->GetPosition().x, cam->GetPosition().y, cam->GetPosition().z);

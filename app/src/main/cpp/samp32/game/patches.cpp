@@ -138,9 +138,38 @@ int32_t CWorld__FindPlayerSlotWithPedPointer(CPedGTA* pPlayersPed)
     return -1;
 }
 
+#if VER_x32
+// [fix 08/11] File de commandes de rendu (RenderQueue) du moteur 2.10 : 1 Mo (512 Ko sur certains appareils).
+// RQVertexBuffer::Update copie TOUTES les donnees de sommets d'un modele dans cette file, sans verifier
+// qu'elles tiennent : le skin 7 (~1,1 Mo de sommets) depasse la file -> SIGSEGV dans memcpy
+// (crestwood_samp_log : r2 = 0x1172EC, adresse fautive en fin de page, '[ped] rendu modele 7').
+// On passe la file a 4 Mo : taille du malloc (r0) ET capacite (r6), dans les deux branches du constructeur.
+static void EnlargeRenderQueue()
+{
+    struct Patch { uintptr_t off; uint8_t expect[4]; uint8_t repl[4]; };
+    static const Patch kPatches[] = {
+        { 0x1D16E4, { 0x4F, 0xF4, 0x80, 0x10 }, { 0x4F, 0xF4, 0x80, 0x00 } },   // mov.w  r0, #0x100000 -> #0x400000
+        { 0x1D16EA, { 0x4F, 0xF4, 0x00, 0x20 }, { 0x4F, 0xF4, 0x80, 0x00 } },   // movne.w r0, #0x80000 -> #0x400000
+        { 0x1D16EE, { 0x4F, 0xF4, 0x80, 0x16 }, { 0x4F, 0xF4, 0x80, 0x06 } },   // mov.w  r6, #0x100000 -> #0x400000
+        { 0x1D193A, { 0x4F, 0xF4, 0x00, 0x26 }, { 0x4F, 0xF4, 0x80, 0x06 } },   // movne.w r6, #0x80000 -> #0x400000
+    };
+    for (const Patch& p : kPatches) {
+        if (memcmp((const void*)(g_libGTASA + p.off), p.expect, 4) != 0) {
+            FLog("[rq] patch de la file de rendu ignore : octets inattendus en 0x%X (autre version de libGTASA ?)", (unsigned)p.off);
+            return;   // tout ou rien : jamais une file a moitie modifiee
+        }
+    }
+    for (const Patch& p : kPatches) CHook::WriteMemory(g_libGTASA + p.off, (uintptr_t)p.repl, 4);
+    FLog("[rq] file de rendu agrandie a 4 Mo (skins lourds)");
+}
+#endif
+
 void ApplyPatches_level0()
 {
     FLog("ApplyPatches_level0");
+#if VER_x32
+    EnlargeRenderQueue();
+#endif
 
     CHook::Write(g_libGTASA + (VER_x32 ? 0x006783C0 : 0x84E7A8), &CWorld::Players);
     CHook::Write(g_libGTASA + (VER_x32 ? 0x00679B5C : 0x8516D8), &CWorld::PlayerInFocus);

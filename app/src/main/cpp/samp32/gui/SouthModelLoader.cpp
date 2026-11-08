@@ -205,6 +205,26 @@ RpClump* LoadDffFile(const char* path, std::string& err) {
     return clump;
 }
 
+// [fix 08/11] Le mega-DFF contient de nombreuses atomics (corps + vetements) : la premiere n'est pas forcement
+// la peau animee. GetAnimHierarchyFromSkinClump() s'arrete a la premiere atomic et renvoyait nullptr
+// ("no anim hierarchy on DFF"). On parcourt toutes les atomics jusqu'a trouver une hierarchie.
+RpAtomic* FindAnyHierarchyCB(RpAtomic* atomic, void* data) {
+    RpHAnimHierarchy* hier = RpSkinAtomicGetHAnimHierarchy(atomic);
+    if (hier) {
+        *reinterpret_cast<RpHAnimHierarchy**>(data) = hier;
+        return nullptr;   // trouve : on arrete le parcours
+    }
+    return atomic;        // sinon on continue
+}
+
+RpHAnimHierarchy* FindAnimHierarchyInClump(RpClump* clump) {
+    RpHAnimHierarchy* hier = nullptr;
+    if (clump) {
+        RpClumpForAllAtomics(clump, FindAnyHierarchyCB, &hier);
+    }
+    return hier;
+}
+
 RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
     if (!modelInfo) {
         return nullptr;
@@ -245,10 +265,7 @@ bool ReplacePedModel(CBaseModelInfo* modelInfo, RpClump* source, std::string& er
         err = "null modelInfo/clump";
         return false;
     }
-    RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(source);
-    if (!hier) {
-        hier = GetAnimHierarchyFromSkinClump(source);
-    }
+    RpHAnimHierarchy* hier = FindAnimHierarchyInClump(source);
     if (!hier) {
         err = "no anim hierarchy on DFF (MTA refuses ReplacePedModel)";
         return false;
@@ -444,9 +461,6 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
         return false;
     }
 
-    // Release every existing instance BEFORE the clump under them is replaced.
-    std::vector<CPedGTA*> releasedPeds = ReleasePedsUsingModel(modelId);
-
     // RpClumpStreamRead resolves each material's texture BY NAME against the
     // *current* texture dictionary (same as MTA's ReadDFF). Without this the
     // materials come back with null textures and the ped renders solid white.
@@ -471,14 +485,23 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     std::string dffErr;
     RpClump* source = LoadDffFile(dffPath, dffErr);
     if (!source) {
-        // ReleasePedsUsingModel() already removed the live instances.  Restore
-        // them even if the replacement DFF is corrupt/missing, otherwise the
-        // next render or ProcessControl pass dereferences a missing clump.
-        RecreateReleasedPeds(releasedPeds, modelId);
+        // Aucun ped n'a encore ete libere : rien a restaurer.
         CTxdStore::PopCurrentTxd();
         err = std::string("dff load failed: ") + dffErr;
         return false;
     }
+
+    // [fix 08/11] On valide le DFF AVANT de liberer les peds : liberer puis recreer un ped sans remplacer son
+    // modele laissait un ped sans animations -> SIGSEGV dans CPed::PlayFootSteps.
+    if (!FindAnimHierarchyInClump(source)) {
+        CTxdStore::PopCurrentTxd();
+        RpClumpDestroy(source);
+        err = "replace failed: no anim hierarchy on DFF (aucun ped touche)";
+        return false;
+    }
+
+    // Release every existing instance BEFORE the clump under them is replaced.
+    std::vector<CPedGTA*> releasedPeds = ReleasePedsUsingModel(modelId);
 
     std::string replaceErr;
     if (!ReplacePedModel(modelInfo, source, replaceErr)) {

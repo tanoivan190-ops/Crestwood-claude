@@ -1512,7 +1512,7 @@ void ScrTogglePlayerControllable(RPCParameters* rpcParams)
 	{   // [fix 08/11b] premier "controlable" apres la connexion : camera derriere le joueur (sinon camera fixe
 	    // de l'ecran de choix de classe -> le stick ne va pas dans la direction voulue).
 		static bool s_camFixed = false;
-		if (byteControllable && !s_camFixed) { s_camFixed = true; CCamera::SetBehindPlayer(); }
+		(void)s_camFixed;   // [08/11c] SetBehindPlayer retire : le joueur ne bougeait plus
 	}
 }
 

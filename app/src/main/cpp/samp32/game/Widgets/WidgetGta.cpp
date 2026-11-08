@@ -189,7 +189,7 @@ bool Crestwood_IsReplacedWidget(const void* pWidget)
 // Les textures d'origine sont gardees et remises si l'option "Boutons Crestwood" est coupee.
 // ---------------------------------------------------------------------------
 RwTexture* Crestwood_LoadApkTexture(const char* path);
-std::atomic<bool> g_cwCustomButtons{false};
+std::atomic<bool> g_cwCustomButtons{true};
 static RwTexture* s_cwOrigTex[NUM_WIDGETS];
 static bool s_cwOrigSaved[NUM_WIDGETS];
 

@@ -336,7 +336,9 @@ std::vector<CPedGTA*> ReleasePedsUsingModel(int modelId) {
             // (CTaskComplexPlayerOnFoot : marche, course, poing) gardent alors des pointeurs morts -> plus de
             // deplacement et boutons Courir / Poing masques. On vide donc les taches AVANT (elles se defont
             // proprement), le jeu recree la tache par defaut (controle du joueur) a l'image suivante.
-            if (ped->m_pIntelligence) {
+            // [fix 08/11b] Le ped LOCAL ne doit pas etre vide : CPlayerInfo::Process lit sa tache principale
+            // (GetTaskHold) -> SIGSEGV si elle est nulle. Seuls les autres peds sont vides.
+            if (ped->m_pIntelligence && ped != GamePool_FindPlayerPed()) {
                 ped->m_pIntelligence->m_TaskMgr.FlushImmediately();
             }
             ped->DeleteRwObject();

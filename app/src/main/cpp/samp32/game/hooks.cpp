@@ -459,6 +459,14 @@ uint32_t CHudColours__GetIntColour(uintptr* thiz, uint8 colour_id)
 void (*AND_TouchEvent)(int type, int num, int posX, int posY);
 void AND_TouchEvent_hook(int type, int num, int posX, int posY)
 {
+	{   // [diag 08/11] premiers appuis : coordonnees recues + taille ecran du moteur
+		static int s_touchLog = 0;
+		if (type == 2 && s_touchLog < 25) {
+			++s_touchLog;
+			FLog("[diag-touch] push doigt=%d x=%d y=%d | ecran moteur %dx%d", num, posX, posY,
+				RsGlobal ? (int)RsGlobal->maximumWidth : -1, RsGlobal ? (int)RsGlobal->maximumHeight : -1);
+		}
+	}
 	// imgui
 	//bool bRet = pUI->OnTouchEvent(type, num, posX, posY);
 

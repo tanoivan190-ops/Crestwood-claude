@@ -3,6 +3,8 @@
 #include <syscall.h>
 
 #include "main.h"
+#include "game/Camera.h"
+#include "game/pad.h"
 #include "gui/SouthModelLoader.h"
 #include <unistd.h>
 #include "game/game.h"
@@ -535,6 +537,12 @@ void MainLoop()
 			if (lp && lp->m_pPed) {
 				++s_diagCount;
 				CPedGTA* pd = lp->m_pPed;
+				{   // camera / orientation : le stick est relatif a la camera
+					CCamera* cam = reinterpret_cast<CCamera*>(g_libGTASA + (VER_x32 ? 0x00951FA8 : 0xBBA8D0));
+					FLog("[diag-cam] camHeading=%.2f pedHeading=%.2f padLR=%d padUD=%d camPos=%.1f,%.1f,%.1f",
+						cam->GetHeading(), pd->GetHeading(), (int)(int16_t)LocalPlayerKeys.wKeyLR, (int)(int16_t)LocalPlayerKeys.wKeyUD,
+						cam->GetPosition().x, cam->GetPosition().y, cam->GetPosition().z);
+				}
 				FLog("[diag] modele=%d etat=%d veh=%d jet=%d stick=%d/%d on=%d moveBlend=%.2f pos=%.1f,%.1f,%.1f",
 					(int)pd->m_nModelIndex, (int)pd->m_nPedState, (int)lp->IsInVehicle(), (int)lp->IsInJetpackMode(),
 					sx, sy, son,

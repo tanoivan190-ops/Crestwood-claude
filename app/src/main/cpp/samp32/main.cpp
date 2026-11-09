@@ -530,7 +530,7 @@ void MainLoop()
 	{   // [fix 09/11] HUD HTML actif : le HUD natif (argent vert, heure, radar) ne doit plus etre dessine,
 		// y compris par l'appel interne du jeu -> CHud::Draw est neutralise une fois pour toutes.
 		static bool s_hudKilled = false;
-		if (bGameInited && !s_hudKilled) {   // [09/11b] sans condition : g_bHtmlHud restait faux sur cet appareil s_hudKilled = true; CHook::RET("_ZN4CHud4DrawEv"); FLog("[hud] HUD natif desactive (CHud::Draw), g_bHtmlHud=%d", (int)g_bHtmlHud); }
+		/* [09/11b] sans condition : g_bHtmlHud restait faux sur cet appareil */ if (bGameInited && !s_hudKilled) { s_hudKilled = true; CHook::RET("_ZN4CHud4DrawEv"); FLog("[hud] HUD natif desactive (CHud::Draw), g_bHtmlHud=%d", (int)g_bHtmlHud); }
 	}
 	{   // [diag 08/11] etat du joueur local toutes les 2 s (deplacement / boutons)
 		static uint32_t s_diagNext = 0; static int s_diagCount = 0;

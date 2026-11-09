@@ -4,6 +4,7 @@
 #include "../gui/gui.h"
 #include "../vendor/armhook/patch.h"
 #include "World.h"
+#include "Camera.h"
 
 extern UI* pUI;
 extern CGame* pGame;
@@ -128,6 +129,28 @@ static bool HudPad_TakePulse(uint32_t bit)
 #define HUDPAD_IS_REMOTE() (CWorld::PlayerInFocus)
 PAD_KEYS RemotePlayerKeys[PLAYER_PED_SLOTS];
 
+
+// [fix 09/11] Direction de marche : le jeu oriente le joueur avec un angle de camera qui ne correspond pas a
+// la vue affichee. Apres le calcul du jeu on impose la direction voulue : cap de la camera (matrice) tourne
+// de l'angle du stick (convention SA : le cap augmente vers la gauche).
+static bool (*PlayerOnFoot_ProcessPed)(void* thiz, void* ped) = nullptr;
+static bool PlayerOnFoot_ProcessPed_hook(void* thiz, void* ped)
+{
+    bool r = PlayerOnFoot_ProcessPed(thiz, ped);
+    CPedGTA* p = reinterpret_cast<CPedGTA*>(ped);
+    if (p && !CWorld::PlayerInFocus && pGame && pGame->FindPlayerPed() && pGame->FindPlayerPed()->m_pPed == p) {
+        const int lr = (int)(int16_t)LocalPlayerKeys.wKeyLR, ud = (int)(int16_t)LocalPlayerKeys.wKeyUD;
+        if (lr * lr + ud * ud > 30 * 30) {
+            CCamera* cam = reinterpret_cast<CCamera*>(g_libGTASA + (VER_x32 ? 0x00951FA8 : 0xBBA8D0));
+            float dest = cam->GetHeading() - atan2f((float)lr, (float)-ud);
+            while (dest > 3.14159265f) dest -= 6.2831853f;
+            while (dest < -3.14159265f) dest += 6.2831853f;
+            p->m_fAimingRotation = dest;
+        }
+    }
+    return r;
+}
+
 uint16_t(*CPad__GetPedWalkLeftRight)(uintptr_t thiz);
 extern uint16_t(*CPad__GetPedWalkUpDown)(uintptr_t thiz);
 uint16_t CPad__GetPedWalkLeftRight_hook(uintptr_t thiz)
@@ -148,13 +171,7 @@ uint16_t CPad__GetPedWalkLeftRight_hook(uintptr_t thiz)
 		// Local player
 		LocalPlayerKeys.wKeyLR = CPad__GetPedWalkLeftRight(thiz);
         if (g_HudStickOn.load()) LocalPlayerKeys.wKeyLR = (uint16_t)(int16_t)g_HudStickX.load();
-		// [fix 08/11c] le jeu oriente la marche par rapport a un angle de camera decale de 90 deg
-		// (horizAngle - orientation = pi/2 mesure dans [diag-cam2]) : on tourne le stick de +90 deg pour
-		// que "avant" aille vers l'avant a l'ecran. Les valeurs envoyees au serveur restent brutes.
-		{
-			int ud = g_HudStickOn.load() ? g_HudStickY.load() : (int)(int16_t)CPad__GetPedWalkUpDown(thiz);
-			return (uint16_t)(int16_t)ud;
-		}
+		return LocalPlayerKeys.wKeyLR;
 	}
 }
 
@@ -177,10 +194,7 @@ uint16_t CPad__GetPedWalkUpDown_hook(uintptr_t thiz)
 		// Local player
 		LocalPlayerKeys.wKeyUD = CPad__GetPedWalkUpDown(thiz);
         if (g_HudStickOn.load()) LocalPlayerKeys.wKeyUD = (uint16_t)(int16_t)g_HudStickY.load();
-		{
-			int lr = g_HudStickOn.load() ? g_HudStickX.load() : (int)(int16_t)CPad__GetPedWalkLeftRight(thiz);
-			return (uint16_t)(int16_t)(-lr);
-		}
+		return LocalPlayerKeys.wKeyUD;
 	}
 }
 
@@ -1157,6 +1171,7 @@ void HookCPad()
     CHook::InstallPLT(g_libGTASA + (VER_x32 ? 0x66CF4C : 0x83ACF8), &CPad__TaskProcess);
 
     // lr/ud (onfoot)
+    CHook::InlineHook("_ZN23CTaskSimplePlayerOnFoot10ProcessPedEP4CPed", &PlayerOnFoot_ProcessPed_hook, &PlayerOnFoot_ProcessPed);
     CHook::InlineHook("_ZN4CPad19GetPedWalkLeftRightEv", &CPad__GetPedWalkLeftRight_hook, &CPad__GetPedWalkLeftRight);
     CHook::InlineHook("_ZN4CPad16GetPedWalkUpDownEv", &CPad__GetPedWalkUpDown_hook, &CPad__GetPedWalkUpDown);
 

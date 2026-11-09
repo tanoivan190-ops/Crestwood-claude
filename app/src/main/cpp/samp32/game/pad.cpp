@@ -129,6 +129,7 @@ static bool HudPad_TakePulse(uint32_t bit)
 PAD_KEYS RemotePlayerKeys[PLAYER_PED_SLOTS];
 
 uint16_t(*CPad__GetPedWalkLeftRight)(uintptr_t thiz);
+extern uint16_t(*CPad__GetPedWalkUpDown)(uintptr_t thiz);
 uint16_t CPad__GetPedWalkLeftRight_hook(uintptr_t thiz)
 {
 	if (CWorld::PlayerInFocus)

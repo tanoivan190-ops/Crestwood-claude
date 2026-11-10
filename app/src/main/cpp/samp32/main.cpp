@@ -535,7 +535,7 @@ void MainLoop()
 		if (!s_wants && CHook::lib) s_wants = (uint8_t*)dlsym(CHook::lib, "_ZN4CHud19m_Wants_To_Draw_HudE");
 		if (s_wants) *s_wants = 0;
 	}
-	/* [09/11b] sans condition : g_bHtmlHud restait faux sur cet appareil */ if (bGameInited && !s_hudKilled) { s_hudKilled = true; CHook::RET("_ZN4CHud4DrawEv"); CHook::RET("_ZN17CWidgetPlayerInfo4DrawEv");   /* argent, heure, sante, arme natifs */ CHook::RET("_ZN17CWidgetPlayerInfo4DrawEv");   /* [09/11d] widget argent / heure / arme / sante */ FLog("[hud] HUD natif desactive (CHud::Draw), g_bHtmlHud=%d", (int)g_bHtmlHud); }
+	/* [10/11] HUD natif : on ne coupe plus Draw (cassait le stick) ; le widget ne s'affiche juste plus */ if (bGameInited && !s_hudKilled) { s_hudKilled = true; CHook::RET("_ZN4CHud4DrawEv"); static bool (*s_pdcOrig)(void*) = nullptr; struct H { static bool False(void*) { return false; } }; CHook::InlineHook("_ZN17CWidgetPlayerInfo23PassesDisplayConditionsEv", (void*)&H::False, (void**)&s_pdcOrig); FLog("[hud] HUD natif desactive (CHud::Draw + PassesDisplayConditions)"); }
 	}
 	{   // [diag 08/11] etat du joueur local toutes les 2 s (deplacement / boutons)
 		static uint32_t s_diagNext = 0; static int s_diagCount = 0;

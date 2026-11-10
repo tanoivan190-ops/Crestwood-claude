@@ -143,17 +143,20 @@ static int Crestwood_WidgetId(const void* pWidget)
     return -1;
 }
 
+// [10/11b] Courir / Frapper : seulement non dessines (Update et SetEnabled restent natifs, sinon le stick casse)
+static bool Crestwood_HideDrawOnly(const void* pWidget)
+{
+    if (!pWidget || !pNetGame) return false;
+    switch (Crestwood_WidgetId(pWidget)) {
+        case WIDGET_SPRINT:
+        case WIDGET_BUTTON_SPRINT:
+        case WIDGET_ATTACK: return true;
+        default: return false;
+    }
+}
+
 bool Crestwood_IsReplacedWidget(const void* pWidget)
 {
-    if (pWidget && pNetGame && !g_HudCustomControls.load()) {
-        // [10/11] seuls Courir et Frapper sont remplaces par les boutons HTML (le stick natif reste)
-        switch (Crestwood_WidgetId(pWidget)) {
-            case WIDGET_SPRINT:
-            case WIDGET_BUTTON_SPRINT:
-            case WIDGET_ATTACK: return true;
-            default: break;
-        }
-    }
     if (!pWidget || !g_HudCustomControls.load() || !pNetGame) return false;
     switch (Crestwood_WidgetId(pWidget)) {
         // a pied
@@ -248,7 +251,7 @@ void CWidgetRegion__Draw_hook(void* thiz)
 void (*CWidgetButton__Draw32)(void* thiz);
 void CWidgetButton__Draw32_hook(void* thiz)
 {
-    if (Crestwood_IsReplacedWidget(thiz)) return;
+    if (Crestwood_IsReplacedWidget(thiz) || Crestwood_HideDrawOnly(thiz)) return;
     Crestwood_SkinWidget(thiz);   // [v15] icones Crestwood
     CWidgetButton__Draw32(thiz);
 }

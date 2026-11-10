@@ -41,6 +41,7 @@ CJavaWrapper::CJavaWrapper(JNIEnv *env, jobject activity)
     s_hudChat = env->GetMethodID(clas, "hudChatMessage", "([B[BI)V");
     if (env->ExceptionCheck()) { env->ExceptionClear(); s_hudChat = nullptr; }
     if (env->ExceptionCheck()) { env->ExceptionClear(); s_updateHudState = nullptr; }
+    FLog("[hud-jni] updateHudState=%p updateHudMoney=%p", (void*)s_updateHudState, (void*)s_updateHudMoney);
     s_clothesOpen = env->GetMethodID(clas, "clothesOpen", "(Ljava/lang/String;)V");
     if (env->ExceptionCheck()) { env->ExceptionClear(); s_clothesOpen = nullptr; }
     s_clothesState = env->GetMethodID(clas, "clothesState", "(Ljava/lang/String;)V");
@@ -222,6 +223,7 @@ void CJavaWrapper::UpdateHudState(float health, float armour, float thirst, floa
 	bool dead, bool running, bool exhausted, bool inVehicle, float speed, float vehHealth, bool handbrake,
 	float posX, float posY, float camFx, float camFy, float heading)
 {
+	{ static int n = 0; if (n < 2) { n++; FLog("[hud-jni] UpdateHudState vm=%p act=%p mid=%p pos=%.0f,%.0f", (void*)javaVM, (void*)activity, (void*)s_updateHudState, posX, posY); } }
 	if (!javaVM || !activity || !s_updateHudState) return;
 	JNIEnv* env = nullptr;
 	javaVM->GetEnv((void**)&env, JNI_VERSION_1_6);

@@ -204,6 +204,8 @@ static const char* Crestwood_ButtonIcon(int id)
         }
         case WIDGET_BUTTON_SPRINT:
         case WIDGET_BUTTON_SWIM: return "models/buttons/shoe.png";
+        case WIDGET_ENTER_TARGETING:
+        case WIDGET_EXIT_TARGETING: return "models/buttons/aim.png";
         case WIDGET_BUTTON_CROUCH: return "models/buttons/crouch.png";
         case WIDGET_BUTTON_DIVE: return "models/buttons/jump.png";
         default: return nullptr;

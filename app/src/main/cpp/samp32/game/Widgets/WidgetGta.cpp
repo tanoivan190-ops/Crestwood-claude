@@ -146,6 +146,7 @@ static int Crestwood_WidgetId(const void* pWidget)
 // [10/11b] Courir / Frapper : seulement non dessines (Update et SetEnabled restent natifs, sinon le stick casse)
 static bool Crestwood_HideDrawOnly(const void* pWidget)
 {
+    return false;   /* [10/11c] test : on ne masque plus rien (le stick ne repondait plus) */
     if (!pWidget || !pNetGame) return false;
     switch (Crestwood_WidgetId(pWidget)) {
         case WIDGET_SPRINT:

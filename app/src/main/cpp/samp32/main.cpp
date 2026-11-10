@@ -266,7 +266,6 @@ static void PushHudState()
 	const float hudDelta = std::chrono::duration<float>(nowHud - lastHudUpdate).count();
 	if (hudDelta < 0.10f) return;
 	lastHudUpdate = nowHud;
-	{ static int s_n = 0; if (s_n < 3) { s_n++; FLog("[hud-push] appel %d ped=%p", s_n, (void*)(pGame ? pGame->FindPlayerPed() : nullptr)); } }
 
 	CPlayerPed* localPed = pGame->FindPlayerPed();
 	if (!localPed || !localPed->m_pPed) return;

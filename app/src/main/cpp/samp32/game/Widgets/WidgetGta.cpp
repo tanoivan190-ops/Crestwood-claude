@@ -145,15 +145,6 @@ static int Crestwood_WidgetId(const void* pWidget)
 
 bool Crestwood_IsReplacedWidget(const void* pWidget)
 {
-    if (pWidget && pNetGame && !g_HudCustomControls.load()) {
-        // [10/11] seuls Courir et Frapper sont remplaces par les boutons HTML (le stick natif reste)
-        switch (Crestwood_WidgetId(pWidget)) {
-            case WIDGET_SPRINT:
-            case WIDGET_BUTTON_SPRINT:
-            case WIDGET_ATTACK: return true;
-            default: break;
-        }
-    }
     if (!pWidget || !g_HudCustomControls.load() || !pNetGame) return false;
     switch (Crestwood_WidgetId(pWidget)) {
         // a pied

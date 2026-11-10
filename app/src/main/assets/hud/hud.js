@@ -600,7 +600,7 @@
     add("animations", animationsButton);
     add("voice", voiceButton);
     add("interact", interactButton);
-    document.querySelectorAll(".tc-btn").forEach((btn, i) => add(`drive${i}`, btn));
+    document.querySelectorAll(".tc-btn, .rp-btn").forEach((btn, i) => add(`drive${i}`, btn));
     // Joystick flottant (touch-controls.js) : toute sa zone capte le tactile
     document.querySelectorAll(".tc-touch-zone").forEach((zone, i) => add(`stick${i}`, zone));
     add("quick", document.querySelector(".quick-actions"));

@@ -13,12 +13,14 @@
     <link rel="stylesheet" href="objectives.css" />
     <link rel="stylesheet" href="hud-noglow.css" />
     <link rel="stylesheet" href="touch-controls.css" />
+    <link rel="stylesheet" href="rp-buttons.css" />
     <link rel="stylesheet" href="hud-ring.css" />
     <link rel="stylesheet" href="hud-cw9.css" />
     <script src="gps/gps-route.js" defer></script>
     <script src="minimap.js" defer></script>
     <script src="objectives.js" defer></script>
     <script src="hud.js" defer></script>
+    <script src="rp-buttons.js" defer></script>
     <!-- [Crestwood] controles tactiles personnalises desactives : boutons natifs SA / SA-MP reactives -->
     <script src="hud-ring.js" defer></script>
     <script src="hotbar.js" defer></script>
@@ -238,6 +240,11 @@
       </div>
 
       <!-- A pied : tir / visee / saut / accroupi / sprint / armes / vehicule -->
+      <div class="rp-pad" aria-label="Actions">
+        <button class="rp-btn rp-run" type="button" data-rp="sprint" aria-label="Courir"><svg viewBox="0 0 24 24"><circle cx="14" cy="4.5" r="2"/><path d="M7 21l3-6 3 2 1 4M10 15l1-5 4 2 2-2M11 10L8 12"/></svg>COURIR</button>
+        <button class="rp-btn rp-hit" type="button" data-rp="fire" aria-label="Coup"><svg viewBox="0 0 24 24"><path d="M8 11V6a1.5 1.5 0 0 1 3 0v4M11 9V5a1.5 1.5 0 0 1 3 0v5M14 9V6a1.5 1.5 0 0 1 3 0v6c0 4-2 7-6 7-3 0-5-2-6-5l-1-3a1.5 1.5 0 0 1 3-1l1 2"/></svg>COUP</button>
+      </div>
+
       <div class="tc-group tc-combat hud-movable" data-hud-key="tcCombat" aria-label="Actions à pied">
         <button class="tc-btn tc-round tc-fire" type="button" data-tc-key="fire" aria-label="Tirer / frapper">
           <span class="tc-fire-ring" aria-hidden="true"></span>

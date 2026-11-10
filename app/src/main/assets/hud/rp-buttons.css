@@ -1,0 +1,11 @@
+/* Boutons RP legers : Courir + Coup */
+.tc-combat{display:none!important}
+.rp-pad{position:absolute;right:max(22px,env(safe-area-inset-right));bottom:max(26px,env(safe-area-inset-bottom));display:flex;gap:18px;align-items:flex-end;pointer-events:none;z-index:30}
+.vehicle-hud-active .rp-pad{display:none}
+.rp-btn{pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;border:1.5px solid rgba(255,255,255,.55);color:#fff;background:rgba(18,22,30,.45);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 10px/1 system-ui,sans-serif;letter-spacing:.8px;box-shadow:0 2px 8px rgba(0,0,0,.35);transition:transform .08s,background .08s}
+.rp-run{width:64px;height:64px;margin-bottom:46px}
+.rp-hit{width:78px;height:78px}
+.rp-btn svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rp-btn.rp-down{transform:scale(.92);background:rgba(255,255,255,.28)}
+.rp-hit.rp-down{background:rgba(220,60,60,.5);border-color:#ff8a8a}
+.rp-run.rp-down{border-color:#8ad0ff}

@@ -3,6 +3,8 @@ on:
   push:
     paths: ['.github/apk-patch/**', '.github/workflows/apk-inspect.yml']
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   inspect:
     runs-on: ubuntu-latest
@@ -24,7 +26,10 @@ jobs:
           ls out | head -50 > report/dirs.txt
           find out -name 'LoadingScreen*.smali' > report/loading_files.txt
           while read f; do cp "$f" "report/$(echo $f | tr / _)"; done < report/loading_files.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: apk-report
-          path: report
+      - name: Publier le rapport sur la branche apk-report
+        run: |
+          cd report
+          git init -q -b apk-report
+          git config user.name ci && git config user.email ci@example.com
+          git add -A && git commit -qm rapport
+          git push -f https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} apk-report

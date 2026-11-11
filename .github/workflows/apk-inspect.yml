@@ -1,0 +1,30 @@
+name: apk-inspect
+on:
+  push:
+    paths: ['.github/apk-patch/**', '.github/workflows/apk-inspect.yml']
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Telecharger l'APK du dev (release V2)
+        run: gh release download V2 -R ${{ github.repository }} -p '*.apk' -O dev.apk
+      - name: Apktool
+        run: |
+          curl -fsSL -o apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
+          java -jar apktool.jar d -r -f -o out dev.apk
+      - name: Rapport
+        run: |
+          mkdir report
+          grep -rl "SAISON 1" out --include=*.smali > report/saison_files.txt || true
+          grep -rli "langue\|language" out --include=*.smali > report/lang_files.txt || true
+          while read f; do cp "$f" "report/$(basename "$f")"; done < report/saison_files.txt
+          ls out | head -50 > report/dirs.txt
+          find out -name 'LoadingScreen*.smali' > report/loading_files.txt
+          while read f; do cp "$f" "report/$(echo $f | tr / _)"; done < report/loading_files.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-report
+          path: report

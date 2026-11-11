@@ -18,6 +18,27 @@ jobs:
         run: |
           curl -fsSL -o apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
           java -jar apktool.jar d -r -f -o out dev.apk
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Notre moteur 32 bits (build du projet)
+        run: |
+          SDKM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | head -n 1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "ndk;26.2.11394342" "cmake;3.22.1" "platforms;android-36"
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+          mkdir mine && cd mine && unzip -q ../app/build/outputs/apk/debug/*.apk 'lib/armeabi-v7a/*'
+          ls -la lib/armeabi-v7a
+      - name: Injecter le moteur 32 bits (le 64 bits du dev reste intact)
+        run: |
+          rm -rf out/lib/armeabi-v7a
+          mkdir -p out/lib
+          cp -r mine/lib/armeabi-v7a out/lib/armeabi-v7a
+          mkdir -p out/assets/models/buttons
+          cp app/src/main/assets/models/buttons/*.png out/assets/models/buttons/
+          ls out/lib
       - name: Correctifs
         run: python3 .github/apk-patch/patch.py out
       - name: Reconstruire + signer
@@ -31,4 +52,4 @@ jobs:
       - name: Publier dans la release V2-patch
         run: |
           gh release delete V2-patch -y --cleanup-tag -R ${{ github.repository }} || true
-          gh release create V2-patch CrestwoodRP-patched.apk -R ${{ github.repository }} --prerelease --title "APK du dev corrige" --notes "APK V2 corrige (texte du haut retire)."
+          gh release create V2-patch CrestwoodRP-patched.apk -R ${{ github.repository }} --prerelease --title "APK du dev corrige" --notes "APK du dev (64 bits intact, file de rendu 4 Mo, intro 8 photos) + notre moteur 32 bits."

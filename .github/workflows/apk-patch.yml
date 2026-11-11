@@ -11,6 +11,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      - uses: actions/checkout@v4
       - name: APK du dev (release V2)
         run: gh release download V2 -R ${{ github.repository }} -p '*.apk' -O dev.apk
       - name: Apktool

@@ -1,0 +1,33 @@
+name: apk-patch
+on:
+  push:
+    paths: ['.github/apk-patch/PATCH', '.github/workflows/apk-patch.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: APK du dev (release V2)
+        run: gh release download V2 -R ${{ github.repository }} -p '*.apk' -O dev.apk
+      - name: Apktool
+        run: |
+          curl -fsSL -o apktool.jar https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
+          java -jar apktool.jar d -r -f -o out dev.apk
+      - name: Correctifs
+        run: python3 .github/apk-patch/patch.py out
+      - name: Reconstruire + signer
+        run: |
+          java -jar apktool.jar b -f -o rebuilt.apk out
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/zipalign -p -f 4 rebuilt.apk aligned.apk
+          keytool -genkeypair -keystore ks.jks -storepass crestwood -keypass crestwood -alias key -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Crestwood"
+          $BT/apksigner sign --ks ks.jks --ks-pass pass:crestwood --key-pass pass:crestwood --out CrestwoodRP-patched.apk aligned.apk
+          $BT/apksigner verify CrestwoodRP-patched.apk && ls -la CrestwoodRP-patched.apk
+      - name: Publier dans la release V2-patch
+        run: |
+          gh release delete V2-patch -y --cleanup-tag -R ${{ github.repository }} || true
+          gh release create V2-patch CrestwoodRP-patched.apk -R ${{ github.repository }} --prerelease --title "APK du dev corrige" --notes "APK V2 corrige (texte du haut retire)."

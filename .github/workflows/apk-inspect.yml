@@ -23,6 +23,8 @@ jobs:
           grep -rl "SAISON 1" out --include=*.smali > report/saison_files.txt || true
           grep -rli "langue\|language" out --include=*.smali > report/lang_files.txt || true
           while read f; do cp "$f" "report/$(basename "$f")"; done < report/saison_files.txt
+          grep -rl 'crestwood_32_log' out --include=*.smali > report/log_files.txt || true
+          while read f; do cp "$f" "report/LOG_$(basename "$f")"; done < report/log_files.txt
           ls out | head -50 > report/dirs.txt
           find out -name 'LoadingScreen*.smali' > report/loading_files.txt
           while read f; do cp "$f" "report/$(echo $f | tr / _)"; done < report/loading_files.txt

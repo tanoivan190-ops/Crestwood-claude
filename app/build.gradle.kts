@@ -11,13 +11,14 @@ android {
         applicationId = "com.crestwood.rp"
         minSdk = 28
         targetSdk = 36
-        versionCode = 5
-        versionName = "2.10-32bits"
+        versionCode = 6
+        versionName = "2.10-universel"
 
         multiDexEnabled = true
 
         ndk {
             abiFilters.add("armeabi-v7a")
+            abiFilters.add("arm64-v8a")
         }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -26,6 +27,7 @@ android {
     packaging {
         jniLibs {
             excludes.add("META-INF/*")
+            pickFirsts.add("**/*.so")
         }
         resources {
             excludes.add("META-INF/*")

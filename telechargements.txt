@@ -1,0 +1,10 @@
+total 221388
+drwxr-xr-x  2 runner runner      4096 Nov 13 19:57 .
+drwxr-xr-x 12 runner runner      4096 Nov 13 19:57 ..
+-rw-r--r--  1 runner runner     79056 Nov 13 19:57 1600767890_advanced_aiming_mod.7z
+-rw-r--r--  1 runner runner  14523053 Nov 13 19:57 ferrari-sf90-f9xx-mansory_1743247553_547622.zip.bak
+-rw-r--r--  1 runner runner       382 Nov 13 19:57 ids.txt
+-rw-r--r--  1 runner runner   6297014 Nov 13 19:57 new-realistic-hd-vehicle-pack_1780671177_240703.rar
+-rw-r--r--  1 runner runner   3530000 Nov 13 19:57 novye-animacii-dlja-sampcrmp-androidpc_1650446716_625772.zip
+-rw-r--r--  1 runner runner  23628851 Nov 13 19:57 rastitelnost-iz-definitive-edition-_1756178533_391855.rar
+-rw-r--r--  1 runner runner 178622370 Nov 13 19:57 sbornik-mashin-iz-gta-5_1686170602_760112.rar

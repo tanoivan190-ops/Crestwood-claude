@@ -1,0 +1,429 @@
+=== x/rastitelnost-iz-definitive-edition-_1756178533_391855/data/maps/country/countn2.ide
+objs
+16000, drvin_screen, con_drivein, 150, 4
+16001, drvin_projhut, con_drivein, 100, 0
+16002, drvin_sign, con_drivein, 290, 0
+16003, drvin_ticket, con_drivein, 290, 0
+16004, des_tepeoff, des_teepee, 150, 128
+16005, desn2_stwnblok2, des_stownmain2, 150, 0
+16006, ros_townhall, des_stownmain1, 200, 2097152
+16007, desn2_cn2blok1, des_stownmain2, 150, 128
+16008, des_nbrstruct, des_n, 299, 0
+16009, des_nbrstruct2, des_n, 299, 0
+16010, des_reslab_, des_nstuff, 200, 0
+16011, des_westrn2_, des_ntown, 299, 0
+16012, des_ntcafe, des_ntown, 299, 0
+16013, des_ntwn_lines1_, desn2_alphabits, 150, 2097348
+16014, des_ntwn_lines2_, desn2_alphabits, 150, 2097220
+16015, des_ntwn_lines6_, desn2_alphabits, 150, 2097220
+16016, des_roadbar01, des_n, 200, 2097220
+16017, des_roadbar02, des_n, 200, 2097220
+16018, des_roadbar03, des_n, 200, 2097220
+16019, des_roadbar04, des_n, 200, 2097220
+16020, des_roadbar05, des_n, 200, 2097348
+16021, des_geyhotbase_, des_geyser, 150, 0
+16022, des_geywall1, des_geyser, 299, 0
+16023, des_trXingsign02, des_trainstuff, 299, 0
+16024, des_ltraintunnel2, des_trainstuff, 250, 0
+16025, des_trainline06, des_trainstuff, 250, 0
+16026, des_trainline07, des_trainstuff, 250, 0
+16027, des_trainline08, des_trainstuff, 250, 0
+16028, des_trainline09, des_trainstuff, 250, 0
+16029, des_trainline11, des_trainstuff, 250, 0
+16030, des_trainline12, des_trainstuff, 250, 0
+16031, des_trainline13, des_trainstuff, 250, 0
+16032, des_trainline14, des_trainstuff, 2
+=== x/rastitelnost-iz-definitive-edition-_1756178533_391855/data/maps/country/countryS.ide
+objs
+18200, w_town_11, w_town2cs_t, 200, 0
+18201, wtown_bits2_02, cw_roofbitcs_t, 60, 0
+18202, wtown_trailwal, w_towncs_t, 150, 4
+18203, wtown_bits2_05, w_towncs_t, 200, 0
+18204, w_townwires_01, cw_wires2cs_t, 100, 2097156
+18205, w_townwires_02, cw_wires2cs_t, 100, 2097156
+18206, w_townwires_03, cw_wires2cs_t, 100, 2097156
+18207, w_townwires_04, cw_wires2cs_t, 100, 2097156
+18208, w_townwires_05, cw_wires2cs_t, 100, 4
+18209, w_townwires_06, cw_wires2cs_t, 100, 2097156
+18210, w_townwires_07, cw_wires2cs_t, 100, 2097156
+18211, w_townwires_08, cw_wires2cs_t, 100, 2097156
+18212, w_townwires_09, cw_wires2cs_t, 100, 2097156
+18213, w_townwires_10, cw_wires2cs_t, 100, 2097156
+18214, w_townwires_11, cw_wires2cs_t, 100, 2097156
+18215, w_townwires_12, cw_wires2cs_t, 100, 2097156
+18216, mtbfence1, cw_CHANGEMEcs_t, 100, 2097156
+18217, mtbfence06, mtbfencecs_t, 150, 2097156
+18218, mtbfence08, mtbfencecs_t, 150, 2097156
+18219, mtbfence09, mtbfencecs_t, 150, 2097156
+18220, mtbfence10, mtbfencecs_t, 150, 2097156
+18221, mtbfence11, mtbfencecs_t, 150, 2097156
+18222, mtbfence12, mtbfencecs_t, 150, 2097156
+18223, mtbfence14, mtbfencecs_t, 150, 2097156
+18224, mtbfence15, mtbfencecs_t, 150, 2097156
+18225, cunt_rockgp2_18, cuntrockcs_t, 299, 0
+18226, cunt_rockgp2_19, cuntrockcs_t, 299, 0
+18227, cunt_rockgp2_20, cuntrockcs_t, 299, 0
+18228, cunt_rockgp2_21, cuntrockcs_t, 299, 0
+18229, w7bark, woodycs_t, 100, 0
+18230, logcabinnlogs, logcabincs_t, 55, 2097152
+18231, cs_lan
+=== x/rastitelnost-iz-definitive-edition-_1756178533_391855/data/maps/vegas/vegaxref.ide
+objs
+3430, vegasbooth01, vegasbooth, 120, 0
+3431, vgsclubox01, vgsclubox, 120, 0
+3432, htlcnpy02_lvs, hotelcanopy, 80, 2097152
+3433, htlcnpy01_lvs, hotelcanopy, 80, 2097152
+3434, skllsgn01_lvs, skullsign, 130, 2097152
+3435, motel01sgn_lvs, motel01sign, 110, 0
+3436, motel03_lvs, motel01, 130, 2097152
+3437, ballypllr01_lvs, ballypillar01, 130, 0
+3438, ballyring01_lvs, ballyring01, 120, 0
+3439, aprtree01_lvs, xrefairtree, 100, 0
+3440, arptpillar01_lvs, airportpillar, 100, 0
+3441, luxorpillar02_lvs, luxorpillar2, 110, 0
+3442, vegasxrexhse1, vegashse4, 150, 128
+3443, vegasxrexhse2, vegashse4, 150, 128
+3444, shabbyhouse02_lvs, vegashse8, 150, 2097156
+3445, vegasxrexhse08, vegashse6, 150, 128
+3446, vegasxrexhse10, vegashse3, 150, 128
+3447, vgstlgraphpole, vgstlgraphpole, 130, 2097156
+3448, shamcprkin, shamcpark, 100, 128
+3449, vegashsenew1, vegashse2, 150, 2097152
+3450, vegashseplot1, vegashse2, 150, 2097156
+3451, vegashsenew2, vegashse2, 150, 2097156
+3452, bballintvgn1, bballvgnint, 120, 0
+3453, bballintvgn2, bballvgnint, 120, 0
+3454, vgnhseing15, vgnxrefhse1, 120, 128
+3455, vgnhseblk1, vgnhseblk1, 120, 4
+3456, vgnhseblk3, vgnhseblk1, 120, 4
+3457, vgnhseblk2, vgnhseblk1, 120, 2097156
+3458, vgncarshade1, vgncarshade1, 110, 0
+3459, vgntelepole1, vgntelepole, 100, 32768
+3460, vegaslampost, vgnlpost, 62, 128
+3461, tikitorch01_lvs, tikitorch, 90, 0
+3462, csrangel_lvs, ceaserangel, 120, 0
+3463, vegaslampost2, vgnlpost, 62, 128
+3464, shabbyhouse03_lvs, v
+=== x/rastitelnost-iz-definitive-edition-_1756178533_391855/data/maps/generic/vegepart.ide
+objs
+615, veg_tree3, pineSA09, 150, 2130052
+616, veg_treea1, pineSA09, 150, 2130052
+617, veg_treeb1, pineSA09, 150, 2097284
+618, veg_treea3, pineSA09, 140, 2097284
+619, veg_palwee03, palmsSA09, 150, 2097284
+620, veg_palm04, palmsSA09, 150, 2146436
+621, veg_palm02, palmsSA09, 150, 2130052
+622, veg_palm03, palmsSA09, 150, 2130052
+623, veg_palwee01, palmsSA09, 150, 2097284
+624, veg_palwee02, palmsSA09, 150, 2113668
+625, veg_palmkb1, gta_potplantsaa, 45, 2097156
+626, veg_palmkb2, gta_potplants2, 45, 2097284
+627, veg_palmkb3, kbplantssmz, 45, 2097284
+628, veg_palmkb4, kbplantssmz2, 45, 2097284
+629, veg_palmkb5, palmsSA09, 45, 2113540
+630, veg_palmkb8, gta_potplants, 22, 2097284
+631, veg_palmkb9, kbplantssmz, 22, 2097284
+632, veg_palmkb7, gta_potplantsaa, 35, 2097284
+633, veg_palmkb10, kbplantssmz2, 35, 2097284
+634, veg_palmkbb11, palmsSA09, 45, 2113668
+635, veg_fern_balcny_kb1, veg_leaves, 45, 2097284
+636, veg_fern_balcny_kb2, veg_leaves, 45, 2097284
+637, kb_planterbox, veg_leaves, 40, 2097284
+638, kb_planter+bush, veg_leavesplnt, 40, 2097284
+639, veg_ivy_balcny_kb3, veg_leaves, 45, 2097284
+640, kb_planter+bush2, veg_leavesplnt, 45, 2097284
+641, veg_palmkb13, palmsSA09, 45, 2113668
+642, kb_canopy_test, canopy, 30, 2097280
+643, kb_chr_tbl_test, canopy, 30, 2097280
+644, pot_02, gta_potplants, 45, 2097284
+645, veg_palmbig14, palmsSA09, 150, 2113668
+646, veg_palmkb14, gta_potplants, 35, 2097284
+647, new_bushsm, gta_proc_bush, 100, 2097284
+648, veg_pal
+=== x/rastitelnost-iz-definitive-edition-_1756178533_391855/data/maps/generic/procobj.ide
+objs
+800, genVEG_bush07, gta_proc_bush, 59, 8324
+801, genVEG_bush01, gta_proc_ferns, 59, 8324
+802, genVEG_bush08, gta_proc_bushland, 59, 8324
+803, genVEG_bush09, gta_proc_bush, 59, 8324
+804, genVEG_bush10, gta_proc_grasslanda, 59, 8324
+805, genVEG_bush11, gta_proc_bush, 59, 8324
+806, genVEG_tallgrass, gta_proc_rushes, 59, 8324
+807, p_rubble, gta_rockcuntry, 59, 4
+808, genVEG_bush12, gta_proc_ferns, 59, 8324
+809, genVEG_bush13, gta_proc_ferns, 59, 8324
+810, genVEG_bush14, gta_proc_bushland, 59, 8324
+811, genVEG_bush15, gta_proc_grasslanda, 59, 8324
+812, genVEG_bush16, gta_proc_grassland, 59, 8324
+813, genVEG_bush17, gta_proc_grasslanda, 59, 8324
+814, genVEG_bush18, gta_proc_grassland, 59, 8324
+815, genVEG_bush19, gta_proc_grassland, 45, 8324
+816, p_rubble03, gta_rockcuntry, 59, 4
+817, veg_Pflowers01, gta_procflowers, 59, 132
+818, genVEG_tallgrass02, veg_fuzzyplant, 59, 8324
+819, genVEG_tallgrass03, veg_fuzzyplant, 59, 8324
+820, genVEG_tallgrass04, gta_proc_ferns, 59, 8324
+821, genVEG_tallgrass05, gta_proc_bushland, 59, 8324
+822, genVEG_tallgrass06, gta_proc_ferns, 59, 8324
+823, genVEG_tallgrass07, veg_fuzzyplant, 59, 8324
+824, genVEG_tallgrass08, veg_fuzzyplant, 59, 8324
+825, genVEG_bushy, gta_proc_bigbush, 59, 8324
+826, genVEG_tallgrass10, gta_proc_bigbush, 59, 8324
+827, genVEG_tallgrass11, veg_fuzzyplant, 59, 8324
+828, p_rubble2, gta_rockcuntry, 59, 4
+829, DEAD_TREE_3, GTA_brokentrees, 59, 4
+830, DEAD_TREE_2, GTA_brokentrees, 59, 4
+831, DEAD_T
+=== x/new-realistic-hd-vehicle-pack_1780671177_240703/README.txt
+add rnchlure and copcarru at 1hd car if not add him the car name never change
+and add vehiclenameN1 and N2 where you need
+=== x/new-realistic-hd-vehicle-pack_1780671177_240703/copcarru/copcarru.txt
+599, 	copcarru,	copcarru,	car, 		POLRANGER, 	RANGER,		null,	ignore,		10,	0,	0,		-1, 0.95, 0.95,	-1
+
+copcarru, 16,1
+
+POLRANGER 5000.0 9700.0 3.0 0.0 -0.2 -0.2 85 0.65 0.85 0.5 5 160.0 64.5 250.0 4 D 5.0 0.60 0 30.0 0.8 0.06 1.0 0.30 -0.27 0.5 0.21 0.27 0.23 25000 00394020 00308800 0 1 0
+
+=== x/new-realistic-hd-vehicle-pack_1780671177_240703/rnchlure/rnchlure.txt
+505, 	rnchlure, 	rnchlure, 	car, 		RANCHE2, 	RANCHE2, null,   richfamily,     7,      0,      2ff0,           -1, 0.91, 0.91,         2
+
+RANCHE2 1000.0 1354.2 4.0 0.0 0.0 -0.1 70 0.55 0.85 0.5 3 160.0 20.0 80.0 4 E 3.5 0.50 0 30.0 1.0 0.09 0.0 0.28 -0.13 0.5 0.0 0.26 0.50 120000 00001100 00008804 1 1 0
+
+rnchlure, 37,36, 36,36, 40,36, 43,41, 47,41, 51,72, 54,75, 55,84
+=== x/sbornik-mashin-iz-gta-5_1686170602_760112/GTA 5 Vehicles/- DATA -/carmods.dat
+#
+# filename: 	carmods.dat
+#
+# description: 	List of cars and the mods that can be added to these cars
+#
+link
+bntl_b_ov, bntr_b_ov
+bntl_b_sq, bntr_b_sq
+wg_l_b_ssk, wg_r_b_ssk
+wg_l_c_j, wg_r_c_j
+wg_l_a_j, wg_r_a_j
+wg_l_a_f, wg_r_a_f
+wg_l_c_f, wg_r_c_f
+wg_l_a_s, wg_r_a_s
+wg_l_c_s, wg_r_c_s
+wg_l_a_u, wg_r_a_u
+wg_l_c_u, wg_r_c_u
+wg_l_a_l, wg_r_a_l
+wg_l_c_l, wg_r_c_l
+wg_l_a_st, wg_r_a_st
+wg_l_c_st, wg_r_c_st
+wg_l_lr_bl1, wg_r_lr_bl1
+wg_l_lr_br1, wg_r_lr_br1
+wg_l_lr_sv, wg_r_lr_sv
+wg_l_lr_rem1, wg_r_lr_rem1
+wg_l_lr_rem2, wg_r_lr_rem2
+wg_l_lr_slv1, wg_r_lr_slv1
+wg_l_lr_slv2, wg_r_lr_slv2
+wg_l_lr_t1, wg_r_lr_t1
+end
+
+
+mods
+
+admiral, nto_b_l, nto_b_s, nto_b_tw
+alpha, nto_b_l, nto_b_s, nto_b_tw
+banshee, nto_b_l, nto_b_s, nto_b_tw
+blistac, nto_b_l, nto_b_s, nto_b_tw
+bobcat, nto_b_l, nto_b_s, nto_b_tw
+bravura, nto_b_l, nto_b_s, nto_b_tw
+buccanee, nto_b_l, nto_b_s, nto_b_tw
+buffalo, nto_b_l, nto_b_s, nto_b_tw
+bullet, nto_b_l, nto_b_s, nto_b_tw
+cabbie, nto_b_l, nto_b_s, nto_b_tw
+cadrona, nto_b_l, nto_b_s, nto_b_tw
+cheetah, nto_b_l, nto_b_s, nto_b_tw
+clover, nto_b_l, nto_b_s, nto_b_tw
+club, nto_b_l, nto_b_s, nto_b_tw
+comet, nto_b_l, nto_b_s, nto_b_tw
+elegant, nto_b_l, nto_b_s, nto_b_tw
+emperor, nto_b_l, nto_b_s, nto_b_tw
+esperant, nto_b_l, nto_b_s, nto_b_tw
+euros, nto_b_l, nto_b_s, nto_b_tw
+feltzer, nto_b_l, nto_b_s, nto_b_tw
+fortune, nto_b_l, nto_b_s, nto_b_tw
+glendale, nto_b_l, nto_b_s, nto_b_tw
+greenwoo, nto_b_l, nto_b_s, nto_b_tw
+h
+=== x/sbornik-mashin-iz-gta-5_1686170602_760112/GTA 5 Vehicles/- DATA -/carcols.dat
+
+# This file contains all the info about the car colours. There are two
+# sections, col which contains the colour table and car which contains 
+# the possible indices into the colour table for each car.
+#
+# The end column of the col section is the radio chat version of the car colour.
+#
+# Press START on controller to reload this file while the game is running.
+#
+#
+#
+#
+#
+#	1-10	service colours  - careful with these
+#	126	hot pink   - do not use
+#
+#
+#street, 9,73
+
+
+
+col
+0,0,0				# 0 black				black
+245,245,245			# 1 white				white
+42,119,161			# 2 police car blue			blue
+132,4,16			# 3 cherry red				red
+38,55,57			# 4 midnight blue			dark blue
+134,68,110			# 5 temple curtain purple		purple
+215,142,16			# 6 taxi yellow				yellow
+76,117,183			# 7 striking blue			bright blue
+189,190,198			# 8 light blue grey			light blue grey
+94,112,114			# 9 hoods				light
+# maibatsu
+70,89,122			# 10 saxony blue poly			blue
+101,106,121			# 11 concord blue poly			grey
+93,126,141			# 12 jasper green poly			blue
+88,89,90			# 13 pewter gray poly			grey
+214,218,214			# 14 frost white			light
+156,161,163			# 15 silver stone poly			grey
+51,95,63			# 16 rio red				green
+115,14,26			# 17 torino red pearl			red
+123,10,42			# 18 formula red			red
+159,157,148			# 19 honey beige poly			light
+# shitsu and nioka
+59,78,120			# 20 mariner blue			blue
+115,46,62			# 21 blaze red				red
+105,30,59			# 22 classic red			red
+150,145,140			# 23 winning silver poly		grey
+81,84
+=== x/sbornik-mashin-iz-gta-5_1686170602_760112/GTA 5 Vehicles/- DATA -/popcycle.dat
+// Fore each type of zone (Business, Countryside etc) we have a that controls the ped densities.
+// There is a set of values for each time of the day in 2 hour increments (midnight, 2am, 4 am etc)
+// There are 2 sets of values: Weekday & Weekend.
+// #Peds is the maximum number of peds you can ever have.
+// #Cars is the maximum number of cars you can ever have.
+
+// 4 Values for Dealers Gang Cops Other. These are percentages and are used to take the
+// number of Dealers, gang members etc down during certain times of the day.
+// These numbers do not add up to anything. If they are all 20% you would get the full #Peds.
+
+// A number of values for the different types of peds that are not Dealers, Gang members or cops.
+// This is what is specified as 'Other' in the first 4 values.
+// This number should add up to 20%. If it doesn't the game will scale it to 20% and print a warning.
+
+////////////////////////////////////////////////////////////////////////////////////////
+// BUSINESS
+////////////////////////////////////////////////////////////////////////////////////////
+// Weekday
+//
+// #Peds #Cars Dealers Gang Cops Other     Workers Business Clubbers Farmers BeachFolk Parkfolk Casual_Rich Casual_Average Casual_Poor Prozzies Crimimals Golfers Servants Aircrew Entertainers oot_fact Desertfolk Aircrew_runway
+    3     20     20      20 20  20        0        0       15       0       0       20         5            10               20         20        15      0      
+=== x/sbornik-mashin-iz-gta-5_1686170602_760112/GTA 5 Vehicles/- DATA -/cargrp.dat
+#
+# file: cargrp.dat
+# description: For each type of ped (worker, clubber etc) we maintain a list of the cars they might drive.
+# This list is used to pick cars in a very similar way we pick peds.
+#
+	  
+
+linerun, packer, taxi, cabbie, mule, bus, coach, rumpo, pony, flatbed, yankee, cement, towtruck, burrito, boxville, benson, utility, pizzaboy, trash, dft30, boxburg, topfun, sadler	# POPCYCLE_GROUP_WORKERS 
+bravura, taxi, cabbie, premier, securica, elegant, fortune, feltzer, merit, elegant, huntley, zr350, sentinel, euros, freeway, rancher, manana, nrg500, uranus, wayfarer, jester, manana, buccanee	# POPCYCLE_GROUP_BUSINESS 
+buffalo, stretch, taxi, cabbie, coach, flash, sultan, club, phoenix, euros, hotknife, hustler, nrg500, uranus, wayfarer, freeway,  tampa, voodoo, savanna, walton, majestic, faggio, buccanee # POPCYCLE_GROUP_CLUBBERS 
+sanchez, walton, rancher, journey, tractor, wayfarer, freeway, linerun, petro, mesa, bfinject, bandito, caddy, glenshit, landstal, quad, mtbike, oceanic, patriot, rnchlure, sadlshit, tampa, tornado	# POPCYCLE_GROUP_FARMERS
+taxi, bfinject, faggio, glendale, oceanic, mesa, bmx, mtbike, mrwhoop, washing, previon, pcj600, cadrona, sunrise, yosemite, bravura, primo, phoenix, bandito, hotdog, quad, wayfarer, rancher    	# POPCYCLE_GROUP_BEACHFOLK 
+taxi, cabbie, bfinject, faggio, glendale, mesa, bmx, mtbike, washing, previon, pcj600, cadrona, yosemite, bravura, primo, mesa, phoenix, hustler, manana, pony, rumpo, burrito, majestic	# POPCY
+=== x/1600767890_advanced_aiming_mod/Advanced Aiming Mod/aimingSets.dat
+UPDATE_SETTINGS_PERMANENTLY 0
+# GENERAL_SETTINGS
+AIMWEAPON_RIFLE1_ZOOM 50.0
+AIMWEAPON_RIFLE2_ZOOM 50.0
+AIMWEAPON_DEFAULT_ZOOM 50.0
+AIMWEAPON_DRIVE_CLOSE_ENOUGH 0.17453
+AIMWEAPON_DRIVE_SENS_MULT 0.25
+AIMWEAPON_FREETARGET_SENS 0.1
+AIMWEAPON_STICK_SENS 0.007
+# AIMWEAPON_SETTINGS
+GUN_DATA     0.6 0.5 1.0 -0.12 0.02  0.7854  1.5533
+BIKE_DATA    3.5 0.7 1.0 -0.16 0.2  0.61087 1.2217
+VEHICLE_DATA 6.0 0.7 1.0 -0.16 0.4  0.61087 1.2217
+MELEE_DATA   2.5 0.7 1.0 -0.12 0.15 0.7854  0.79412
+# AIMWEAPON_OFFSET: X    Y   Z
+-1           0.0 0.0 0.0   # Default for all weapons. Set all 0.0 to ignore it.
+22           0.22 0.0 0.0  # Pistol
+31           0.22 0.1 0.0  # M4
+=== x/1600767890_advanced_aiming_mod/Leiame (ou morra).txt
+  __  __ _      __  __           _     
+ |  \/  (_)    |  \/  |         | | 2020
+ | \  / |___  _| \  / | ___   __| |___ 
+ | |\/| | \ \/ / |\/| |/ _ \ / _` / __|
+ | |  | | |>  <| |  | | (_) | (_| \__ \
+ |_|  |_|_/_/\_\_|  |_|\___/ \__,_|___/
+                                       
+
+=======   MixMods.com.br   ======= - Melhor visualizável em fontes mono-espaçadas, como "Consolas".
+
+
+------- Instruções:
+
+Extraia a pasta "Advanced Aiming Mod" para a pasta do Modloader.
+
+-- Download da última versão do Modloader: MixMods.com.br/2015/01/SA-Modloader.html
+ 
+ Você pode abrir o arquivo .dat com o bloco de notas para configurar o mod.
+ Nos offsets, cada arma é configurado pelo número ID (adaptado para armas adicionadas):
+ https://wiki.sa-mp.com/wiki/Weapons
+ "UPDATE_SETTINGS_PERMANENTLY 1" possibilita configurar sem fechar o jogo, volte "0" após terminar.
+
+
+Versão: v1.4
+--------------------
+
+Autor: DK22Pac
+Suporte à armas adicionadas: Junior_Djjr
+
+
+====   MixMods.com.br                ====
+====   fb.com/FamiliaMixMods         ====
+====   youtube.com/JuniorDjjrMixMods ====
+
+
+=== x/1600767890_advanced_aiming_mod/Readme (or die).txt
+  __  __ _      __  __           _     
+ |  \/  (_)    |  \/  |         | | 2020
+ | \  / |___  _| \  / | ___   __| |___ 
+ | |\/| | \ \/ / |\/| |/ _ \ / _` / __|
+ | |  | | |>  <| |  | | (_) | (_| \__ \
+ |_|  |_|_/_/\_\_|  |_|\___/ \__,_|___/
+                                       
+
+=======   MixMods.com.br   ======= - Best visualization with monospaced fonts, like "Consolas".
+
+
+------- Instructions:
+
+Extract the folder "Advanced Aiming Mod" to your Modloader folder.
+
+-- Download the latest version of Modloader: MixMods.com.br/2015/01/SA-Modloader.html
+
+
+ You can open the .dat file with notepad to configure the mod.
+ In offsets, each weapon is configured by the ID number (adapted for added weapons):
+ https://wiki.sa-mp.com/wiki/Weapons
+ "UPDATE_SETTINGS_PERMANENTLY 1" allows you to configure without closing the game, return "0" after finishing.
+
+
+Version: v1.4
+--------------------
+
+Author: DK22Pac
+Added weapons support: Junior_Djjr
+
+
+====   MixMods.com.br                ====
+====   fb.com/FamiliaMixMods         ====
+====   youtube.com/JuniorDjjrMixMods ====
+
+

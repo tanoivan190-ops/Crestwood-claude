@@ -1,0 +1,10 @@
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/bevSA09.txd 1600000074062c00ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/lrgSA09.txd 16000000c0ac0800ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/lubsSA09.txd 16000000b4ac2200ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/rdwdSA09.txd 1600000050570d00ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/imdeSA09.txd 16000000a0ac1200ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/firSA09.txd 16000000ac020e00ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/dtlnSA09.txd 160000008c010800ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/cdrSA09.txd 16000000c0ac0800ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/elmSA09.txd 1600000078b02200ffff0318
+x/rastitelnost-iz-definitive-edition-_1756178533_391855/gta3.img/strSA09.txd 16000000c0ac0a00ffff0318

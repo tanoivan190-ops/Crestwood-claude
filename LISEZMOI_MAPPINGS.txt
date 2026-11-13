@@ -1,0 +1,83 @@
+CRESTWOOD RP - MAPPINGS, STREAMING, SYSTEMES MTA CONVERTIS (30/10/2026)
+=======================================================================
+
+1) POURQUOI "LES TRUCS DISPARAISSENT" (bug visuel) - 2 causes trouvees et corrigees
+-----------------------------------------------------------------------------------
+ a) Client 32 bits : la memoire de streaming du moteur restait a 50 Mo (15 Mo sur les
+    telephones detectes "faibles"). Notre reglage ecrivait dans une ancienne variable que le jeu
+    ne lit plus. Resultat : le jeu jetait les modeles des qu'il y avait trop d'objets -> les
+    batiments / mappings clignotent ou disparaissent. C'est pour ca que "sur d'autres telephones
+    ca passe" (plus de RAM / pas en mode faible).
+    Correction (32 ET 64 bits, game/Streaming.cpp + game/hooks.cpp) : budget = 1/4 de la RAM du
+    telephone, entre 160 Mo et 512 Mo, applique au demarrage ET a chaque demande de place.
+ b) Serveur : SA-MP n'affiche que 1000 objets maximum par joueur. Le streamer integre du GM
+    chargeait des zones entieres sans compter -> au dela de 1000 le client n'affiche plus rien.
+    Nouveau streamer (basicgm1.pwn, "STREAMER D'OBJETS INTEGRE v2") : grille de 60 m, objets
+    tries par distance, MAXIMUM 850 objets par joueur (marge pour les objets globaux), les plus
+    proches d'abord. Simule sur toutes les maps : jamais plus de 850.
+    Reglages en haut du module : MS_PLAYER_CAP, MS_CELL, MS_LOAD_DIST, MS_UNLOAD_DIST.
+
+2) MAPPINGS AJOUTES (deja actifs, objets SA d'origine, aucune data a changer)
+---------------------------------------------------------------------------
+  Hotel (1877,-1684), Armee LS (2746,-2436), Police LS (1579,-1649), Station-service (1779,-1775),
+  Parc (1220,-1331), Banque LS (1461,-1024), Place du spawn (1912,-1292), Samsung Shop (1408,-1184),
+  Paquebot (3236,-1484), Bureau Glenpark (MTA), Mini-banque Pershing (MTA, 1394,-1620),
+  Cyber cafe (MTA, -2630,1360).  + 263 batiments d'origine retires (RemoveBuildingForPlayer).
+
+3) MAPPINGS AVEC MODELES 3D PERSONNALISES (dossier DATA_MAPPINGS) - a activer
+-----------------------------------------------------------------------------
+ Sur SA-MP mobile on ne peut pas charger un modele depuis le serveur comme MTA
+ (engineReplaceModel). Il faut remplacer le modele dans la DATA du jeu (IMG), sous le NOM du
+ modele SA qu'il remplace. Les fichiers sont deja renommes :
+
+  Dossier          DFF / COL (nom du modele SA)      id     TXD (nom UNIQUE, a declarer)
+  BanqueAtlas      rodeo06_LAw2.dff/.col            6340   cw_atlas_alap.txd   (avant : rodeo05_law2)
+  BanqueAtlas      cables3.dff/.col                 10040  cw_atlas_bank.txd
+  ConcessionLS     towerlan2.dff/.col               4585   cw_dealer_ls.txd
+  MecanoMTA        gzbuild2_law.dff/.col            6098   cw_mecano.txd
+  ConcessionSF     carshow4_SFSe.dff/.col           11301  cw_salon_sf.txd     (avant : carshow_sfse)
+  ConcessionSF     LOD_carshow4_SFSe.dff            11320  cw_salon_sf.txd
+
+ POURQUOI des noms de TXD uniques : les TXD d'origine (rodeo05_law2, carshow_sfse...) sont
+ partages par d'autres batiments. Les ecraser casserait les textures ailleurs (collision).
+ Avec un nom unique il n'y a AUCUNE collision.
+
+ Etapes :
+  1. Ouvrir gta3.img (ou l'IMG de la data Crestwood) avec un editeur IMG, AJOUTER/REMPLACER les
+     .dff et AJOUTER les .txd cw_*.txd.
+  2. Dans les fichiers .ide de la data, chercher chaque id (6340, 10040, 4585, 6098, 11301, 11320)
+     et remplacer UNIQUEMENT le 3e champ (nom du TXD) par le nom cw_*.  Exemple :
+        6340, rodeo06_LAw2, rodeo05_law2, <dist>, <flags>  ->  6340, rodeo06_LAw2, cw_atlas_alap, <dist>, <flags>
+     (garder les autres nombres tels quels)
+  3. COL : les .col sont deja renommes en interne (nom + id du modele). Remplacer l'entree du
+     meme nom dans l'archive .col qui la contient (ex. un editeur COL type "Col Editor 2").
+  4. Dans server/basicgm/basicgm1.pwn mettre  #define MAP_MODELES_DATA 1  et recompiler.
+     (ConcessionLS n'a besoin de rien cote serveur : il remplace directement la tour 4585.)
+  ATTENTION : changer la data ET mettre MAP_MODELES_DATA 1 ensemble. Data changee avec 0 =
+  batiments au mauvais endroit ; 1 sans data = batiments d'origine.
+  Les 2 versions compilent (verifie). Si tu m'envoies tes fichiers .ide / .img de la data, je fais
+  l'etape 2 moi-meme.
+
+ Non repris : RC Bandit et PC du cyber (remplacent des vehicules/objets utilises ailleurs),
+ accessoires du braquage Atlas (jammer, laptop, perceuse, porte : script MTA non fourni).
+
+4) SYSTEMES MTA CONVERTIS EN SA-MP (basicgm1.pwn)
+------------------------------------------------
+ KIT DE DEPART (bpc_kitinicial) : a la 1ere apparition une fenetre propose le kit (une seule
+   fois par compte, table kit_claimed) : Blista Compact au garage, iPhone + carte SIM,
+   10 Eau Kirene, 5000 $. "Plus tard" -> /kit.  Reglages : KIT_CASH, KIT_VEHICLE.
+ BRAQUAGE MINI-BANQUE (Magic_Robmini) a Pershing Square (icone dollar sur la carte, main 3D) :
+   1. Devant la porte : "Braquer" (membre d'un gang) -> piratage : recopier un code en 25 s.
+      La porte s'ouvre, toute la police recoit l'alerte + un point GPS.
+   2. Porte du coffre : "Pirater" -> 2e code -> la porte du coffre s'ouvre.
+   3. Coffre : "Prendre" -> 24 liasses de 250 a 750 $ (une par appui).
+   Annule apres 12 min, puis 90 min d'attente. Reglages : ROB_NEED_GANG, ROB_MIN_POLICE,
+   ROB_HACK_SECONDS, ROB_TAKE_MIN/MAX, ROB_COOLDOWN_MIN, ROB_TIMEOUT_MIN.
+ Deja presents dans le GM (pas dupliques) : maisons (casas), GPS / radar, ecran de connexion.
+
+5) RESSOURCES IMPOSSIBLES A UTILISER
+------------------------------------
+ Chiffrees ou protegees par mot de passe : Apartment, DP, EasyMart (modele chiffre),
+ RagZon3 Fleeca (modele chiffre), cyber join.luac (compile/chiffre). Il faut les versions
+ non protegees de leurs auteurs.
+ CityHall (refait) non ajoute : il se superpose a la mairie deja mappee du GM.

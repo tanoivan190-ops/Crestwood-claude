@@ -1,0 +1,1143 @@
+/*
+    ============================================================
+    GM LURION RP — Base de Roleplay (Beta)
+    ============================================================
+    - Conta automática por nome (sem login na beta)
+    - Salvamento em SQLite (scriptfiles/nexion.db)
+    - Spawn fixo definido
+    - Banco NEXION via WebUI (packet 251 / rpcIDs 100-103)
+    - Criação de personagem via cliente (packet 253):
+      seleção -> modal (gênero/nome/sobrenome/nascimento) ->
+      criação com o sistema de clothes (pele, rosto, cabelo...)
+    ============================================================
+*/
+
+#include <a_samp>
+#include <a_sampdb>
+#include <Pawn.RakNet>
+#include <phone>
+#include <skins>
+
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
+#define DB_FILE             "nexion.db"
+
+#define SPAWN_X             1462.0
+#define SPAWN_Y             -1015.0
+#define SPAWN_Z             25.7
+#define SPAWN_ANGLE         270.0
+
+#define START_CASH          5000    // dinheiro na mão ao criar conta
+#define START_BANK          2500    // saldo bancário inicial
+
+#define MAX_TRANSFER        1000000 // limite por transação
+#define HISTORY_ROWS        4       // movimentações exibidas no app
+
+#define BANK_PACKET         251     // ID do packet customizado (client <-> servidor)
+
+// Usado na declaração do handler (o compilador antigo não substitui
+// #define dentro de IRawPacket:, então usamos o valor literal lá)
+#define BANK_PACKET_ID      251
+
+// ============================================================
+// CRIAÇÃO DE PERSONAGEM — packet 253 (client <-> servidor)
+// ============================================================
+#define CHAR_PACKET         253
+#define CHAR_PACKET_ID      253
+
+// rpcIDs (devem bater com o client em CharacterCreator.h)
+#define CHAR_RPC_SELECT     1   // servidor -> cliente: abrir tela de seleção (JSON)
+#define CHAR_RPC_CREATE     2   // servidor -> cliente: abrir tela de criação
+#define CHAR_RPC_APPLYLOOK  3   // servidor -> cliente: aplicar visual salvo e fechar
+#define CHAR_RPC_CLOSE      4   // servidor -> cliente: fechar janelas
+
+// comandos (cliente -> servidor)
+#define CHAR_CMD_CREATEREQ  1   // modal confirmado: gênero + nomes + nascimento
+#define CHAR_CMD_SAVE       2   // criação confirmada: valores de clothes
+#define CHAR_CMD_SPAWNREQ   3   // NASCER (personagem existente)
+#define CHAR_CMD_SKINREQ    4   // choix d'un skin du registre (uint16 id)
+
+// Skins base usados pelo sistema de clothes (devem existir no cliente)
+#define SKIN_MALE           163
+#define SKIN_FEMALE         9
+
+// Local da criação de personagem (onde o jogador aparece ao conectar)
+#define CHAR_CREATE_X       1516.0
+#define CHAR_CREATE_Y       -1030.0
+#define CHAR_CREATE_Z       25.6
+#define CHAR_CREATE_ANGLE   270.0  // de frente pra câmera: heading do jogo = atan2(-dx, dy); 90 aponta pro lado OPOSTO da câmera em X+4
+
+// rpcIDs (devem bater com o client em netgame.cpp)
+#define BANK_RPC_OPEN       100     // cliente -> servidor: pedir pra abrir (botão "Acessar")
+#define BANK_RPC_REGPIN     101     // cliente -> servidor: registrar PIN
+#define BANK_RPC_TRANS      102     // cliente -> servidor: transação
+#define BANK_RPC_UPDATE     103     // servidor -> cliente: atualizar dados
+#define BANK_RPC_VERPIN     104     // cliente -> servidor: verificar senha de acesso
+
+
+// tipos de transação (cliente -> servidor)
+#define BANK_TRANS_SACAR      0
+#define BANK_TRANS_DEPOSITAR  1
+#define BANK_TRANS_TRANSFERIR 2
+
+// ============================================================
+// POSIÇÃO DO BANCO (onde o botão flutuante aparece)
+// Troque essas coordenadas pela posição que quiser no mapa.
+// ============================================================
+#define BANK_POS_X          1462.0
+#define BANK_POS_Y          -1015.0
+#define BANK_POS_Z          25.7
+
+
+
+
+// ============================================================
+// DADOS DO JOGADOR (cache em memória)
+// ============================================================
+enum E_PLAYER_DATA
+{
+    pdCash,
+    pdBank,
+    pdPin,          // -1 = sem senha registrada
+    pdLogged,
+
+    // ============ PERSONAGEM ============
+    pdCharState,    // 0 = criando/selecionando, 1 = spawn normal
+    pdGender,       // 0 = masculino, 1 = feminino, -1 = sem personagem
+    pdSkinTone,
+    pdFace,
+    pdHairStyle,
+    pdHairColor,
+    pdEyebrowStyle,
+    pdEyebrowColor,
+    pdBeardStyle,
+    pdBeardColor,
+    pdMakeupStyle,
+    pdMakeupColor,
+    pdTopStyle,
+    pdTopColor,
+    pdBottomStyle,
+    pdBottomColor,
+    pdShoesStyle,
+    pdShoesColor,
+    pdTattooArmLeft,
+    pdTattooArmRight,
+    pdTattooLegLeft,
+    pdTattooLegRight,
+    pdTattooBack,
+    pdTattooFront,
+    pdPoliceBelt,
+    pdPoliceVest,
+    pdPoliceHat,
+    pdBirthDay,
+    pdBirthMonth,
+    pdBirthYear
+}
+new g_PlayerData[MAX_PLAYERS][E_PLAYER_DATA];
+
+// Strings do personagem (arrays separadas por playerid)
+new g_CharName[MAX_PLAYERS][32];
+new g_CharLastName[MAX_PLAYERS][32];
+
+new DB:g_Db = DB:0;
+
+// Estado do botão flutuante por jogador
+
+
+// ============================================================
+// ENTRY POINT (obrigatório pro SA-MP)
+// ============================================================
+main()
+{
+    print("\n==================================");
+    print("    LURION RP - Beta");
+    print("==================================\n");
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+public OnGameModeInit()
+{
+    SetGameModeText("Lurion RP Beta");
+    ShowPlayerMarkers(PLAYER_MARKERS_MODE_GLOBAL);
+    ShowNameTags(1);
+    SetNameTagDrawDistance(40.0);
+    EnableStuntBonusForAll(0);
+    DisableInteriorEnterExits();
+
+    // Abre/cria o banco de dados SQLite
+    g_Db = db_open(DB_FILE);
+    if (g_Db == DB:0)
+    {
+        print("[DB] ERRO: nao foi possivel abrir nexion.db!");
+    }
+    else
+    {
+        DbQueryRaw("CREATE TABLE IF NOT EXISTS accounts (name TEXT PRIMARY KEY, cash INTEGER DEFAULT 5000, bank INTEGER DEFAULT 2500, bankpin INTEGER DEFAULT -1, created TEXT, gender INTEGER DEFAULT -1, charname TEXT DEFAULT '', charlastname TEXT DEFAULT '', birthday TEXT DEFAULT '', skintone INTEGER DEFAULT 1, face INTEGER DEFAULT 1, hairstyle INTEGER DEFAULT 1, haircolor INTEGER DEFAULT 1, eyebrowstyle INTEGER DEFAULT 0, eyebrowcolor INTEGER DEFAULT 1, beardstyle INTEGER DEFAULT 0, beardcolor INTEGER DEFAULT 1, makeupstyle INTEGER DEFAULT 0, makeupcolor INTEGER DEFAULT 1, topstyle INTEGER DEFAULT 1, topcolor INTEGER DEFAULT 1, bottomstyle INTEGER DEFAULT 1, bottomcolor INTEGER DEFAULT 1, shoesstyle INTEGER DEFAULT 1, shoescolor INTEGER DEFAULT 1, tattooarmleft INTEGER DEFAULT 0, tattooarmright INTEGER DEFAULT 0, tattoolegleft INTEGER DEFAULT 0, tattoolegright INTEGER DEFAULT 0, tattooback INTEGER DEFAULT 0, tattoofront INTEGER DEFAULT 0, policebelt INTEGER DEFAULT 0, policevest INTEGER DEFAULT 0, policehat INTEGER DEFAULT 0)");
+        DbQueryRaw("CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, acc TEXT, descr TEXT, amount INTEGER, date TEXT)");
+
+        // Migração de bancos antigos: adiciona as colunas de personagem se faltarem
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN gender INTEGER DEFAULT -1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN charname TEXT DEFAULT ''");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN charlastname TEXT DEFAULT ''");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN birthday TEXT DEFAULT ''");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN skintone INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN face INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN hairstyle INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN haircolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN eyebrowstyle INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN eyebrowcolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN beardstyle INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN beardcolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN makeupstyle INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN makeupcolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN topstyle INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN topcolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN bottomstyle INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN bottomcolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN shoesstyle INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN shoescolor INTEGER DEFAULT 1");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattooarmleft INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattooarmright INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattoolegleft INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattoolegright INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattooback INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN tattoofront INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN policebelt INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN policevest INTEGER DEFAULT 0");
+        DbQueryRaw("ALTER TABLE accounts ADD COLUMN policehat INTEGER DEFAULT 0");
+        print("[DB] SQLite pronto (nexion.db)");
+    }
+
+    AddPlayerClass(26, SPAWN_X, SPAWN_Y, SPAWN_Z, SPAWN_ANGLE, 0, 0, 0, 0, 0, 0);
+
+    // Banco: o botão "Acessar" é renderizado via ImGui no client
+    // (sem pickup nem 3DLabel — tudo controlado pelo C++)
+
+    // Sincroniza horário real (Brasília UTC-3) a cada 60 segundos
+    SyncServerTime();
+    SetTimer("SyncServerTime", 60000, 1);
+
+    return 1;
+}
+
+public OnGameModeExit()
+{
+    if (g_Db != DB:0) db_close(g_Db);
+    return 1;
+}
+
+// ============================================================
+// CONEXÃO / CONTA AUTOMÁTICA
+// ============================================================
+public OnPlayerConnect(playerid)
+{
+    new name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    g_SkinChoice[playerid] = 0;
+    g_PlayerData[playerid][pdCash]   = 0;
+    g_PlayerData[playerid][pdBank]   = 0;
+    g_PlayerData[playerid][pdPin]    = -1;
+    g_PlayerData[playerid][pdLogged] = 0;
+
+    // Personagem
+    g_PlayerData[playerid][pdCharState]  = -1; // -1 = sem personagem, 0 = criação/edição, 1 = spawn normal
+    g_PlayerData[playerid][pdGender]     = -1;
+    g_CharName[playerid][0]              = 0;
+    g_CharLastName[playerid][0]          = 0;
+    g_PlayerData[playerid][pdBirthDay]   = 0;
+    g_PlayerData[playerid][pdBirthMonth] = 0;
+    g_PlayerData[playerid][pdBirthYear]  = 0;
+
+    LoadOrCreateAccount(playerid, name);
+    ApplyServerTime(playerid);
+    return 1;
+}
+
+public OnPlayerRequestClass(playerid, classid)
+{
+    // Todos os jogadores começam no local de criação de personagem.
+    // Com personagem, usa o skin do gênero para o preview do clothes;
+    // sem personagem, usa o masculino base.
+    new skin = (g_PlayerData[playerid][pdGender] == 1) ? SKIN_FEMALE : SKIN_MALE;
+    SetSpawnInfo(playerid, NO_TEAM, skin, CHAR_CREATE_X, CHAR_CREATE_Y, CHAR_CREATE_Z, CHAR_CREATE_ANGLE, 0, 0, 0, 0, 0, 0);
+    SpawnPlayer(playerid);
+    return 1;
+}
+
+public OnPlayerSpawn(playerid)
+{
+    if (g_PlayerData[playerid][pdCharState] == 0)
+    {
+        // Modo criação: fica no local de criação, congelado, com a
+        // janela de seleção/criação aberta no cliente.
+        StartCharacterCreation(playerid);
+        return 1;
+    }
+
+    // Spawn normal (NASCER ou criação concluída)
+    ResetPlayerMoney(playerid);
+    GivePlayerMoney(playerid, g_PlayerData[playerid][pdCash]);
+
+    new skin = Skins_Resolve(playerid, (g_PlayerData[playerid][pdGender] == 1) ? SKIN_FEMALE : SKIN_MALE);
+    SetPlayerSkin(playerid, skin);
+    SetPlayerInterior(playerid, 0);
+    SetPlayerVirtualWorld(playerid, 0);
+    TogglePlayerControllable(playerid, 1);
+    SetCameraBehindPlayer(playerid);
+
+    // O respawn do cliente usa a última posição de classe recebida (o ponto de
+    // criação), então reforça aqui a posição REAL do spawn. Como o jogador já
+    // está descongelado nesse ponto, o ped assenta no chão normal — sem a pose
+    // de queda presa.
+    SetPlayerPos(playerid, SPAWN_X, SPAWN_Y, SPAWN_Z);
+    SetPlayerFacingAngle(playerid, SPAWN_ANGLE);
+
+    SendClientMessage(playerid, 0x1E90FFFF, "Bem-vindo a Lurion RP! Vá até o banco NEXION no mapa.");
+    ApplyServerTime(playerid);
+
+    // Marca o banco no mapa do jogador
+    SetPlayerMapIcon(playerid, 1, BANK_POS_X, BANK_POS_Y, BANK_POS_Z, 52, 0, MAPICON_LOCAL);
+
+    // Aplica o visual salvo no cliente (fecha as janelas de criação)
+    SendCharApplyLook(playerid);
+
+    return 1;
+}
+
+// ============================================================
+// CRIAÇÃO DE PERSONAGEM — fluxo no servidor
+// ============================================================
+forward CharacterCreationWatch(playerid);
+stock StartCharacterCreation(playerid)
+{
+    // Congela o boneco já no local de criação, na altura certa do chão.
+    // O jogador não tem input (o cliente bloqueia o toque/joystick durante
+    // a criação), então o congelamento é só uma trava extra de posição.
+    SetPlayerPos(playerid, CHAR_CREATE_X, CHAR_CREATE_Y, CHAR_CREATE_Z);
+    SetPlayerFacingAngle(playerid, CHAR_CREATE_ANGLE);
+    SetPlayerInterior(playerid, 0);
+    SetPlayerVirtualWorld(playerid, 0);
+    TogglePlayerControllable(playerid, 0);
+
+    // Câmera na frente do boneco (estilo mugshot/parede de medição):
+    // o jogador vê o rosto do personagem enquanto customiza.
+    SetPlayerCameraPos(playerid, CHAR_CREATE_X + 4.0, CHAR_CREATE_Y, CHAR_CREATE_Z + 1.2);
+    SetPlayerCameraLookAt(playerid, CHAR_CREATE_X, CHAR_CREATE_Y, CHAR_CREATE_Z + 1.0);
+
+    // Vigia periódico com margem AMPLA: só age se o boneco realmente sair do
+    // lugar (teleporte/animação descontrolada). Nada de re-snap fino — cada
+    // SetPlayerPos num boneco congelado reinicia a tarefa de queda no cliente
+    // e era isso que causava o "abraça o ar / caindo parado".
+    SetTimerEx("CharacterCreationWatch", 3000, false, "i", playerid);
+
+    // Abre a tela de seleção no cliente (com o visual salvo se existir)
+    SendCharSelect(playerid);
+}
+
+public CharacterCreationWatch(playerid)
+{
+    if (!IsPlayerConnected(playerid)) return;
+    if (g_PlayerData[playerid][pdCharState] != 0) return;
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+
+    new Float:dx = x - CHAR_CREATE_X;
+    new Float:dy = y - CHAR_CREATE_Y;
+    // Só reposiciona em caso de fuga REAL (5m+ na horizontal ou 3m+ na
+    // vertical). Dentro disso, fica congelado e ninguém mexe nele.
+    if (dx * dx + dy * dy > 25.0 || z > CHAR_CREATE_Z + 3.0 || z < CHAR_CREATE_Z - 3.0)
+    {
+        TogglePlayerControllable(playerid, 0);
+        SetPlayerPos(playerid, CHAR_CREATE_X, CHAR_CREATE_Y, CHAR_CREATE_Z);
+        SetPlayerFacingAngle(playerid, CHAR_CREATE_ANGLE);
+    }
+
+    SetTimerEx("CharacterCreationWatch", 3000, false, "i", playerid);
+}
+
+// ============================================================
+// ENVIO SERVIDOR -> CLIENTE (packet 253)
+// Formato: [uint8 253][uint32 rpcID][uint16 len][json...]
+// ============================================================
+stock CharBuildLookJson(playerid, dest[], size)
+{
+    new name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    new hasChar[8], escName[64], escCharName[64], escLast[64];
+    format(hasChar, sizeof(hasChar), (g_PlayerData[playerid][pdGender] != -1) ? ("true") : ("false"));
+    EscapeJson(name, escName, sizeof(escName));
+    EscapeJson(g_CharName[playerid], escCharName, sizeof(escCharName));
+    EscapeJson(g_CharLastName[playerid], escLast, sizeof(escLast));
+
+    format(dest, size, "{\"player\":\"%s\",\"hasChar\":%s,\"name\":\"%s\",\"lastname\":\"%s\",\"day\":%d,\"month\":%d,\"year\":%d,\"skinTone\":%d,\"face\":%d,\"hairStyle\":%d,\"hairColor\":%d,\"eyebrowStyle\":%d,\"eyebrowColor\":%d,\"beardStyle\":%d,\"beardColor\":%d,\"makeupStyle\":%d,\"makeupColor\":%d,\"topStyle\":%d,\"topColor\":%d,\"bottomStyle\":%d,\"bottomColor\":%d,\"shoesStyle\":%d,\"shoesColor\":%d,\"tattooArmLeft\":%d,\"tattooArmRight\":%d,\"tattooLegLeft\":%d,\"tattooLegRight\":%d,\"tattooBack\":%d,\"tattooFront\":%d,\"policeBelt\":%d,\"policeVest\":%d,\"policeHat\":%d,\"cash\":%d,\"bank\":%d}",
+        escName, hasChar, escCharName, escLast,
+        g_PlayerData[playerid][pdBirthDay], g_PlayerData[playerid][pdBirthMonth], g_PlayerData[playerid][pdBirthYear],
+        g_PlayerData[playerid][pdSkinTone], g_PlayerData[playerid][pdFace],
+        g_PlayerData[playerid][pdHairStyle], g_PlayerData[playerid][pdHairColor],
+        g_PlayerData[playerid][pdEyebrowStyle], g_PlayerData[playerid][pdEyebrowColor],
+        g_PlayerData[playerid][pdBeardStyle], g_PlayerData[playerid][pdBeardColor],
+        g_PlayerData[playerid][pdMakeupStyle], g_PlayerData[playerid][pdMakeupColor],
+        g_PlayerData[playerid][pdTopStyle], g_PlayerData[playerid][pdTopColor],
+        g_PlayerData[playerid][pdBottomStyle], g_PlayerData[playerid][pdBottomColor],
+        g_PlayerData[playerid][pdShoesStyle], g_PlayerData[playerid][pdShoesColor],
+        g_PlayerData[playerid][pdTattooArmLeft], g_PlayerData[playerid][pdTattooArmRight],
+        g_PlayerData[playerid][pdTattooLegLeft], g_PlayerData[playerid][pdTattooLegRight],
+        g_PlayerData[playerid][pdTattooBack], g_PlayerData[playerid][pdTattooFront],
+        g_PlayerData[playerid][pdPoliceBelt], g_PlayerData[playerid][pdPoliceVest], g_PlayerData[playerid][pdPoliceHat],
+        g_PlayerData[playerid][pdCash], g_PlayerData[playerid][pdBank]);
+}
+
+stock SendCharState(playerid, rpcid, const json[])
+{
+    if (g_Db == DB:0) return;
+
+    new len = strlen(json);
+
+    new BitStream:bs = BS_New();
+    BS_WriteValue(bs,
+        PR_UINT8, CHAR_PACKET,
+        PR_UINT32, rpcid,
+        PR_UINT16, len);
+    for (new i = 0; i < len; i++)
+    {
+        BS_WriteValue(bs, PR_UINT8, json[i]);
+    }
+    PR_SendPacket(bs, playerid);
+    BS_Delete(bs);
+}
+
+stock SendCharSelect(playerid)
+{
+    new json[900];
+    CharBuildLookJson(playerid, json, sizeof(json));
+    SendCharState(playerid, CHAR_RPC_SELECT, json);
+}
+
+stock SendCharApplyLook(playerid)
+{
+    new json[900];
+    CharBuildLookJson(playerid, json, sizeof(json));
+    SendCharState(playerid, CHAR_RPC_APPLYLOOK, json);
+}
+
+stock SendCharClose(playerid)
+{
+    SendCharState(playerid, CHAR_RPC_CLOSE, "");
+}
+
+public OnPlayerDisconnect(playerid, reason)
+{
+    SaveAccount(playerid);
+    SaveCharacter(playerid);
+    g_PlayerData[playerid][pdLogged] = 0;
+    return 1;
+}
+
+// ============================================================
+// COMANDOS
+// ============================================================
+public OnPlayerCommandText(playerid, cmdtext[])
+{
+    if (!strcmp("/kill", cmdtext, true))
+    {
+        SetPlayerHealth(playerid, 0.0);
+        return 1;
+    }
+    if (!strcmp("/teste", cmdtext, true))
+    {
+        // Modo de teste: força uma nova criação nesta sessão e abre a mesma
+        // interface CharacterCreator usada no primeiro acesso.
+        g_PlayerData[playerid][pdCharState]  = 0;
+        g_PlayerData[playerid][pdGender]     = -1;
+        g_CharName[playerid][0]              = 0;
+        g_CharLastName[playerid][0]          = 0;
+        g_PlayerData[playerid][pdBirthDay]   = 0;
+        g_PlayerData[playerid][pdBirthMonth] = 0;
+        g_PlayerData[playerid][pdBirthYear]  = 0;
+
+        SetSpawnInfo(playerid, NO_TEAM, SKIN_MALE,
+            CHAR_CREATE_X, CHAR_CREATE_Y, CHAR_CREATE_Z, CHAR_CREATE_ANGLE,
+            0, 0, 0, 0, 0, 0);
+        SpawnPlayer(playerid);
+        SendClientMessage(playerid, 0x7C5BFFFF,
+            "Modo de teste: crie seu personagem.");
+        return 1;
+    }
+        if (!strcmp("/saldo", cmdtext, true))
+    {
+        new msg[128];
+        format(msg, sizeof(msg), "~b~Banco: ~w~$%d", g_PlayerData[playerid][pdBank]);
+        GameTextForPlayer(playerid, msg, 3000, 3);
+        return 1;
+    }
+    if (!strcmp("/phone", cmdtext, true))
+    {
+        Phone_Show(playerid);
+        SendClientMessage(playerid, 0x7C5BFFFF, "Celular aberto.");
+        return 1;
+    }
+    if (!strcmp("/phoneoff", cmdtext, true))
+    {
+        Phone_Hide(playerid);
+        SendClientMessage(playerid, 0x7C5BFFFF, "Celular fechado.");
+        return 1;
+    }
+    // Registre de skins : /skins et /skin <id>
+    if (Skins_OnCommand(playerid, cmdtext)) return 1;
+
+
+    return 0;
+}
+
+// ============================================================
+// PROTOCOLO DO BANCO — packet 251 vindo do cliente
+// Formato cliente -> servidor:
+//   [uint32 rpcID]
+//   rpcID 101: [uint32 pin]
+//   rpcID 102: [uint8 tipo][uint32 valor][uint16 destino][uint32 pin]
+// ============================================================
+IRawPacket:251(playerid, BitStream:bs)
+{
+    new bytes, rpcid;
+    BS_GetNumberOfBytesUsed(bs, bytes);
+
+    printf("[BANK-SRV] packet 251 recebido de %d (%d bytes)", playerid, bytes);
+    if (bytes < 5) return 0;
+
+    BS_ReadValue(bs, PR_IGNORE_BITS, 8, PR_UINT32, rpcid);
+
+    switch (rpcid)
+    {
+        // Jogador clicou "Acessar" no botão flutuante → abre o banco
+        case BANK_RPC_OPEN:
+        {
+            printf("[BANK-SRV] player %d pediu pra abrir o banco (botão interação)", playerid);
+            SendBankOpen(playerid);
+            return 1;
+        }
+
+        case BANK_RPC_REGPIN:
+        {
+            new pin;
+            BS_ReadValue(bs, PR_UINT32, pin);
+
+            if (pin < 0 || pin > 9999)
+            {
+                BankNotify(playerid, 0, "PIN invalido! Use 4 digitos.");
+                return 1;
+            }
+            if (g_PlayerData[playerid][pdPin] != -1)
+            {
+                BankNotify(playerid, 0, "Voce ja possui uma senha registrada.");
+                return 1;
+            }
+
+            g_PlayerData[playerid][pdPin] = pin;
+            SaveAccount(playerid);
+
+            new msg[64];
+            format(msg, sizeof(msg), "Senha registrada com sucesso!");
+            SendBankUpdate(playerid, 1, msg);
+        }
+        case BANK_RPC_VERPIN:
+        {
+            new pin;
+            BS_ReadValue(bs, PR_UINT32, pin);
+
+            if (g_PlayerData[playerid][pdPin] == -1)
+            {
+                BankNotify(playerid, 0, "Registre uma senha primeiro.");
+                return 1;
+            }
+            if (pin != g_PlayerData[playerid][pdPin])
+            {
+                BankNotify(playerid, 0, "Senha incorreta!");
+                return 1;
+            }
+
+            new msg[64];
+            format(msg, sizeof(msg), "Bem-vindo ao NEXION Bank!");
+            SendBankUpdate(playerid, 1, msg);
+        }
+        case BANK_RPC_TRANS:
+        {
+            new type, amount, target, pin, source;
+            BS_ReadValue(bs,
+                PR_UINT8, type,
+                PR_UINT32, amount,
+                PR_UINT16, target,
+                PR_UINT32, pin,
+                PR_UINT8, source);
+
+            HandleBankTransaction(playerid, type, amount, target, pin, source);
+        }
+    }
+    return 1; // consome o packet
+}
+
+// ============================================================
+// PROTOCOLO DA CRIAÇÃO DE PERSONAGEM — packet 253 vindo do cliente
+// Formato cliente -> servidor:
+//   [uint32 cmd]
+//   cmd 1: [uint8 genero][string nome][string sobrenome][uint8 dia][uint8 mes][uint16 ano]
+//   cmd 2: [25 x uint8 valores de clothes]
+//   cmd 3: NASCER (personagem existente)
+// ============================================================
+IRawPacket:253(playerid, BitStream:bs)
+{
+    new bytes, cmd;
+    BS_GetNumberOfBytesUsed(bs, bytes);
+
+    printf("[CHAR-SRV] packet 253 recebido de %d (%d bytes)", playerid, bytes);
+    if (bytes < 5) return 0;
+
+    BS_ReadValue(bs, PR_IGNORE_BITS, 8, PR_UINT32, cmd);
+
+    switch (cmd)
+    {
+        // ============ MODAL CONFIRMADO (gênero + nomes + nascimento) ============
+        case CHAR_CMD_CREATEREQ:
+        {
+            new gender, day, month, year;
+            new cName[32], cLast[32];
+            BS_ReadValue(bs, PR_UINT8, gender);
+            BS_ReadString8(bs, cName);
+            BS_ReadString8(bs, cLast);
+            BS_ReadValue(bs, PR_UINT8, day, PR_UINT8, month, PR_UINT16, year);
+
+            // Validações básicas
+            if (gender != 0 && gender != 1) { SendCharClose(playerid); return 1; }
+            if (strlen(cName) < 2 || strlen(cLast) < 2) { SendCharClose(playerid); return 1; }
+            if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2026) { SendCharClose(playerid); return 1; }
+            if (g_PlayerData[playerid][pdGender] != -1) { SendCharClose(playerid); return 1; } // já tem personagem
+
+            // Salva os dados básicos em memória
+            g_PlayerData[playerid][pdGender]     = gender;
+            g_PlayerData[playerid][pdBirthDay]   = day;
+            g_PlayerData[playerid][pdBirthMonth] = month;
+            g_PlayerData[playerid][pdBirthYear]  = year;
+            format(g_CharName[playerid], 32, "%s", cName);
+            format(g_CharLastName[playerid], 32, "%s", cLast);
+
+            // Troca o skin do ped para o do gênero escolhido (preview na criação)
+            SetPlayerSkin(playerid, (gender == 1) ? SKIN_FEMALE : SKIN_MALE);
+
+            printf("[CHAR-SRV] player %d criando: %s %s (%d/%d/%d) genero=%d",
+                playerid, cName, cLast, day, month, year, gender);
+
+            // Resposta: abre a tela de criação (CRIAR PERSONAGEM)
+            SendCharState(playerid, CHAR_RPC_CREATE, "");
+        }
+
+        // ============ CRIAÇÃO CONFIRMADA (valores de clothes) ============
+        case CHAR_CMD_SAVE:
+        {
+            if (g_PlayerData[playerid][pdGender] == -1) { SendCharClose(playerid); return 1; }
+
+            new skinTone, face, hairStyle, hairColor, eyebrowStyle, eyebrowColor;
+            new beardStyle, beardColor, makeupStyle, makeupColor, topStyle, topColor;
+            new bottomStyle, bottomColor, shoesStyle, shoesColor;
+            new tattooArmLeft, tattooArmRight, tattooLegLeft, tattooLegRight, tattooBack, tattooFront;
+            new policeBelt, policeVest, policeHat;
+
+            BS_ReadValue(bs,
+                PR_UINT8, skinTone, PR_UINT8, face,
+                PR_UINT8, hairStyle, PR_UINT8, hairColor,
+                PR_UINT8, eyebrowStyle, PR_UINT8, eyebrowColor,
+                PR_UINT8, beardStyle, PR_UINT8, beardColor,
+                PR_UINT8, makeupStyle, PR_UINT8, makeupColor,
+                PR_UINT8, topStyle, PR_UINT8, topColor,
+                PR_UINT8, bottomStyle, PR_UINT8, bottomColor,
+                PR_UINT8, shoesStyle, PR_UINT8, shoesColor,
+                PR_UINT8, tattooArmLeft, PR_UINT8, tattooArmRight,
+                PR_UINT8, tattooLegLeft, PR_UINT8, tattooLegRight,
+                PR_UINT8, tattooBack, PR_UINT8, tattooFront,
+                PR_UINT8, policeBelt, PR_UINT8, policeVest, PR_UINT8, policeHat);
+
+            g_PlayerData[playerid][pdSkinTone]     = skinTone;
+            g_PlayerData[playerid][pdFace]         = face;
+            g_PlayerData[playerid][pdHairStyle]    = hairStyle;
+            g_PlayerData[playerid][pdHairColor]    = hairColor;
+            g_PlayerData[playerid][pdEyebrowStyle] = eyebrowStyle;
+            g_PlayerData[playerid][pdEyebrowColor] = eyebrowColor;
+            g_PlayerData[playerid][pdBeardStyle]   = beardStyle;
+            g_PlayerData[playerid][pdBeardColor]   = beardColor;
+            g_PlayerData[playerid][pdMakeupStyle]  = makeupStyle;
+            g_PlayerData[playerid][pdMakeupColor]  = makeupColor;
+            g_PlayerData[playerid][pdTopStyle]     = topStyle;
+            g_PlayerData[playerid][pdTopColor]     = topColor;
+            g_PlayerData[playerid][pdBottomStyle]  = bottomStyle;
+            g_PlayerData[playerid][pdBottomColor]  = bottomColor;
+            g_PlayerData[playerid][pdShoesStyle]   = shoesStyle;
+            g_PlayerData[playerid][pdShoesColor]   = shoesColor;
+            g_PlayerData[playerid][pdTattooArmLeft]  = tattooArmLeft;
+            g_PlayerData[playerid][pdTattooArmRight] = tattooArmRight;
+            g_PlayerData[playerid][pdTattooLegLeft]  = tattooLegLeft;
+            g_PlayerData[playerid][pdTattooLegRight] = tattooLegRight;
+            g_PlayerData[playerid][pdTattooBack]     = tattooBack;
+            g_PlayerData[playerid][pdTattooFront]    = tattooFront;
+            g_PlayerData[playerid][pdPoliceBelt]   = policeBelt;
+            g_PlayerData[playerid][pdPoliceVest]   = policeVest;
+            g_PlayerData[playerid][pdPoliceHat]    = policeHat;
+
+            SaveCharacter(playerid);
+            printf("[CHAR-SRV] player %d personagem criado: %s %s",
+                playerid, g_CharName[playerid], g_CharLastName[playerid]);
+
+            // CONFIRMAR -> nasce direto
+            g_PlayerData[playerid][pdCharState] = 1;
+            new skin = Skins_Resolve(playerid, (g_PlayerData[playerid][pdGender] == 1) ? SKIN_FEMALE : SKIN_MALE);
+            SetSpawnInfo(playerid, NO_TEAM, skin, SPAWN_X, SPAWN_Y, SPAWN_Z, SPAWN_ANGLE, 0, 0, 0, 0, 0, 0);
+            SpawnPlayer(playerid);
+        }
+
+        // ============ NASCER (personagem existente) ============
+        case CHAR_CMD_SPAWNREQ:
+        {
+            if (g_PlayerData[playerid][pdGender] == -1) { SendCharClose(playerid); return 1; }
+
+            g_PlayerData[playerid][pdCharState] = 1;
+            new skin = Skins_Resolve(playerid, (g_PlayerData[playerid][pdGender] == 1) ? SKIN_FEMALE : SKIN_MALE);
+            SetSpawnInfo(playerid, NO_TEAM, skin, SPAWN_X, SPAWN_Y, SPAWN_Z, SPAWN_ANGLE, 0, 0, 0, 0, 0, 0);
+            SpawnPlayer(playerid);
+        }
+
+        // ============ CHOIX DE SKIN (visible par tous) ============
+        case CHAR_CMD_SKINREQ:
+        {
+            new reqSkin;
+            if (g_PlayerData[playerid][pdGender] == -1) { return 1; }
+            BS_ReadValue(bs, PR_UINT16, reqSkin);
+            Skins_OnClientRequest(playerid, reqSkin);
+        }
+    }
+    return 1; // consome o packet
+}
+
+// ============================================================
+// LÓGICA DAS TRANSAÇÕES (tudo validado NO SERVIDOR)
+// ============================================================
+stock HandleBankTransaction(playerid, type, amount, target, pin, source = 0)
+{
+    // source: 0 = caixa eletronico, 1 = celular
+    new msg[96];
+
+    // PIN obrigatório e conferido no servidor
+    if (g_PlayerData[playerid][pdPin] == -1)
+    {
+        BankNotify(playerid, 0, "Registre uma senha antes de transacionar.");
+        return;
+    }
+    if (pin != g_PlayerData[playerid][pdPin])
+    {
+        BankNotify(playerid, 0, "Senha incorreta!");
+        return;
+    }
+    if (amount <= 0 || amount > MAX_TRANSFER)
+    {
+        BankNotify(playerid, 0, "Valor invalido.");
+        return;
+    }
+
+    switch (type)
+    {
+        case BANK_TRANS_SACAR:
+        {
+            if (g_PlayerData[playerid][pdBank] < amount)
+            {
+                BankNotify(playerid, 0, "Saldo insuficiente em conta.");
+                return;
+            }
+            g_PlayerData[playerid][pdBank] -= amount;
+            g_PlayerData[playerid][pdCash] += amount;
+
+            // Negativo = dinheiro SAINDO da conta (aparece vermelho no app)
+            AddTransaction(playerid, "Saque realizado", -amount);
+            SaveAccount(playerid);
+            SyncMoneyHud(playerid);
+
+            format(msg, sizeof(msg), "Saque realizado com sucesso!");
+            SendBankUpdate(playerid, 1, msg);
+        }
+        case BANK_TRANS_DEPOSITAR:
+        {
+            if (g_PlayerData[playerid][pdCash] < amount)
+            {
+                BankNotify(playerid, 0, "Voce nao tem esse dinheiro em maos.");
+                return;
+            }
+            g_PlayerData[playerid][pdCash] -= amount;
+            g_PlayerData[playerid][pdBank] += amount;
+
+            AddTransaction(playerid, "Deposito realizado", amount);
+            SaveAccount(playerid);
+            SyncMoneyHud(playerid);
+
+            format(msg, sizeof(msg), "Deposito realizado com sucesso!");
+            SendBankUpdate(playerid, 1, msg);
+        }
+        case BANK_TRANS_TRANSFERIR:
+        {
+            if (!IsPlayerConnected(target) || target == playerid)
+            {
+                BankNotify(playerid, 0, "Jogador invalido ou inexistente.");
+                return;
+            }
+            if (g_PlayerData[playerid][pdBank] < amount)
+            {
+                BankNotify(playerid, 0, "Saldo insuficiente em conta.");
+                return;
+            }
+
+            new tName[MAX_PLAYER_NAME];
+            GetPlayerName(target, tName, sizeof(tName));
+
+            g_PlayerData[playerid][pdBank] -= amount;
+            g_PlayerData[target][pdBank] += amount;
+
+            new desc[64], myName[MAX_PLAYER_NAME];
+            GetPlayerName(playerid, myName, sizeof(myName));
+
+            format(desc, sizeof(desc), "Transferencia enviada p/ %s", tName);
+            AddTransaction(playerid, desc, -amount);
+
+            format(desc, sizeof(desc), "Transferencia recebida de %s", myName);
+            AddTransaction(target, desc, amount);
+
+            SaveAccount(playerid);
+            SaveAccount(target);
+
+            format(msg, sizeof(msg), "Transferencia realizada!");
+            SendBankUpdate(playerid, 1, msg);
+            SendBankUpdate(target, 1, "Voce recebeu uma transferencia!");
+        }
+        default:
+        {
+            BankNotify(playerid, 0, "Operacao desconhecida.");
+        }
+    }
+}
+
+// ============================================================
+// ENVIO DOS PACOTES SERVIDOR -> CLIENTE (packet 251)
+// Formato: [uint8 251][uint32 rpcID][uint16 len][json...]
+// ============================================================
+stock SendBankOpen(playerid)
+{
+    printf("[BANK-SRV] Abrindo banco para player %d", playerid);
+    BankSendState(playerid, BANK_RPC_OPEN, "", 1);
+}
+
+stock SendBankUpdate(playerid, ok, const msg[])
+{
+    BankSendState(playerid, BANK_RPC_UPDATE, msg, ok);
+}
+
+stock BankNotify(playerid, ok, const msg[])
+{
+    // Aviso sem reabrir a interface inteira
+    BankSendState(playerid, BANK_RPC_UPDATE, msg, ok);
+}
+
+stock BankSendState(playerid, rpcid, const msg[], ok)
+{
+    if (g_Db == DB:0)
+    {
+        printf("[BANK-SRV] ERRO: db fechado, nao da pra responder player %d", playerid);
+        return;
+    }
+
+    new name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    // ---- monta o histórico em JSON ----
+    new history[512] = "";
+    new query[200];
+    format(query, sizeof(query), "SELECT descr, amount, date FROM transactions WHERE acc='%s' ORDER BY id DESC LIMIT %d",
+        name, HISTORY_ROWS);
+
+    new DBResult:result = db_query(g_Db, query);
+    if (result != DBResult:0)
+    {
+        new rows = db_num_rows(result);
+        new item[160], descr[80], dateStr[24], escaped[96];
+        for (new i = 0; i < rows; i++)
+        {
+            db_get_field_assoc(result, "descr", descr, sizeof(descr));
+            db_get_field_assoc(result, "date", dateStr, sizeof(dateStr));
+            new amount = db_get_field_assoc_int(result, "amount");
+
+            EscapeJson(descr, escaped, sizeof(escaped));
+
+            if (i > 0) strcat(history, ",");
+            format(item, sizeof(item), "{\"desc\":\"%s\",\"amount\":%d,\"date\":\"%s\"}", escaped, amount, dateStr);
+            strcat(history, item);
+
+            db_next_row(result);
+        }
+        db_free_result(result);
+    }
+
+    // ---- JSON completo do estado do banco ----
+    new json[900], escMsg[128], escName[MAX_PLAYER_NAME];
+    EscapeJson(msg, escMsg, sizeof(escMsg));
+    EscapeJson(name, escName, sizeof(escName));
+
+    format(json, sizeof(json),
+        "{\"player\":\"%s\",\"cash\":%d,\"balance\":%d,\"hasPin\":%s,\"ok\":%s,\"msg\":\"%s\",\"history\":[%s]}",
+        escName,
+        g_PlayerData[playerid][pdCash],
+        g_PlayerData[playerid][pdBank],
+        (g_PlayerData[playerid][pdPin] != -1) ? ("true") : ("false"),
+        ok ? ("true") : ("false"),
+        escMsg,
+        history);
+
+    new len = strlen(json);
+
+    new BitStream:bs = BS_New();
+    BS_WriteValue(bs,
+        PR_UINT8, BANK_PACKET,
+        PR_UINT32, rpcid,
+        PR_UINT16, len);
+    for (new i = 0; i < len; i++)
+    {
+        BS_WriteValue(bs, PR_UINT8, json[i]);
+    }
+    PR_SendPacket(bs, playerid);
+    BS_Delete(bs);
+}
+
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
+stock DbQueryRaw(const query[])
+{
+    new DBResult:r = db_query(g_Db, query);
+    if (r != DBResult:0) db_free_result(r);
+}
+
+stock LoadOrCreateAccount(playerid, const name[])
+{
+    new query[300], DBResult:result;
+
+    format(query, sizeof(query), "SELECT * FROM accounts WHERE name='%s'", name);
+    result = db_query(g_Db, query);
+
+    if (result != DBResult:0 && db_num_rows(result) > 0)
+    {
+        g_PlayerData[playerid][pdCash] = db_get_field_assoc_int(result, "cash");
+        g_PlayerData[playerid][pdBank] = db_get_field_assoc_int(result, "bank");
+        g_PlayerData[playerid][pdPin]  = db_get_field_assoc_int(result, "bankpin");
+
+        // Personagem
+        g_PlayerData[playerid][pdGender] = db_get_field_assoc_int(result, "gender");
+        db_get_field_assoc(result, "charname", g_CharName[playerid], 32);
+        db_get_field_assoc(result, "charlastname", g_CharLastName[playerid], 32);
+        new birthStr[16];
+        db_get_field_assoc(result, "birthday", birthStr, sizeof(birthStr));
+        sscanf_birthday(birthStr, g_PlayerData[playerid][pdBirthDay], g_PlayerData[playerid][pdBirthMonth], g_PlayerData[playerid][pdBirthYear]);
+
+        g_PlayerData[playerid][pdSkinTone]     = db_get_field_assoc_int(result, "skintone");
+        g_PlayerData[playerid][pdFace]         = db_get_field_assoc_int(result, "face");
+        g_PlayerData[playerid][pdHairStyle]    = db_get_field_assoc_int(result, "hairstyle");
+        g_PlayerData[playerid][pdHairColor]    = db_get_field_assoc_int(result, "haircolor");
+        g_PlayerData[playerid][pdEyebrowStyle] = db_get_field_assoc_int(result, "eyebrowstyle");
+        g_PlayerData[playerid][pdEyebrowColor] = db_get_field_assoc_int(result, "eyebrowcolor");
+        g_PlayerData[playerid][pdBeardStyle]   = db_get_field_assoc_int(result, "beardstyle");
+        g_PlayerData[playerid][pdBeardColor]   = db_get_field_assoc_int(result, "beardcolor");
+        g_PlayerData[playerid][pdMakeupStyle]  = db_get_field_assoc_int(result, "makeupstyle");
+        g_PlayerData[playerid][pdMakeupColor]  = db_get_field_assoc_int(result, "makeupcolor");
+        g_PlayerData[playerid][pdTopStyle]     = db_get_field_assoc_int(result, "topstyle");
+        g_PlayerData[playerid][pdTopColor]     = db_get_field_assoc_int(result, "topcolor");
+        g_PlayerData[playerid][pdBottomStyle]  = db_get_field_assoc_int(result, "bottomstyle");
+        g_PlayerData[playerid][pdBottomColor]  = db_get_field_assoc_int(result, "bottomcolor");
+        g_PlayerData[playerid][pdShoesStyle]   = db_get_field_assoc_int(result, "shoesstyle");
+        g_PlayerData[playerid][pdShoesColor]   = db_get_field_assoc_int(result, "shoescolor");
+        g_PlayerData[playerid][pdTattooArmLeft]  = db_get_field_assoc_int(result, "tattooarmleft");
+        g_PlayerData[playerid][pdTattooArmRight] = db_get_field_assoc_int(result, "tattooarmright");
+        g_PlayerData[playerid][pdTattooLegLeft]  = db_get_field_assoc_int(result, "tattoolegleft");
+        g_PlayerData[playerid][pdTattooLegRight] = db_get_field_assoc_int(result, "tattoolegright");
+        g_PlayerData[playerid][pdTattooBack]     = db_get_field_assoc_int(result, "tattooback");
+        g_PlayerData[playerid][pdTattooFront]    = db_get_field_assoc_int(result, "tattoofront");
+        g_PlayerData[playerid][pdPoliceBelt]   = db_get_field_assoc_int(result, "policebelt");
+        g_PlayerData[playerid][pdPoliceVest]   = db_get_field_assoc_int(result, "policevest");
+        g_PlayerData[playerid][pdPoliceHat]    = db_get_field_assoc_int(result, "policehat");
+
+        db_free_result(result);
+    }
+    else
+    {
+        if (result != DBResult:0) db_free_result(result);
+
+        // Conta nova
+        g_PlayerData[playerid][pdCash] = START_CASH;
+        g_PlayerData[playerid][pdBank] = START_BANK;
+        g_PlayerData[playerid][pdPin]  = -1;
+        g_PlayerData[playerid][pdGender] = -1;
+
+        new y, mo, d, dateStr[16];
+        getdate(y, mo, d);
+        format(dateStr, sizeof(dateStr), "%04d-%02d-%02d", y, mo, d);
+
+        format(query, sizeof(query),
+            "INSERT INTO accounts (name, cash, bank, bankpin, created) VALUES ('%s', %d, %d, -1, '%s')",
+            name, START_CASH, START_BANK, dateStr);
+        DbQueryRaw(query);
+    }
+
+    g_PlayerData[playerid][pdLogged] = 1;
+}
+
+stock SaveAccount(playerid)
+{
+    if (g_Db == DB:0 || !g_PlayerData[playerid][pdLogged]) return;
+
+    new name[MAX_PLAYER_NAME], query[192];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    format(query, sizeof(query),
+        "UPDATE accounts SET cash=%d, bank=%d, bankpin=%d WHERE name='%s'",
+        g_PlayerData[playerid][pdCash], g_PlayerData[playerid][pdBank],
+        g_PlayerData[playerid][pdPin], name);
+    DbQueryRaw(query);
+}
+
+// ============================================================
+// PERSONAGEM — salvamento completo no banco
+// ============================================================
+stock SaveCharacter(playerid)
+{
+    if (g_Db == DB:0 || !g_PlayerData[playerid][pdLogged]) return;
+    if (g_PlayerData[playerid][pdGender] == -1) return;
+
+    new name[MAX_PLAYER_NAME], query[700];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    new birthStr[16];
+    format(birthStr, sizeof(birthStr), "%02d/%02d/%04d",
+        g_PlayerData[playerid][pdBirthDay],
+        g_PlayerData[playerid][pdBirthMonth],
+        g_PlayerData[playerid][pdBirthYear]);
+
+    new escName[64], escLast[64];
+    EscapeJson(g_CharName[playerid], escName, sizeof(escName));
+    EscapeJson(g_CharLastName[playerid], escLast, sizeof(escLast));
+
+    format(query, sizeof(query), "UPDATE accounts SET gender=%d, charname='%s', charlastname='%s', birthday='%s', skintone=%d, face=%d, hairstyle=%d, haircolor=%d, eyebrowstyle=%d, eyebrowcolor=%d, beardstyle=%d, beardcolor=%d, makeupstyle=%d, makeupcolor=%d, topstyle=%d, topcolor=%d, bottomstyle=%d, bottomcolor=%d, shoesstyle=%d, shoescolor=%d, tattooarmleft=%d, tattooarmright=%d, tattoolegleft=%d, tattoolegright=%d, tattooback=%d, tattoofront=%d, policebelt=%d, policevest=%d, policehat=%d WHERE name='%s'",
+        g_PlayerData[playerid][pdGender], escName, escLast, birthStr,
+        g_PlayerData[playerid][pdSkinTone], g_PlayerData[playerid][pdFace],
+        g_PlayerData[playerid][pdHairStyle], g_PlayerData[playerid][pdHairColor],
+        g_PlayerData[playerid][pdEyebrowStyle], g_PlayerData[playerid][pdEyebrowColor],
+        g_PlayerData[playerid][pdBeardStyle], g_PlayerData[playerid][pdBeardColor],
+        g_PlayerData[playerid][pdMakeupStyle], g_PlayerData[playerid][pdMakeupColor],
+        g_PlayerData[playerid][pdTopStyle], g_PlayerData[playerid][pdTopColor],
+        g_PlayerData[playerid][pdBottomStyle], g_PlayerData[playerid][pdBottomColor],
+        g_PlayerData[playerid][pdShoesStyle], g_PlayerData[playerid][pdShoesColor],
+        g_PlayerData[playerid][pdTattooArmLeft], g_PlayerData[playerid][pdTattooArmRight],
+        g_PlayerData[playerid][pdTattooLegLeft], g_PlayerData[playerid][pdTattooLegRight],
+        g_PlayerData[playerid][pdTattooBack], g_PlayerData[playerid][pdTattooFront],
+        g_PlayerData[playerid][pdPoliceBelt], g_PlayerData[playerid][pdPoliceVest], g_PlayerData[playerid][pdPoliceHat],
+        name);
+    DbQueryRaw(query);
+}
+
+// "DD/MM/YYYY" -> dia, mes, ano
+stock sscanf_birthday(const str[], &day, &month, &year)
+{
+    day = 0; month = 0; year = 0;
+    if (strlen(str) < 8) return;
+    new tmp[8];
+    strmid(tmp, str, 0, 2); day = strval(tmp);
+    strmid(tmp, str, 3, 5); month = strval(tmp);
+    strmid(tmp, str, 6, 10); year = strval(tmp);
+}
+
+stock AddTransaction(playerid, const descr[], amount)
+{
+    if (g_Db == DB:0) return;
+
+    new name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+
+    new y, mo, d, h, mi, s, dateStr[24];
+    getdate(y, mo, d);
+    gettime(h, mi, s);
+    format(dateStr, sizeof(dateStr), "%02d/%02d %02d:%02d", d, mo, h, mi);
+
+    new query[320];
+    format(query, sizeof(query),
+        "INSERT INTO transactions (acc, descr, amount, date) VALUES ('%s', '%s', %d, '%s')",
+        name, descr, amount, dateStr);
+    DbQueryRaw(query);
+}
+
+stock SyncMoneyHud(playerid)
+{
+    ResetPlayerMoney(playerid);
+    GivePlayerMoney(playerid, g_PlayerData[playerid][pdCash]);
+}
+
+stock EscapeJson(const src[], dest[], size)
+{
+    new j = 0;
+    for (new i = 0; src[i] != 0 && j < size - 2; i++)
+    {
+        if (src[i] == '\"' || src[i] == '\\')
+        {
+            dest[j++] = '\\';
+        }
+        dest[j++] = src[i];
+    }
+    dest[j] = 0;
+}
+
+// ============================================================
+// SINCRONIZAÇÃO DE HORÁRIO — horário real de Brasília (UTC-3)
+// ============================================================
+forward SyncServerTime();
+public SyncServerTime()
+{
+    new hour, minute, second;
+    gettime(hour, minute, second);
+    // UTC-3 (Brasília)
+    hour -= 3;
+    if (hour < 0) hour += 24;
+    SetWorldTime(hour);
+    // Aplica pra todos os jogadores conectados
+    for (new i = 0; i < MAX_PLAYERS; i++)
+    {
+        if (IsPlayerConnected(i))
+        {
+            SetPlayerTime(i, hour, minute);
+        }
+    }
+}
+
+stock ApplyServerTime(playerid)
+{
+    new hour, minute, second;
+    gettime(hour, minute, second);
+    hour -= 3;
+    if (hour < 0) hour += 24;
+    SetPlayerTime(playerid, hour, minute);
+}
+
+// ============================================================
+// TIMER DE PROXIMIDADE — mostra/esconde o botão flutuante
+
+
+// ============================================================
+// DIALOGUES
+// ============================================================
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+    if (Skins_OnDialogResponse(playerid, dialogid, response, listitem)) return 1;
+    return 0;
+}

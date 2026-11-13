@@ -1,0 +1,29 @@
+/* ==========================================================================
+   Crestwood RP v21 - ecran de chargement : carte en verre arrondie, etapes en pilule,
+   barre de progression lumineuse. Charge APRES loading.css.
+   ========================================================================== */
+:root{ --r: 14px; }
+.card{
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(59,130,255,.08), rgba(255,255,255,0) 34%), linear-gradient(180deg, rgba(20,24,31,.86), rgba(11,13,18,.9));
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(0,0,0,.4), 0 26px 70px rgba(0,0,0,.55);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.chip{ border-radius: 999px !important; padding: 0 10px; }
+.steps li{ padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06); }
+.steps li.active{ background: rgba(59,130,255,.14); border-color: rgba(59,130,255,.45); }
+.steps li i{ border-radius: 50% !important; }
+.track{ height: 9px; border-radius: 999px !important; background: rgba(255,255,255,.07); }
+.track::before{ display: none; }
+.bar{ border-radius: 999px; background: linear-gradient(90deg, #2f74f0, #5c9bff) !important; box-shadow: 0 0 14px rgba(59,130,255,.55); }
+.bar::after{ content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); background-size: 200% 100%;
+  animation: cwShine 1.6s linear infinite; }
+@keyframes cwShine{ from{ background-position: 200% 0; } to{ background-position: -200% 0; } }
+.tip{ border-radius: 14px !important; padding-right: 16px !important; }
+.player{ border-radius: 18px !important; }
+.pbtn{ border-radius: 50% !important; }
+.btn{ border-radius: 12px !important; background: linear-gradient(180deg, #4b8fff, #2f74f0) !important; box-shadow: 0 6px 18px rgba(59,130,255,.3); }
+.dl, .dl-cell{ border-radius: 10px; }
+@media (prefers-reduced-motion: reduce){ .bar::after{ animation: none; } }

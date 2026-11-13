@@ -1,0 +1,56 @@
+VETEMENTS UTGAWA + LASOUTH, MAIN 3D, BOUTONS NATIFS, TIR EN VEHICULE, VISEE  (Crestwood RP - 30/10/2026)
+=====================================================================================================
+
+1) VETEMENTS : [31/10 : REMPLACE par LISEZMOI_VETEMENTS_APK.txt - les deux packs sont dans l APK]
+   - Verification du pack "SISTEMA + ARQUIVOS PARA DATA" : Lasouth = le MEME pack que Utgawa.
+       * skins male/female .dff/.txd : identiques octet par octet ;
+       * 1 107 textures Lasouth comparees aux TXD cs7_* / cs9_* : 1 107 images identiques (Lasouth en 512 px) ;
+       * Utgawa a TOUT Lasouth + chapeaux, lunettes, colliers, cheveux, barbes, sourcils, maquillage, visages,
+         tons de peau, tatouages, et 6 hauts femme de plus.
+     -> Lasouth retire (doublons) : plus de catalogue south, plus de chargeur de modeles, APK ~63 Mo plus leger.
+   - Corps : Homme 1 = skin 163, Homme 2 = skin 7, Femme 1 = skin 9, Femme 2 = skin 12 (tous Utgawa, meme
+     catalogue). L'ancien skin 289 n'est plus propose (les joueurs qui l'ont le gardent).
+   - Interface assets/clothes/ (Studio de style) gardee : pieces Utgawa reglees piece par piece, essayage en
+     direct avec rotation / zoom camera, nom de la boutique + note "tu paies a l'enregistrement".
+   - Boutiques payantes Utgawa (UTGS_PRIX_*), piece deja achetee = gratuite. 39 valeurs d'apparence.
+   - Plus AUCUN changement de tenue gratuit : /vetements = creation du personnage seulement (staff compris).
+     (UTGS_EDITOR_LIBRE 1 = ancien comportement)
+   - Fichiers du pack pour la data : rien a ajouter (skins deja dans la data, TXD cs7_/cs9_ au format PC non
+     utilises par le client, interieurs optionnels). Ne PAS charger UTGAWA_CUSTOM.amx (tout est dans la GM).
+
+2) MAIN D'INTERACTION 3D SUR LES MAGASINS
+   - Tous les magasins (points vetements du panneau admin ET boutiques Utgawa) affichent un t-shirt 3D.
+   - Quand le joueur arrive sur le point (moins de 1,6 m), une MAIN apparait dans le monde 3D au-dessus
+     du t-shirt ("Appuie pour entrer"). Un appui dessus envoie /interagir -> la boutique s'ouvre.
+   - Les boutiques Utgawa n'utilisent plus le pickup (ouverture en marchant dessus).
+     UTGS_USE_PICKUP 1 dans basicgm1.pwn = remettre l'ancien pickup.
+   - Code : app/src/main/cpp/samp(32)/game/WorldMarkers.cpp (dessin + toucher),
+            basicgm1.pwn : UtgShop_Near / UtgShop_InteractKey / UtgShop_InteractDo / UtgShop_AppendMarks.
+
+3) BOUTONS NATIFS REACTIVES, BOUTONS PERSONNALISES DESACTIVES
+   - Desactives : joystick HTML, boutons tir / viser / saut / accroupi / sprint / armes / monter / passager,
+     pedales, fleches, klaxon, frein a main, bouton "Direction" (touch-controls.js n'est plus charge,
+     les elements tc-* sont caches dans touch-controls.css).
+   - Reactives : tous les boutons tactiles natifs de San Andreas (marche, tir, visee, saut, sprint,
+     monter, conduite, tir lateral en vehicule...) + la barre de touches SA-MP (>> TAB ALT ESC H Y N F G 2).
+   - Restent (pas des boutons de controle) : chat, menu RP, vocal, moteur, cadenas, animations, minimap.
+
+4) TIR EN VEHICULE (32 bits ET 64 bits)
+   - Conducteur : boutons natifs de tir lateral de SA (avec une mitraillette : Uzi, MP5, Tec-9).
+     Le client 64 bits envoyait "drive-by desactive" a chaque image pour le conducteur : supprime.
+   - Passager : bouton natif TIRER (rouge) affiche avec une mitraillette ; le maintenir = drive-by.
+     Le bouton H / "D/B" de la barre SA-MP marche aussi.
+   - CPad::GetCarGunFired est maintenant branche (tir des vehicules armes + drive-by).
+
+5) VISEE PERMANENTE (32 bits ET 64 bits)
+   - A pied avec une arme a feu : bouton natif VISER toujours affiche (cote droit).
+     1 appui = visee bloquee ("VISEE ON"), tu tires ensuite avec le bouton de tir natif ;
+     2e appui = fin de visee. Elle s'arrete seule si tu ranges l'arme ou montes en vehicule.
+   - Position / taille : kAimX / kAimY / kFireX / kFireY / kRadiusH en haut de game/CombatButtons.cpp.
+
+6) A FAIRE
+   - Reconstruire l'APK (C++ 32 + 64 bits, Java, assets). L'APK grossit d'environ 63 Mo (textures Lasouth
+     dans assets/clothes/south).
+   - basicgm1.amx est DEJA recompile (pawncc 3.10.10, 0 erreur, memes avertissements qu'avant) :
+     server/basicgm/basicgm1.amx et basicgm1_corrige.amx a la racine.
+   - A tester en jeu : apparence des pieces Lasouth sur les deux corps, main 3D, bouton VISER, drive-by.

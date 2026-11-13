@@ -1,0 +1,48 @@
+CRESTWOOD RP v9 (31/10/2026) - SYSTEMES RP, FACTIONS, POINTS 3D, CHAT, STYLE NOIR
+================================================================================
+
+1) POINTS D'INTERACTION EN 3D (plus de pickups, plus de textes 3D)
+   Chaque point fixe a une icone 3D qui flotte au-dessus d'un anneau au sol. Quand le joueur est
+   dessus, la MAIN 3D apparait : un appui = interaction. Aucun texte d'indication.
+     t-shirt  : points vetements / boutiques de vetements     voiture : garages
+     sac      : boutiques 24/7                                 casier  : vestiaires (TOUTES les factions)
+     $        : banques (et braquage mini-banque, cercle rouge) mallette : emplois
+     porte -> : entrees / sorties                              poisson : peche     maison : maisons
+     lunettes : accessoires    ciseaux : barbier    aiguille : tatouage
+   Serveur : CW_PICKUPS 0 / CW_TEXT3D 0 (mettre 1 pour revenir aux anciens pickups / textes).
+   Les icones sont envoyees en plusieurs morceaux (dialogues 9760 + 9761) : plus de limite.
+   La main HTML du HUD ne sert plus que pour : joueur, police, verrouiller le vehicule (sans texte).
+   Client : game/WorldMarkers.cpp (32 et 64 bits, fichier identique).
+
+2) VESTIAIRES POUR TOUTES LES FACTIONS
+   Panneau admin > Factions > ajouter un vestiaire (action "lockeradd") : marche pour n importe quelle faction. Police : tenues de police
+   comme avant. Autres factions : uniforme de la faction (homme / femme), "Reprendre ma tenue civile".
+   Uniformes (skins SA) : medecin 275/308, journaliste 187/141, gouvernement 147/150, tueur 127/93,
+   FBI 286/141, mecano 50/192, terroriste 121/41, armee 287/191, concession 171/172, burger 205,
+   taxi 255/263 (tableau g_RpUniSkin dans basicgm1.pwn).
+
+3) NOUVEAUX SYSTEMES RP (module RP PLUS dans basicgm1.pwn)
+   Chat de proximite : le texte normal n'est entendu qu'a 18 m ("Prenom Nom dit : ...") + bulle.
+   /me /do /ame /try   /b (hors RP local)   /s (crier 40 m)   /c (chuchoter 3 m)   /pm id texte
+   Appels d'urgence : /112 police|medecin|mecano|taxi message  -> GPS envoye aux membres de garde
+   Services : /soigner id prix (medecin) /reparer id prix (mecano, client dans son vehicule)
+              /servir id prix (burger : +30 PV + une eau) /facturer id prix (toute faction)
+              le client repond /accepter ou /refuser (40 s)
+   Journalistes : /annonce texte (a tout le serveur, 1 toutes les 30 s)
+   Forces de l'ordre : police + FBI + armee ont les outils de police (menu, amendes, menottes...)
+   Tueurs a gages : /prime id montant (n'importe qui, anonyme) -> /primes ; prime payee au tueur
+   Mort : facture d'hopital 250 $, les medecins recoivent l'alerte + GPS.
+   /rp : liste des commandes.
+   Correctif : braquage et appel 17 du telephone cherchaient la police avec le mauvais test.
+
+4) MAPPINGS : plus aucun RemoveBuildingForPlayer (MAP_REMOVE_BUILDINGS 0).
+
+5) CHAT HTML : en haut a gauche (a cote de l'anneau), messages qui s'effacent apres 14 s,
+   historique complet quand on ecrit. Bouton "bulle" a cote du bouton chat = afficher / masquer
+   (memorise sur le telephone). Les messages viennent du moteur : chat.cpp -> SAMP.hudChatMessage.
+
+6) LOGO CRESTWOOD en haut : plus petit (hud/hud-cw9.css).
+
+7) STYLE DES PANNEAUX : noir un peu transparent, accents neutres (plus de bleu nuit).
+   29 fichiers de 25 panneaux recolores automatiquement (tools/recolor_panels_noir.py).
+   Non touches : HUD (jauges), telephone, vetements (dore), ecran de chargement.

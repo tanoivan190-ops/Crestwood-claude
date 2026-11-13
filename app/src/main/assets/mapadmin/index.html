@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr" data-sg>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mappings et points</title>
+<!--
+  Panneau admin : mappings (aller / arrivee), portails entree <-> sortie, points (banque, 24/7, essence, location, emplois).
+  Serveur -> page : MapAdmin.openFromNative(json) / MapAdmin.onUpdateFromNative(json)  (dialogues "@maps" 9830/9831, 9832 = fermer)
+  Page -> serveur : SampMaps.action(type, {"arg":"..."}) -> /mapact <type> <arg>
+-->
+<style>
+:root{--bg:rgba(0,0,0,0.56);--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--text:#f4f4f4;--soft:#c8c8c8;--muted:#8e8e8e;--ok:#3ad070;--err:#ff5a6a;
+  --font:"Inter","Poppins","Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;font-family:var(--font);color:var(--text);-webkit-user-select:none;user-select:none}
+button,input,select{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+.ov{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35)}
+.panel{width:min(96vw,900px);height:min(94vh,560px);display:flex;flex-direction:column;border-radius:4px;background:var(--bg);border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,0.48);overflow:hidden}
+.head{display:flex;align-items:center;gap:10px;padding:clamp(8px,2vh,13px) 16px;border-bottom:1px solid var(--line)}
+.head h1{font-size:clamp(14px,3.6vh,18px);font-weight:800}
+.head p{font-size:clamp(9px,2.2vh,11px);color:var(--muted)}
+.x{margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08)}
+.tabs{display:flex;gap:6px;padding:8px 16px 0}
+.tab{padding:7px 12px;border-radius:4px 4px 0 0;font-size:clamp(10px,2.5vh,12.5px);font-weight:700;color:var(--muted);border-bottom:2px solid transparent}
+.tab.on{color:#fff;border-color:#fff}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line)}
+.bar input,.bar select{min-width:0;flex:1 1 140px;padding:7px 10px;border-radius:4px;background:rgba(255,255,255,.07);border:1px solid var(--line);outline:none;font-size:12px;-webkit-user-select:text;user-select:text}
+.bar select option{background:rgba(17,17,17,0.62)}
+.btn{padding:7px 12px;border-radius:4px;font-size:11.5px;font-weight:800;background:rgba(255,255,255,.09);border:1px solid var(--line);white-space:nowrap}
+.btn.main{background:#fff;color:#111;border-color:#fff}
+.btn.red{color:#ffb3bb;border-color:rgba(255,90,106,.4)}
+.btn:active{transform:scale(.97)}
+.list{flex:1;min-height:0;overflow-y:auto;padding:8px 16px 14px;display:flex;flex-direction:column;gap:6px;scrollbar-width:none;touch-action:pan-y}
+.list::-webkit-scrollbar{display:none}
+.row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;background:var(--card)}
+.row .t{flex:1;min-width:0}
+.row b{display:block;font-size:clamp(11px,2.7vh,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{font-size:10px;color:var(--muted)}
+.tag{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.08);color:var(--soft)}
+.tag.ok{background:rgba(58,208,112,.15);color:#9ff0bd}.tag.no{background:rgba(255,90,106,.12);color:#ffb3bb}
+.acts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:12px}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{padding:5px 9px;border-radius:4px;font-size:10.5px;font-weight:700;background:var(--card);border:1px solid var(--line);color:var(--soft)}
+.chip.on{background:#fff;color:#111}
+.toast{position:fixed;left:50%;bottom:3vh;transform:translateX(-50%);max-width:86vw;padding:8px 14px;border-radius:4px;background:rgba(0,0,0,0.58);border:1px solid var(--line);font-size:12px;opacity:0;transition:.2s;pointer-events:none;text-align:center}
+.toast.show{opacity:1}.toast.err{color:#ffc5cc;border-color:rgba(255,90,106,.5)}.toast.okk{color:#bff3d1;border-color:rgba(58,208,112,.5)}
+.hidden{display:none!important}
+</style>
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+<link rel="stylesheet" href="../common/cw-signal.css">
+</head>
+<body>
+<main class="ov">
+  <section class="panel">
+    <header class="head">
+      <div><h1>Mappings &amp; points</h1><p id="sub">Panneau admin</p></div>
+      <button class="x" id="close" type="button" aria-label="Fermer">&#10005;</button>
+    </header>
+    <nav class="tabs">
+      <button class="tab" data-v="0" type="button">Mappings</button>
+      <button class="tab" data-v="1" type="button">Entrées / sorties</button>
+      <button class="tab" data-v="2" type="button">Points</button>
+    </nav>
+    <div class="bar" id="bar"></div>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  "use strict";
+  const bridge = window.SampMaps || null;
+  const $ = (id) => document.getElementById(id);
+  const TYPES = ["", "Banque", "Supérette 24/7", "Pompe à essence", "Location de véhicules", "Siège d'emploi"];
+  let S = { view: 0, filter: 0, list: [], jobs: [], counts: [0, 0, 0, 0, 0, 0] };
+  let busy = 0;
+
+  function send(t, arg) {
+    if (!bridge || typeof bridge.action !== "function") { console.log("[maps]", t, arg); return; }
+    try { bridge.action(t, JSON.stringify({ arg: arg == null ? "" : String(arg) })); } catch (_) {}
+  }
+  let tt = 0;
+  function toast(m, ok) { if (!m) return; const t = $("toast"); t.textContent = m; t.className = "toast show " + (ok ? "okk" : "err"); clearTimeout(tt); tt = setTimeout(() => { t.className = "toast"; }, 3200); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  function cleanName(v) { return String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9 \-\/.]/g, "").trim().slice(0, 30); }
+  function btn(label, cls, fn) { const b = document.createElement("button"); b.type = "button"; b.className = "btn " + (cls || ""); b.textContent = label; b.addEventListener("click", fn); return b; }
+  function row(title, sub, tags, actions) {
+    const r = document.createElement("div"); r.className = "row";
+    const t = document.createElement("div"); t.className = "t";
+    t.innerHTML = "<b>" + esc(title) + "</b><small>" + (sub || "") + "</small>";
+    r.appendChild(t);
+    (tags || []).forEach((g) => { const s = document.createElement("span"); s.className = "tag " + (g[1] || ""); s.textContent = g[0]; r.appendChild(s); });
+    const a = document.createElement("div"); a.className = "acts"; actions.forEach((b) => a.appendChild(b)); r.appendChild(a);
+    return r;
+  }
+  function confirmTap(b, label, fn) {
+    // suppression : deux touches (pas de boite de dialogue native)
+    let armed = false, timer = 0;
+    b.addEventListener("click", () => {
+      if (!armed) { armed = true; b.textContent = "Confirmer ?"; timer = setTimeout(() => { armed = false; b.textContent = label; }, 2500); return; }
+      clearTimeout(timer); armed = false; b.textContent = label; fn();
+    });
+    return b;
+  }
+
+  function renderBar() {
+    const bar = $("bar"); bar.innerHTML = "";
+    if (S.view === 0) {
+      const p = document.createElement("small"); p.style.cssText = "color:var(--muted);font-size:11px";
+      p.textContent = "« Aller » te téléporte (tu restes figé le temps que le sol se charge). « Arrivée ici » enregistre ta position comme point d'arrivée du mapping.";
+      bar.appendChild(p);
+    } else if (S.view === 1) {
+      const inp = document.createElement("input"); inp.placeholder = "Nom du portail (ex. Mairie)"; inp.maxLength = 30;
+      bar.appendChild(inp);
+      bar.appendChild(btn("Nouveau : entrée ici", "main", () => { send("pnew", cleanName(inp.value)); inp.value = ""; }));
+      const p = document.createElement("small"); p.style.cssText = "color:var(--muted);font-size:10.5px;flex-basis:100%";
+      p.textContent = "1) Dehors, crée le portail (l'entrée est posée là où tu es). 2) Va dans le mapping (onglet Mappings) et touche « Sortie ici ». Le portail marche quand les deux sont posés.";
+      bar.appendChild(p);
+    } else {
+      const chips = document.createElement("div"); chips.className = "chips"; chips.style.flexBasis = "100%";
+      [0, 1, 2, 3, 4, 5].forEach((t) => {
+        const c = document.createElement("button"); c.type = "button"; c.className = "chip" + (S.filter === t ? " on" : "");
+        c.textContent = (t ? TYPES[t] : "Tous") + " (" + (S.counts[t] || 0) + ")";
+        c.addEventListener("click", () => send("view", "2 " + t));
+        chips.appendChild(c);
+      });
+      bar.appendChild(chips);
+      const sel = document.createElement("select");
+      for (let t = 1; t <= 5; t++) { const o = document.createElement("option"); o.value = t; o.textContent = TYPES[t]; sel.appendChild(o); }
+      if (S.filter) sel.value = S.filter;
+      const job = document.createElement("select");
+      (S.jobs || []).forEach((j) => { const o = document.createElement("option"); o.value = j[0]; o.textContent = j[1] + (j[2] ? " (déjà posé)" : ""); job.appendChild(o); });
+      const name = document.createElement("input"); name.placeholder = "Nom (optionnel)"; name.maxLength = 30;
+      const sync = () => { const isJob = sel.value === "5"; job.classList.toggle("hidden", !isJob); name.classList.toggle("hidden", isJob); };
+      sel.addEventListener("change", sync); sync();
+      bar.appendChild(sel); bar.appendChild(job); bar.appendChild(name);
+      bar.appendChild(btn("Poser ici", "main", () => {
+        const t = sel.value, sub = t === "5" ? job.value : "0";
+        send("ptnew", t + " " + sub + " " + cleanName(name.value)); name.value = "";
+      }));
+    }
+  }
+
+  function renderList() {
+    const L = $("list"); L.innerHTML = "";
+    const list = Array.isArray(S.list) ? S.list : [];
+    if (!list.length) {
+      L.innerHTML = '<div class="empty">' + (S.view === 0 ? "Aucun mapping chargé." : S.view === 1 ? "Aucun portail. Crée le premier ci-dessus." : "Aucun point. Place-toi au bon endroit et touche « Poser ici ».") + "</div>";
+      return;
+    }
+    list.forEach((it) => {
+      if (S.view === 0) {
+        const [i, name, objs, custom] = it;
+        L.appendChild(row(name, objs + " objets", [[custom ? "arrivée réglée" : "arrivée auto", custom ? "ok" : ""]], [
+          btn("Aller", "main", () => send("maptp", i)),
+          btn("Arrivée ici", "", () => send("maparr", i))
+        ]));
+      } else if (S.view === 1) {
+        const [id, name, out, inn] = it;
+        L.appendChild(row(name, "Portail #" + id, [[out ? "entrée ✓" : "entrée ✗", out ? "ok" : "no"], [inn ? "sortie ✓" : "sortie ✗", inn ? "ok" : "no"]], [
+          btn("Entrée ici", "", () => send("pout", id)),
+          btn("Sortie ici", "", () => send("pin", id)),
+          btn("→ Entrée", "", () => send("ptpout", id)),
+          btn("→ Sortie", "", () => send("ptpin", id)),
+          confirmTap(btn("Supprimer", "red", () => {}), "Supprimer", () => send("pdel", id))
+        ]));
+      } else {
+        const [id, type, name, x, y] = it;
+        L.appendChild(row(name, (TYPES[type] || "?") + " · " + x + ", " + y, [], [
+          btn("Aller", "main", () => send("pttp", id)),
+          confirmTap(btn("Supprimer", "red", () => {}), "Supprimer", () => send("ptdel", id))
+        ]));
+      }
+    });
+  }
+
+  function render() {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", Number(t.dataset.v) === S.view));
+    const c = S.counts || [];
+    $("sub").textContent = (c[0] || 0) + " points · " + (c[1] || 0) + " banques · " + (c[2] || 0) + " 24/7 · " + (c[3] || 0) + " pompes · " + (c[4] || 0) + " locations · " + (c[5] || 0) + " emplois";
+    renderBar(); renderList();
+  }
+  function apply(raw) {
+    let d = raw; if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { d = null; } }
+    if (!d) return;
+    S = Object.assign(S, d);
+    S.view = Number(d.view) || 0; S.filter = Number(d.filter) || 0;
+    render();
+    if (d.msg) toast(d.msg, Number(d.ok) === 1);
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => send("view", t.dataset.v + " 0")));
+  $("close").addEventListener("click", () => { if (bridge && typeof bridge.close === "function") { try { bridge.close(); } catch (_) {} } });
+
+  // clavier Android : la WebView doit devenir focalisable avant de toucher un champ
+  document.addEventListener("pointerdown", (e) => {
+    const el = e.target && e.target.closest && e.target.closest("input");
+    if (!el || !bridge || typeof bridge.showKeyboard !== "function") return;
+    try { bridge.showKeyboard(); } catch (_) {}
+    setTimeout(() => { try { el.focus(); } catch (_) {} }, 60);
+  }, true);
+  window.MapAdmin = { openFromNative: apply, onUpdateFromNative: apply };
+  if (!bridge) {
+    apply({ view: 2, filter: 0, ok: 1, msg: "Aperçu", counts: [5, 2, 1, 1, 0, 1],
+      list: [[1, 1, "Banque", 1481, -1745], [2, 2, "24/7 Idlewood", 1833, -1842], [3, 3, "Pompe a essence", 1941, -1772], [4, 5, "Livreur", 2183, -2265]],
+      jobs: [[1, "Bucheron", 0], [2, "Livreur", 1], [3, "Chauffeur de bus", 0]] });
+  }
+  try { if (bridge && typeof bridge.ready === "function") bridge.ready(); } catch (_) {}
+})();
+</script>
+</body>
+</html>

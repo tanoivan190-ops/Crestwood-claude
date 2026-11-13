@@ -1,0 +1,125 @@
+CRESTWOOD RP - V19 (07/11/2026)
+================================
+
+A FAIRE AVANT DE TESTER
+   1. Recompiler le gamemode : server/basicgm/basicgm1.pwn (le .amx du zip est l'ANCIEN).
+      -> GitHub : onglet Actions > "Compiler le gamemode (Pawn)" > Run workflow, puis telecharger
+         l'artefact basicgm1.amx (le workflow se lance aussi tout seul quand server/basicgm change).
+      -> ou comme d'habitude : pawncc basicgm1.pwn -iinclude -i<includes 0.3.7> -d0
+      Je n'ai pas pu compiler ici (pas de compilateur Pawn) : j'ai verifie a la main + script
+      (accolades, fonctions appelees qui existent, nombre d'arguments de chaque format).
+      Si le compilateur affiche une erreur, envoie-moi la ligne.
+   2. Recompiler l'APK (Java + pages HTML + 3 lignes C++).
+   3. Mettre le nouveau .amx sur le serveur et redemarrer. Nouvelle base creee toute seule :
+      scriptfiles/crestwood_vie.db  (+ table promo_signup dans crestwood_promo.db).
+
+1. NOUVEAU LOGIN (assets/login)
+   - Refait de zero aux couleurs Crestwood (gris / noir / bleu), bords carres, police Montserrat.
+   - A gauche : logo, 3 points forts du serveur, statut. A droite : Connexion / Inscription / Mot de passe.
+   - Le pseudo de jeu est rempli et verrouille (le serveur exige le meme pseudo).
+   - Inscription : e-mail, mot de passe + jauge de solidite, confirmation, CODE PROMO, reglement.
+   - Lecteur de musique en bas a gauche (les 6 pistes de l'ecran de chargement).
+   - L'ancien habillage Revolt (logo "tmi", fille, musique bresilienne, images) est supprime : -7 Mo d'APK.
+
+2. CODE PROMO A L'INSCRIPTION
+   - Champ "Code promo (facultatif)" + bouton Verifier : affiche le forfait (vehicule, jours, argent).
+   - Codes = ceux crees par les admins dans la tablette RP (forfaits Economique / Medium / Premium).
+   - Code faux ou le sien -> le compte n'est PAS cree, message d'erreur.
+   - Code bon -> compte cree, le code est garde et active 5 s apres la 1re apparition en ville :
+     vehicule dans le garage + argent en banque + commission au createur (comme avant).
+     Un joueur ne peut toujours utiliser qu'UN seul code.
+   - Serveur : /authact register pseudo email mdp [CODE] et /authact promocheck CODE.
+
+3. NOUVEL ECRAN DE CHARGEMENT (assets/loading)
+   - Diaporama plein ecran (affiche Crestwood + 3 scenes) avec zoom lent.
+   - Panneau de progression en bas : etapes, pourcentage, vitesse, temps restant.
+   - Astuces RP qui tournent, lecteur de musique carre en haut a droite.
+   - Meme API qu'avant : launcher ET jeu marchent sans rien changer.
+
+4. NOTIFICATIONS DU JEU = BOITE D'AIDE DE GTA SA (comme quand on prend un BMX)
+   - Boite noire translucide en haut a gauche, sous les boutons de la carte, texte blanc,
+     mots en couleur, petit bip. Une seule a la fois, les suivantes attendent leur tour.
+   - Serveur : Cw_Notify(playerid, "success|warning|denied|system|admin", "Titre", "Texte ~g~vert~w~ ...").
+     Codes : ~g~ vert, ~r~ rouge, ~y~ jaune, ~b~ bleu, ~p~ violet, ~o~ orange, ~w~ blanc, ~n~ retour ligne.
+   - Utilise par : location (BMX, scooter...), codes promo, faim/soif, niveau, loto, staff.
+   - Meme style sur l'ecran de connexion.
+
+5. HUD : LES 3 BOUTONS SOUS LA CARTE + BOUTONS
+   - Colles au bord gauche et alignes sur la carte (avant ils etaient decales par l'encoche du telephone).
+   - Tuiles carrees avec libelle (ROUE / REGLAGES / TELEPHONE), filet bleu a l'appui.
+   - Le bouton "Direction" (mort depuis que touch-controls.js n'est plus charge) est retire.
+   - Bouton chat colle a la carte ; vocal, animations, interaction : meme verre, bords carres.
+
+6. NOUVEAUX SYSTEMES RP (include/Vie.inc)
+   - FAIM / SOIF : baissent en jouant (soif 100->0 en 1 h 40, faim en 3 h 20), jauges autour de la carte.
+     Hamburger (+35 faim, en vente dans les 24/7 : 30 $), eau Kirene (+40 soif), Vody (+10 soif),
+     repas servi par le Burger (/servir) : +35 faim. A 0 : la sante baisse (jamais sous 15).
+     /besoins pour voir ses valeurs. Staff niveau 2 : /nourrir [id].
+   - NIVEAU / XP : 1 XP toutes les 30 min de jeu, niveau suivant = niveau x 3 XP, prime en banque
+     (nouveau niveau x 5 000 $). Le niveau = score du TAB et "niveau" de la tablette RP. /niveau
+   - APPARENCE : /apparence <texte> (gardee pour toujours), /examiner <id> a 6 m : age (date de naissance
+     de l'identite), sexe, origine et apparence. La tablette RP affiche maintenant l'age et l'origine.
+   - LOTO DE CRESTWOOD : /loto <1-50> au comptoir d'une 24/7 (1 000 $, 5 tickets max par tirage).
+     Tirage chaque heure pile, cagnotte de depart 100 000 $ + 80 % des tickets ; sans gagnant
+     elle reste en jeu. Les gains vont sur le compte en banque (meme hors ligne). /loto = infos.
+   - Reglages en haut de include/Vie.inc (VIE_*).
+
+7. MAPPINGS ET SYSTEMES REACTIVES
+   - "Station-service" (1779,-1775) REACTIVEE : elle avait ete retiree pour le LSPD Atlas, mais ce LSPD
+     est coupe depuis le 31/10 (modele 1862 de l'APK). Le batiment d'origine newbuildsm01 (4019 + LOD 4025)
+     est retire autour (rayon 77 m). Si tu vois un probleme a cet endroit, retire les 2 lignes [v19] de
+     MapImp_RemoveBuildings.
+   - Braquage fixe de la mini-banque Pershing remis (ROB_POINT_ACTIF 1).
+   - Toujours NON actives (il faut d'abord mettre les modeles dans la data du jeu, voir LISEZMOI_MAPPINGS) :
+     Banque Atlas, Mecano MTA, Concession SF (MAP_MODELES_DATA), et le LSPD Atlas (remplacement de modeles coupe).
+
+8. OPTIMISATION / CRASHS (Java 64 + 32 bits)
+   - CAUSE DE CRASH CORRIGEE : quand Android tue le moteur de rendu des WebView (manque de memoire, tres
+     frequent sur les telephones Android 11 / 32 bits), TOUTE l'appli est fermee si une seule WebView ne
+     gere pas "onRenderProcessGone". Le HUD le gerait, mais PAS les dialogues (DialogManager), l'ecran de
+     chargement (LoadingScreen) ni le launcher (MainActivity) -> c'est corrige pour les 3.
+     Les dialogues repassent en natif, l'ecran de chargement se ferme, le launcher se recree.
+   - Etat du joueur vers le HUD : le moteur l'envoie deja 10 fois/s (main.cpp). Le Java ajoute un plafond
+     de 15/s (filet de securite, le dernier etat n'est jamais perdu) et, depuis la v19b, des valeurs arrondies :
+     a l'arret le meme etat n'est plus renvoye a la WebView (correction : la v19 disait "30 a 60 fois/s", c'etait faux).
+   - L'ecran de chargement libere sa page (images + musique) pendant le jeu.
+   - Minimap : 30 images/s max au lieu de 40 ; ombres couteuses des jauges coupees.
+   - C++ (samp + samp32, jniutil.cpp) : verification d'exception JNI ajoutee aux 3 appels qui n'en avaient pas.
+   - Pour les crashs qui restent : envoie le logcat (ou le fichier log du jeu) au moment du crash,
+     surtout les lignes "FATAL", "SIGSEGV", "backtrace" : je pourrai viser la cause exacte.
+
+
+=====================================================================
+ V19b (07/11/2026) - retours d'Anzo
+=====================================================================
+1. CODE PROMO : le forfait Medium donne bien 500 000 $ (Promo.inc, page RP, apercu du login, docs).
+
+2. ROUE (HUD) : petite roue de 6 familles (Moi, Telephone, Ville, Vehicules, Travail, Reglages).
+   Toucher une famille ouvre ses sous-menus dans un panneau a droite. Le centre ferme la roue.
+   Raccourcis serveur dans la roue : /besoins /niveau /aide /loto /mairie /ceinture /rendrelocation
+   /course /emploi (le Java n'accepte QUE ces commandes : liste WHEEL_COMMANDS dans les 2 SAMP.java).
+
+3. NOUVEAUX SYSTEMES (include/Ville.inc, inclus apres <Vie>) :
+   - Courses de rue : /course creer <mise> (500 a 500 000 $, au volant), /course arrivee (400 m min),
+     /course rejoindre, /course depart (3-2-1, 2 a 8 pilotes), /course quitter, /course annuler.
+     Le premier a l'arrivee (checkpoint de course) gagne toute la cagnotte. Sans gagnant en 8 min : partage.
+     Pas lancee en 10 min : remboursee. Refusee pendant une quete ou un trajet d'emploi.
+   - Mariage : /mariage <id> devant la mairie (cote a cote, 10 000 $), /oui ou /non (60 s),
+     /divorce a la mairie (5 000 $). L'epoux s'affiche dans /examiner. Table "mariages" (crestwood_vie.db).
+
+4. DESIGN "signaletique" (meme charte partout) :
+   - Asphalte gris transparent (le jeu reste visible), texte craie, filets fins, coins carres.
+   - Une seule marque forte : la plaque de rue bleue #3B82FF avec un filet blanc interieur,
+     sur le bouton principal et l'icone de titre. Plus de capitales espacees, plus d'or.
+   - Dialogues SA-MP (dialog/) refaits : fichier autonome. Les couleurs or/jaune/orange envoyees par le
+     serveur ({FFCC33}...) passent en bleu clair, le cyan SA-MP en bleu Crestwood ; rouge et vert gardent leur sens.
+   - common/cw-signal.css charge EN DERNIER par 24 panneaux (banque, boutique, garage, police, RP...).
+   - Login, ecran de chargement (barre de progression = une route avec ligne blanche), HUD (libelles,
+     roue, panneau "Premiers pas" qui etait turquoise) alignes sur la meme charte.
+
+5. OPTIMISATION :
+   - Java : etat HUD construit dans un StringBuilder reutilise, valeurs arrondies -> a l'arret, plus
+     d'appel evaluateJavascript inutile. HUD JS : updateHudInfo ne touche le DOM que si une valeur change.
+   - Clavier HTML : les touches sont creees une seule fois, la majuscule change juste les libelles.
+
+!! Recompiler le gamemode (workflow GitHub "Compiler le gamemode") : basicgm1.amx du zip est l'ancien.

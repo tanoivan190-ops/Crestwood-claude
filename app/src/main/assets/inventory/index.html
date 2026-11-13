@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" data-sg>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inventaire</title>
+<!--
+  Inventaire Crestwood v2 : sac (poids 50 kg), sol (objets jetes a proximite), 5 emplacements rapides,
+  utiliser / donner a un joueur proche / jeter au sol.
+  Serveur -> page : InvApp.openFromNative(json) / InvApp.onUpdateFromNative(json)  (dialogues "@inv" 9530/9531)
+  Page -> serveur : SampInv.action(type, {...}) -> /invact ... (SAMP.java, liste blanche)
+-->
+<link rel="stylesheet" href="inventory.css">
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+<link rel="stylesheet" href="../common/cw-signal.css">
+</head>
+<body>
+<main class="iv" id="iv">
+  <aside class="iv-left">
+    <div class="iv-me">
+      <div class="iv-av" id="ivAv">?</div>
+      <b id="ivName">—</b>
+      <small id="ivId">#00000</small>
+      <div class="iv-money"><span class="iv-coin">$</span><b id="ivCash">0 $</b></div>
+      <small class="iv-wt">Poids total <b id="ivWtTotal">0 kg</b></small>
+    </div>
+    <div class="iv-quick">
+      <span class="iv-vlabel">Raccourcis</span>
+      <div class="iv-qslots" id="ivQuick"></div>
+    </div>
+  </aside>
+
+  <section class="iv-center">
+    <header class="iv-tabs">
+      <button type="button" class="iv-tab on" data-tab="bag">Sac</button>
+      <button type="button" class="iv-tab" data-tab="ground">Sol <span class="iv-badge" id="ivGroundN">0</span></button>
+      <div class="iv-weight"><div class="iv-bar"><i id="ivBar"></i></div><b id="ivW">0</b><small id="ivWmax">/50 kg</small></div>
+    </header>
+    <div class="iv-grid" id="ivGrid"></div>
+    <p class="iv-note" id="ivNote"></p>
+  </section>
+
+  <aside class="iv-right">
+    <button class="iv-close" id="ivClose" type="button" aria-label="Fermer">&#10005;</button>
+    <div class="iv-detail" id="ivDetail"></div>
+  </aside>
+  <div class="iv-toast" id="ivToast" role="status"></div>
+</main>
+<script src="inventory.js"></script>
+</body>
+</html>

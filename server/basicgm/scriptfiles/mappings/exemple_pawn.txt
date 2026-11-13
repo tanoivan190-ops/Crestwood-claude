@@ -1,0 +1,7 @@
+// Exemple d'export Texture Studio / convertisseur (copie tel quel, une instruction par ligne)
+RemoveBuildingForPlayer(playerid, 1226, 1834.11, -1856.94, 16.43, 0.25);
+new tmpobjid;
+tmpobjid = CreateDynamicObject(19377, 1830.000, -1860.000, 12.500, 0.000, 90.000, 0.000, -1, -1, -1, 300.00, 300.00);
+SetDynamicObjectMaterial(tmpobjid, 0, 10101, "2notherbuildsfe", "ferry_build14", 0x00000000);
+tmpobjid = CreateDynamicObject(19353, 1830.000, -1860.000, 14.200, 0.000, 0.000, 0.000, -1, -1, -1, 300.00, 300.00);
+SetDynamicObjectMaterialText(tmpobjid, 0, "CRESTWOOD", 130, "Arial", 60, 1, 0xFF3B82FF, 0x00000000, 1);

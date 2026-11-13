@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPhone 17 Pro Max</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{background:transparent;}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:transparent;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:20px;}
+  .phone{width:400px;height:700px;background:linear-gradient(145deg,#30343b,#0b0d10 45%,#1c2026);border-radius:60px;padding:14px;position:relative;
+    box-shadow:0 24px 55px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.15),inset 0 0 0 4px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);}
+  .phone::before{content:"";position:absolute;inset:0;border-radius:62px;
+    background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,0) 35%,rgba(0,0,0,.35));padding:2px;
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;z-index:5;pointer-events:none;}
+  .screen{width:100%;height:100%;border-radius:48px;overflow:hidden;position:relative;background:#000;}
+  .screen::after{content:"";position:absolute;inset:0;border-radius:48px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);pointer-events:none;z-index:90;}
+  .pb{position:absolute;background:linear-gradient(90deg,#090a0c,#454a52,#111317);right:-3px;z-index:4;box-shadow:inset 0 1px 1px rgba(255,255,255,.18),0 2px 4px rgba(0,0,0,.45);}
+  .pb1{top:150px;width:3px;height:70px;border-radius:3px;}
+  .pb2{top:235px;width:3px;height:50px;border-radius:3px;}
+  .pb3{top:295px;width:3px;height:50px;border-radius:3px;}
+  .pbl{left:-3px;top:195px;width:3px;height:60px;border-radius:3px;}
+
+  .statusbar{position:absolute;top:0;left:0;right:0;height:44px;z-index:60;
+    display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:#fff;font-weight:600;font-size:13px;pointer-events:none;}
+  .statusbar .right{display:flex;align-items:center;gap:6px;font-size:12px;}
+  .statusbar .battery{width:22px;height:11px;border:1.5px solid #fff;border-radius:3px;position:relative;padding:1.5px;}
+  .statusbar .battery i{display:block;height:100%;width:82%;background:#fff;border-radius:2px;}
+  .statusbar .battery::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:4px;background:#fff;border-radius:1px;}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:33px;background:#000;border-radius:20px;z-index:70;
+    display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-shadow:inset 0 0 6px rgba(0,0,0,.9);}
+  .island .lens{width:7px;height:7px;border-radius:50%;background:#0a0e18;box-shadow:0 0 3px #16223c;}
+  .island .camera{width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#2a3a55,#05070c);}
+  .island .ir{width:6px;height:6px;border-radius:50%;background:#0a0e18;}
+
+  .view{position:absolute;inset:0;z-index:20;opacity:0;visibility:hidden;transform:scale(.94) translateY(18px);
+    transition:opacity .32s cubic-bezier(.32,.72,0,1),transform .32s cubic-bezier(.32,.72,0,1),visibility .32s;
+    display:flex;flex-direction:column;transform-origin:center bottom;}
+  .view.active{opacity:1;visibility:visible;transform:scale(1) translateY(0);z-index:40;}
+  #lock.view,#home.view{transform:none;transition:opacity .35s ease,visibility .35s;}
+  #lock.view.active,#home.view.active{transform:none;}
+  .view .atop{height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:14px;font-weight:600;}
+  .content{flex:1;overflow:auto;padding:8px 16px 16px;}
+  .light{background:#f2f2f7;color:#111;}
+  .dark{background:#000;color:#fff;}
+
+  /* Fond d'écran : vraies photos avec dégradé de secours */
+  .wallpaper{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;}
+
+  .homegrid{position:absolute;inset:0;z-index:2;padding:60px 18px 96px;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:86px;gap:6px;align-content:start;}
+  .app{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+  .app .icon{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.45);transition:transform .12s;position:relative;}
+  .app .icon::after{content:"";position:absolute;inset:0;border-radius:14px;background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 45%);pointer-events:none;}
+  .app .icon svg{width:100%;height:100%;}
+  .app:active .icon{transform:scale(.88);}
+  .app .lbl{color:#fff;font-size:10px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);}
+  .dock{position:absolute;left:10px;right:10px;bottom:6px;z-index:3;height:80px;background:rgba(255,255,255,.26);backdrop-filter:blur(18px) saturate(1.4);border-radius:24px;display:flex;align-items:center;justify-content:space-evenly;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 24px rgba(0,0,0,.25);}
+  .fcbtn{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.22);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:transform .15s,background .2s,color .2s;border:1px solid rgba(255,255,255,.3)}
+  .fcbtn:active{transform:scale(.88);}
+  .fcbtn.on{background:rgba(255,214,10,.85);color:#3a2a00;}
+  .lockChevron{animation:chevronBounce 1.7s ease-in-out infinite;}
+  @keyframes chevronBounce{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(-6px);opacity:1}}
+  .lockNotif{position:absolute;left:16px;right:16px;background:rgba(255,255,255,.16);backdrop-filter:blur(20px) saturate(1.5);border-radius:18px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;color:#fff;z-index:2;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);animation:notifIn .5s cubic-bezier(.2,.9,.3,1) both;}
+  @keyframes notifIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+  .lockNotif .nIcon{width:32px;height:32px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;}
+  .lockNotif .nBody{flex:1;min-width:0;}
+  .lockNotif .nTop{display:flex;justify-content:space-between;font-size:12px;opacity:.85;margin-bottom:2px;}
+  .lockNotif .nApp{font-weight:700;text-transform:uppercase;letter-spacing:.3px;font-size:11px;}
+  .lockNotif .nTitle{font-weight:700;font-size:13.5px;}
+  .lockNotif .nMsg{font-size:13px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .flashOverlay{position:absolute;inset:0;background:#fff;opacity:0;z-index:95;pointer-events:none;transition:opacity .08s;}
+  .flashOverlay.on{opacity:1;transition:opacity .02s;}
+  .torchOn{filter:brightness(1.35) saturate(0);}
+
+  /* arrière-plans d'icônes */
+  .bg-appstore{background:linear-gradient(145deg,#18a0ff,#0a6ff5);}
+  .bg-camera{background:linear-gradient(160deg,#9a9aa0,#3a3a3c);}
+  .bg-photos{background:conic-gradient(from 0deg,#fbbf40,#fb6b3f,#e22f6d,#c23fd0,#5a6efe,#20d6a0,#a0f0c0,#fbbf40);}
+  .bg-maps{background:linear-gradient(145deg,#b5e6b0,#1f9d4f);}
+  .bg-uber{background:linear-gradient(145deg,#0a0f0a,#000);}
+  .bg-wa{background:#25D366;}
+  .bg-ig{background:radial-gradient(circle at 30% 30%,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);}
+  .bg-yt{background:#ff0000;}
+  .bg-snap{background:#fffc00;}
+  .bg-tt{background:#0a0a0a;}
+  .bg-x{background:#0a0a0a;}
+  .bg-mail{background:linear-gradient(145deg,#2fa8f8,#1b6fd0);}
+  .bg-cal{background:#fff;}
+  .bg-notes{background:#fff;}
+  .bg-safari{background:linear-gradient(145deg,#5aa9ff,#2a80ed);}
+  .bg-settings{background:linear-gradient(145deg,#c3c8cf,#7f8791);}
+  .bg-clock{background:#000;}
+  .bg-calc{background:linear-gradient(145deg,#2f333b,#14161b);}
+  .bg-weather{background:linear-gradient(145deg,#3fb8ff,#0a6fd0);}
+  .bg-music{background:linear-gradient(145deg,#fb2d48,#fb5c74);}
+  .bg-phone{background:linear-gradient(145deg,#3fd15e,#1e9e3a);}
+  .bg-im{background:linear-gradient(145deg,#54e27e,#14b64a);}
+  .bg-netflix{background:linear-gradient(145deg,#3a0d0d,#0a0a0a);}
+  .bg-spotify{background:#0a0a0a;}
+  .bg-music2{background:linear-gradient(145deg,#fb2d48,#fb5c74);}
+  .bg-facetime{background:linear-gradient(145deg,#5bd963,#1fa83b);}
+
+  .btn{background:#007aff;color:#fff;border:none;border-radius:12px;padding:10px;font-size:14px;font-weight:600;width:100%;cursor:pointer;margin-top:8px;}
+  .card{background:#fff;border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .home-bar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:118px;height:5px;background:rgba(255,255,255,.96);border-radius:999px;z-index:100;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.35),0 0 1px rgba(255,255,255,.8);transition:width .18s ease,height .18s ease,opacity .18s ease,background .18s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);} 
+.home-bar:active{width:128px;height:6px;opacity:.82;}
+.home-bar{touch-action:none;}
+.home-bar::after{content:'';position:absolute;left:-44px;right:-44px;top:-28px;bottom:-12px;}
+  .iosSwitch{width:51px;height:31px;border-radius:16px;background:#e9e9eb;position:relative;transition:background .2s;flex:none;}
+  .iosSwitch .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:transform .2s;}
+  .iosSwitch.on{background:#34c759;}
+  .iosSwitch.on .knob{transform:translateX(20px);}
+  .wpOverlay{position:absolute;inset:0;z-index:210;background:#000;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;padding:50px 16px 20px;}
+  .wpOverlay.active{opacity:1;visibility:visible;}
+  .wpTitle{color:#fff;font-weight:600;font-size:15px;text-align:center;margin-bottom:12px;}
+  .wpPreview{flex:1;border-radius:24px;background-size:cover;background-position:center;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.5);min-height:0;}
+  .wpGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;max-height:110px;overflow:auto;}
+  .wpThumb{aspect-ratio:9/16;border-radius:10px;background-size:cover;background-position:center;cursor:pointer;border:2px solid transparent;transition:transform .12s,border-color .15s;}
+  .wpThumb.sel{border-color:#fff;transform:scale(1.05);}
+  .wpActions{display:flex;gap:10px;}
+  .wpActions .btn{margin-top:0;}
+  .toast{position:absolute;bottom:70px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:.3s;z-index:80;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .thumb{width:100%;height:100%;object-fit:cover;display:block;}
+
+  /* ============ TÉLÉPHONE ============ */
+  .callBg{background:radial-gradient(circle at 50% 0%,#2c2f3a,#0b0c10 65%);}
+  .callAvatarWrap{position:relative;width:132px;height:132px;margin:0 auto;}
+  .callAvatar{width:132px;height:132px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:48px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.12);position:relative;z-index:2;}
+  .ringWave{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);animation:ringWave 1.8s cubic-bezier(.2,.6,.4,1) infinite;pointer-events:none;}
+  .ringWave.w2{animation-delay:.6s;}
+  .ringWave.w3{animation-delay:1.2s;}
+  @keyframes ringWave{0%{transform:scale(1);opacity:.7;}100%{transform:scale(1.55);opacity:0;}}
+  .callName{font-size:25px;font-weight:700;margin-top:16px;letter-spacing:.2px;}
+  .callSub{color:#9a9aa2;font-size:13.5px;margin-top:3px;font-weight:500;}
+  .callStatus{color:#8bd394;font-size:13.5px;margin-top:2px;font-weight:600;letter-spacing:.2px;}
+  .callStatus.ringing{color:#e0e0e6;animation:statusFade 1.4s ease-in-out infinite;}
+  @keyframes statusFade{0%,100%{opacity:.55}50%{opacity:1}}
+  .callGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 18px;padding:0 26px;}
+  .callBtn{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:600;color:#fff;cursor:pointer;background:rgba(255,255,255,.08);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.08),0 3px 8px rgba(0,0,0,.35);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),filter .12s;}
+  .callBtn:active{transform:scale(.9);filter:brightness(1.35);}
+  .callBtn.on{background:#fff;color:#111;}
+  .hangupBtn{background:linear-gradient(160deg,#ff5b52,#e2231a)!important;box-shadow:0 6px 18px rgba(226,35,26,.5),inset 0 1px 1px rgba(255,255,255,.25)!important;}
+  .callActionBtn{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:27px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.5);transition:transform .13s cubic-bezier(.3,.7,.4,1),filter .13s;}
+  .callActionBtn:active{transform:scale(.88);filter:brightness(1.2);}
+  .callActionLbl{font-size:11.5px;margin-top:9px;color:#c9c9ce;font-weight:500;letter-spacing:.2px;}
+
+  .phoneRow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.07);cursor:default;transition:background .15s;border-radius:8px;}
+  .phoneRow:active{background:rgba(255,255,255,.05);}
+  .phoneAv{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);flex:none;}
+  .phoneCallDot{width:35px;height:35px;border-radius:50%;background:linear-gradient(160deg,#3fdd68,#22a844);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 10px rgba(34,168,68,.4);transition:transform .12s;}
+  .phoneCallDot:active{transform:scale(.88);}
+
+  .keypadBtn{aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+    background:radial-gradient(circle at 35% 30%,#302f34,#1a1a1d 75%);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.09),0 3px 7px rgba(0,0,0,.5);
+    transition:transform .1s cubic-bezier(.3,.7,.4,1),background .1s;}
+  .keypadBtn:active{transform:scale(.9);background:radial-gradient(circle at 35% 30%,#48474e,#252528 75%);}
+  .keypadBtn .kd{font-size:27px;font-weight:400;color:#fff;}
+  .keypadBtn .kl{font-size:9px;color:#8e8e93;letter-spacing:1.5px;margin-top:1px;}
+
+  .phoneTabbar{display:flex;border-top:1px solid rgba(255,255,255,.08);background:rgba(15,15,17,.9);backdrop-filter:blur(20px);}
+  .phoneTab{flex:1;text-align:center;padding:9px 0 8px;cursor:pointer;transition:color .15s;}
+  .phoneTab .pti{font-size:19px;}
+  .phoneTab .ptl{font-size:9.5px;margin-top:3px;font-weight:600;letter-spacing:.2px;}
+
+  #incomingCallOverlay{background:radial-gradient(circle at 50% 15%,#2a2d38 0%,#0a0a0d 68%);backdrop-filter:blur(6px);}
+  #incomingCallOverlay .incBadge{font-size:12px;color:#9a9aa2;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;margin-top:6px;}
+
+  /* ================= CENTRE DE CONTRÔLE ================= */
+  .ccZone{position:absolute;top:0;right:0;width:130px;height:44px;z-index:65;pointer-events:auto;cursor:pointer;}
+  .ccOverlay{position:absolute;inset:0;z-index:200;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s;
+    background:rgba(0,0,0,.4);backdrop-filter:blur(6px);cursor:pointer;}
+  .ccOverlay.active{opacity:1;visibility:visible;}
+  .ccGrab{width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.4);margin:2px auto 12px;cursor:pointer;}
+  .ccPanel{position:absolute;top:0;left:0;right:0;padding:50px 14px 16px;
+    transform:translateY(-100%);transition:transform .38s cubic-bezier(.32,.72,0,1);
+    max-height:82%;overflow:auto;cursor:default;touch-action:pan-y;}
+  .ccOverlay.active .ccPanel{transform:translateY(0);}
+  .ccSub{text-align:center;color:#fff;font-size:12.5px;font-weight:600;opacity:.85;margin:0 0 12px;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .ccGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .ccCard{background:rgba(255,255,255,.16);backdrop-filter:blur(20px) saturate(1.6);border:1px solid rgba(255,255,255,.14);
+    border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.25);color:#fff;overflow:hidden;transition:background .15s,transform .1s;}
+  .ccCard:active{transform:scale(.97);}
+  .ccCard.on{background:rgba(255,255,255,.94);color:#111;}
+  .conn2x2{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;padding:8px;height:120px;}
+  .connBtn{border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;
+    background:rgba(255,255,255,.14);color:#fff;transition:background .15s,transform .1s;cursor:pointer;}
+  .connBtn:active{transform:scale(.9);}
+  .connBtn.on{background:#fff;color:#0a84ff;}
+  .connBtn.big{grid-row:span 1;}
+  .ccStack{display:flex;flex-direction:column;gap:10px;}
+  .infoTile{padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;height:52px;}
+  .infoTile .ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;
+    background:rgba(255,255,255,.18);}
+  .infoTile .txt{line-height:1.15;}
+  .infoTile .txt b{display:block;font-size:12.5px;font-weight:700;}
+  .infoTile .txt span{display:block;font-size:11px;opacity:.7;}
+  .rowSmall{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:10px;margin-bottom:10px;}
+  .miniTile{padding:10px;display:flex;flex-direction:column;justify-content:space-between;height:64px;cursor:pointer;}
+  .miniTile .ico{font-size:16px;}
+  .miniTile b{font-size:11px;font-weight:700;}
+  .focusTile{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;height:64px;}
+  .focusTile .ico{width:30px;height:30px;border-radius:8px;background:linear-gradient(145deg,#f0a35a,#c9781f);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;}
+  .focusTile b{font-size:12.5px;font-weight:700;display:block;}
+  .musicCard{padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .musicCard .art{width:52px;height:52px;border-radius:10px;flex:none;background:linear-gradient(135deg,#7d3c98,#c0392b);
+    display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;}
+  .musicCard .info{flex:1;min-width:0;}
+  .musicCard .info b{display:block;font-size:13.5px;font-weight:700;}
+  .musicCard .info span{display:block;font-size:11.5px;opacity:.7;}
+  .musicCard .ctl{display:flex;align-items:center;gap:14px;font-size:17px;}
+  .musicCard .airplay{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;}
+  .musicBar{height:3px;border-radius:2px;background:rgba(255,255,255,.25);margin-top:8px;position:relative;overflow:hidden;}
+  .musicBar i{position:absolute;left:0;top:0;bottom:0;background:#fff;border-radius:2px;width:2%;transition:width .3s linear;}
+  .rowBottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+  .lockTile{padding:10px;display:flex;flex-direction:column;justify-content:space-between;height:64px;cursor:pointer;}
+  .lockTile .ico{font-size:15px;}
+  .lockTile b{font-size:10.5px;font-weight:700;}
+  .sliderPair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .vSlider{height:120px;border-radius:20px;background:rgba(255,255,255,.94);position:relative;overflow:hidden;cursor:pointer;touch-action:none;}
+  .vSlider .fillWrap{position:absolute;inset:0;display:flex;align-items:flex-end;}
+  .vSlider .fill{width:100%;transition:height .05s linear;}
+  .vSlider.bright .fill{background:linear-gradient(180deg,#fff,#ffd24d);}
+  .vSlider.vol .fill{background:linear-gradient(180deg,#fff,#7fd0ff);}
+  .vSlider .ic{position:absolute;left:8px;bottom:8px;font-size:14px;z-index:2;}
+  .vSlider .ic.top{bottom:auto;top:8px;}
+  .rowIcons3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .iconTile{padding:10px;display:flex;flex-direction:column;justify-content:space-between;height:58px;cursor:pointer;}
+  .iconTile .ico{font-size:16px;}
+  .iconTile b{font-size:10px;font-weight:700;line-height:1.15;}
+
+  /* ===== Icônes d'apps officielles (Caméra / Uber / WhatsApp / Instagram) ===== */
+  .icon.bg-camera,.icon.bg-uber,.icon.bg-wa,.icon.bg-ig,
+  .app .icon.bg-camera,.app .icon.bg-uber,.app .icon.bg-wa,.app .icon.bg-ig{background:none;box-shadow:none;border-radius:0;overflow:visible;}
+  .icon.bg-camera::after,.icon.bg-uber::after,.icon.bg-wa::after,.icon.bg-ig::after{display:none;}
+  .icon img.appimg{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45));}
+  @keyframes uspin{to{transform:rotate(360deg)}}
+</style>
+<style id="crestwood-phone-frame">
+/* [Crestwood] Bord du telephone bien visible : cadre metal (titane clair) + liseret or Crestwood + bezel noir. */
+/* [v20] titane graphite + filet bleu Crestwood (plus d'or) */
+.phone{padding:20px !important;border-radius:64px !important;
+  background:linear-gradient(145deg,#5a5f68 0%,#23262c 18%,#6b717a 34%,#1a1c20 52%,#454a52 70%,#141619 86%,#3a3e45 100%) !important;
+  box-shadow:0 26px 60px rgba(0,0,0,.6),0 0 0 2px rgba(59,130,255,.7),0 0 0 4px rgba(0,0,0,.55),
+             inset 0 0 0 2px rgba(255,255,255,.28),inset 0 0 0 9px #0b0c0f,inset 0 0 0 10px rgba(255,255,255,.06) !important;}
+.phone::before{border-radius:66px !important;background:linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%,rgba(0,0,0,.45)) !important;padding:3px !important;}
+.screen,.screen::after{border-radius:46px !important;}
+.screen{box-shadow:0 0 0 6px #050607 !important;}
+.pb{width:6px !important;right:-6px !important;background:linear-gradient(90deg,#2a2d33,#7d838c,#2a2d33) !important;border-radius:4px !important;}
+.pbl{left:-6px !important;right:auto !important;}
+</style>
+<style id="crestwood-phone-size">
+/* Telephone portrait (400x700) agrandi : prend toute la hauteur du cote droit de l'ecran paysage. */
+html,body{height:100%;overflow:hidden;}
+body{min-height:100vh;justify-content:flex-end !important;align-items:center !important;padding:0 1.5vw 0 0 !important;}
+.phone{zoom:var(--phone-zoom,.5);}
+/* Petite flèche pour fermer le téléphone : juste à gauche du téléphone (zone tactile de droite de l'écran). */
+#phoneCloseArrow{position:fixed;z-index:1000;top:max(10vh,24px);
+  right:calc(1.5vw + var(--phone-zoom,.5) * 400px + 10px);
+  width:34px;height:34px;padding:0;display:grid;place-items:center;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.65);border-radius:50%;
+  background:rgba(15,15,18,.55);box-shadow:0 2px 8px rgba(0,0,0,.45);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .1s ease,background .15s ease;}
+#phoneCloseArrow:active{transform:scale(.92);background:rgba(15,15,18,.8);}
+#phoneCloseArrow svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+</style>
+<style id="cw21-phone-frame">
+/* [v21] bords du telephone : graphite uni et doux (plus de bandes metal), liseret de lumiere fin, bezel noir regulier */
+.phone{padding:14px !important;border-radius:58px !important;
+  background:linear-gradient(160deg,#41454d 0%,#1d2025 26%,#15171b 58%,#24272d 82%,#3a3e46 100%) !important;
+  box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.07),
+             inset 0 1px 1px rgba(255,255,255,.22),inset 0 -1px 1px rgba(0,0,0,.6),inset 0 0 0 6px #0a0b0d,inset 0 0 0 7px rgba(255,255,255,.05) !important;}
+.phone::before{border-radius:58px !important;padding:1.5px !important;
+  background:linear-gradient(150deg,rgba(255,255,255,.42),rgba(255,255,255,.06) 30%,rgba(255,255,255,0) 55%,rgba(120,160,255,.22) 85%,rgba(255,255,255,.18)) !important;}
+.screen,.screen::after{border-radius:44px !important;}
+.screen{box-shadow:0 0 0 2px #050607 !important;}
+.pb{width:4px !important;right:-4px !important;background:linear-gradient(90deg,#1b1d21,#4d525a,#1b1d21) !important;border-radius:3px !important;}
+.pbl{left:-4px !important;right:auto !important;}
+</style>
+<script>
+(function(){function fit(){var h=window.innerHeight||360;var z=(h*.95)/740;document.documentElement.style.setProperty('--phone-zoom',Math.max(.3,z).toFixed(3));}fit();window.addEventListener('resize',fit);})();
+</script>
+  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<div class="phone">
+  <div class="pb pb1"></div><div class="pb pb2"></div><div class="pb pb3"></div><div class="pb pbl"></div>
+  <div class="screen" id="screen">
+
+    <div class="statusbar"><span id="sbTime">9:41</span>
+      <div class="right">
+        <svg id="sbPlane" style="display:none" viewBox="0 0 20 20" width="14" height="14"><path fill="#fff" d="M10.5 1.5c-.6 0-1 .5-1 1.1v5.2L2.7 11.5c-.3.2-.5.5-.5.9v1.1c0 .3.3.6.6.5l6.7-1.9v3.7l-1.8 1.3c-.2.1-.3.4-.3.6v.9c0 .3.3.5.6.4l2.5-.8 2.5.8c.3.1.6-.1.6-.4v-.9c0-.2-.1-.5-.3-.6l-1.8-1.3v-3.7l6.7 1.9c.3.1.6-.2.6-.5v-1.1c0-.4-.2-.7-.5-.9L11.5 7.8V2.6c0-.6-.4-1.1-1-1.1z"/></svg>
+        <svg id="sbCell" viewBox="0 0 18 12" width="17" height="11"><rect x="1" y="1" width="3" height="7" rx="1" fill="#fff"/><rect x="5" y="1" width="3" height="9" rx="1" fill="#fff"/><rect x="9" y="1" width="3" height="11" rx="1" fill="#fff"/><rect x="13" y="1" width="3" height="11" rx="1" fill="#fff"/></svg>
+        <svg id="sbWifi" viewBox="0 0 20 14" width="16" height="12"><path d="M10 11.6a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="#fff"/><path d="M6.2 8.1a5.4 5.4 0 017.6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3.2 5.2a9.6 9.6 0 0113.6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        <span class="battery"><i></i></span>
+      </div>
+    </div>
+    <div class="island"><span class="lens"></span><span class="camera"></span></div>
+    <div class="ccZone" onclick="ccZoneTap()"></div>
+
+    <!-- CENTRE DE CONTRÔLE -->
+    <div class="ccOverlay" id="ccOverlay" onclick="closeCC()">
+      <div class="ccPanel" onclick="event.stopPropagation()">
+        <div class="ccGrab" onclick="closeCC()"></div>
+        <div class="ccSub">Mode sombre&nbsp;: désactivé jusqu'au coucher du soleil</div>
+
+        <div class="ccGrid">
+          <div class="ccCard"><div class="conn2x2">
+            <div class="connBtn" id="ccAirplane" onclick="ccToggle('ccAirplane')">✈️</div>
+            <div class="connBtn" id="ccHotspot" onclick="ccToggle('ccHotspot')">📡</div>
+            <div class="connBtn on" id="ccWifi" onclick="ccToggle('ccWifi')">📶</div>
+            <div class="connBtn on" id="ccBt" onclick="ccToggle('ccBt')">🔵</div>
+          </div></div>
+          <div class="ccStack">
+            <div class="ccCard infoTile" onclick="ccToast('Données mobiles')">
+              <div class="ico">📱</div><div class="txt"><b>Données mobiles</b><span id="ccDataTxt">Activées</span></div>
+            </div>
+            <div class="ccCard infoTile" onclick="ccToast('Bluetooth')">
+              <div class="ico">🔵</div><div class="txt"><b>Bluetooth</b><span id="ccBtTxt">Connecté</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ccGrid" style="grid-template-columns:0.9fr 0.9fr 1.3fr">
+          <div class="ccCard miniTile" onclick="ccToast('Batterie')"><span class="ico">🔋</span><b>82%</b></div>
+          <div class="ccCard miniTile" onclick="ccToast('Recopie de l’écran')"><span class="ico">🖥️</span><b>Recopie</b></div>
+          <div class="ccCard focusTile" id="ccFocus" onclick="ccToggle('ccFocus')"><div class="ico">🛌</div><div><b>Concentration</b><span style="font-size:10.5px;opacity:.75" id="ccFocusTxt">Désactivée</span></div></div>
+        </div>
+
+        <div class="ccCard musicCard" onclick="event.stopPropagation()">
+          <div class="art" id="ccArt">🎵</div>
+          <div class="info"><b>With You</b><span>Oliver Tree</span>
+            <div class="musicBar"><i id="ccMusFill"></i></div>
+          </div>
+          <div class="ctl">
+            <span onclick="ccMusToggle()" id="ccMusBtn" style="cursor:pointer">▶️</span>
+          </div>
+          <div class="airplay" onclick="ccToast('AirPlay')">📡</div>
+        </div>
+
+        <div class="ccGrid">
+          <div class="ccCard lockTile" onclick="ccToggle('ccOrient')" id="ccOrient"><span class="ico">🔒</span><b id="ccOrientTxt">Rotation verrouillée</b></div>
+          <div class="ccCard infoTile" onclick="ccToggle('ccBgSound')" id="ccBgSound"><div class="ico">🎧</div><div class="txt"><b>Sons de fond</b><span id="ccBgSoundTxt">Désactivés</span></div></div>
+        </div>
+
+        <div class="sliderPair">
+          <div class="vSlider bright" id="ccBright" onpointerdown="ccSliderStart(event,'bright')"><div class="fillWrap"><div class="fill" id="ccBrightFill" style="height:70%"></div></div><span class="ic top">☀️</span><span class="ic">🔅</span></div>
+          <div class="vSlider vol" id="ccVol" onpointerdown="ccSliderStart(event,'vol')"><div class="fillWrap"><div class="fill" id="ccVolFill" style="height:55%"></div></div><span class="ic top">🔊</span><span class="ic">🔈</span></div>
+        </div>
+
+        <div class="rowIcons3">
+          <div class="ccCard iconTile" onclick="ccToast('Identifier la musique')"><span class="ico">🎙️</span><b>Identifier<br>la musique</b></div>
+          <div class="ccCard iconTile" onclick="ccToast('Audition')"><span class="ico">👂</span><b>Audition</b></div>
+          <div class="ccCard iconTile" onclick="ccToast('Recopie de l’écran')"><span class="ico">📺</span><b>Recopie de<br>l’écran</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERROUILLAGE -->
+    <div class="view dark active" id="lock">
+      <div class="wallpaper" id="lockWp"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 65%,rgba(0,0,0,.5));z-index:1;pointer-events:none"></div>
+      <div style="position:absolute;top:70px;left:0;right:0;text-align:center;color:#fff;z-index:2">
+        <div style="font-size:64px;font-weight:200;letter-spacing:1px;line-height:1" id="lockTime">9:41</div>
+        <div style="font-size:15px;opacity:.95;margin-top:6px" id="lockDate">lundi 1 mars</div>
+      </div>
+      <div id="lockNotifs" style="position:absolute;top:180px;left:0;right:0;z-index:2;display:flex;flex-direction:column;gap:8px"></div>
+      <div id="swipeZone" style="position:absolute;bottom:0;left:0;right:0;height:170px;z-index:2;cursor:grab;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:30px">
+        <div class="lockChevron"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></div>
+        <div style="color:#fff;font-size:13px;opacity:.9;margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.5);font-weight:500">Glisser vers le haut pour ouvrir</div>
+      </div>
+      <div style="position:absolute;bottom:24px;left:24px;right:24px;display:flex;justify-content:space-between;z-index:3;pointer-events:none">
+        <div class="fcbtn" id="torchBtn" onclick="toggleTorch(event)" style="pointer-events:auto">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.5 1.5h5a1 1 0 0 1 1 1v2.6a2 2 0 0 1-.4 1.2L14 8.5v2h.5A2.5 2.5 0 0 1 17 13v7.5a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2V13a2.5 2.5 0 0 1 2.5-2.5h.5v-2L8.9 6.3a2 2 0 0 1-.4-1.2V2.5a1 1 0 0 1 1-1z"></path></svg>
+        </div>
+        <div class="fcbtn" onclick="lockCamera(event)" style="pointer-events:auto">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.2A2.2 2.2 0 0 1 5.2 6h1.1L7.6 4h6.8l1.3 2h1.1A2.2 2.2 0 0 1 19 8.2v9.6A2.2 2.2 0 0 1 16.8 20H5.2A2.2 2.2 0 0 1 3 17.8V8.2z"></path><circle cx="11" cy="13" r="3.6"></circle></svg>
+        </div>
+      </div>
+    </div>
+    <div class="flashOverlay" id="flashOverlay"></div>
+
+    <!-- ACCUEIL -->
+    <div class="view dark" id="home">
+      <div class="wallpaper" id="homeWp"></div>
+      <div class="homegrid" id="homeGrid"></div>
+      <div class="dock" id="dock"></div>
+    </div>
+
+    <div id="incomingCallOverlay" style="display:none;position:absolute;inset:0;z-index:200;color:#fff;flex-direction:column;align-items:center;padding:70px 24px 44px">
+      <div class="incBadge">appel entrant</div>
+      <div class="callAvatarWrap" style="margin-top:26px">
+        <div class="ringWave"></div><div class="ringWave w2"></div><div class="ringWave w3"></div>
+        <div id="incAvatar" class="callAvatar"></div>
+      </div>
+      <div id="incName" class="callName" style="margin-top:18px"></div>
+      <div id="incNumber" class="callSub"></div>
+      <div style="display:flex;justify-content:space-between;width:100%;max-width:300px;margin-top:auto">
+        <div style="text-align:center">
+          <div class="callActionBtn hangupBtn" onclick="phoneDeclineIncoming()">📵</div>
+          <div class="callActionLbl">Refuser</div>
+        </div>
+        <div style="text-align:center">
+          <div class="callActionBtn" style="background:linear-gradient(160deg,#3fdd68,#22a844);box-shadow:0 8px 22px rgba(34,168,68,.5),inset 0 1px 1px rgba(255,255,255,.25)" onclick="phoneAcceptIncoming()">📞</div>
+          <div class="callActionLbl">Accepter</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPS -->
+    <div id="appScreens"></div>
+
+    <!-- SÉLECTEUR DE FOND D'ÉCRAN -->
+    <div class="wpOverlay" id="wpOverlay">
+      <div class="wpTitle">Choisir un fond d'écran</div>
+      <div class="wpPreview" id="wpPreview"></div>
+      <div class="wpGrid" id="wpGrid"></div>
+      <div class="wpActions">
+        <button class="btn" style="background:#3a3a3c" onclick="closeWallpaperPicker()">Annuler</button>
+        <button class="btn" onclick="confirmWallpaper()">Définir</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="home-bar" id="homeBar"></div>
+  </div>
+</div>
+
+<button id="phoneCloseArrow" type="button" aria-label="Fermer le téléphone" title="Fermer le téléphone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+
+<script>
+/* ================= ICÔNES SVG (vraies icônes, pas d'emoji) ================= */
+const S={
+camera:`<img class="appimg" src="CameraIcon.png" alt="">`,
+appstore:`<img src="media/p_f105a49023.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+photos:`<img src="media/p_b16c5f00b3.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+maps:`<img src="media/p_379469acd0.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+uber:`<img class="appimg" src="UberIcon.png" alt="">`,
+wa:`<img class="appimg" src="WhatsIcon.png" alt="">`,
+ig:`<img class="appimg" src="InstagramIcon.png" alt="">`,
+yt:`<img src="media/p_581d6abd73.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+snap:`<img src="media/p_0e8a73d72f.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+tt:`<img src="media/p_2d22e592de.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+xf:`<img src="media/p_8245865577.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+mail:`<img src="media/p_e58172fdf8.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+cal:`<img src="media/p_98c3798514.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+notes:`<img src="media/p_9872c98200.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+safari:`<img src="media/p_cf93df3b8e.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+settings:`<img src="media/p_ec5930cc11.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+clock:`<img src="media/p_e7d8db6d5d.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+calc:`<img src="media/p_a91941d4d4.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+weather:`<img src="media/p_cc1ca3c890.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+music:`<img src="media/p_7f5b7ddf02.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+phone:`<img src="media/p_327bc2cb7e.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+im:`<img src="media/p_60664bcfe6.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+netflix:`<img src="media/p_e0c92379d1.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+spotify:`<img src="media/p_bac8f2ca33.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+musicnote:`<img src="media/p_7f5b7ddf02.jpg" style="width:100%;height:100%;object-fit:cover;display:block">`,
+};
+
+/* ================= DONNÉES ================= */
+const apps=[
+  {id:'appstore',bg:'bg-appstore',lbl:'Ystore',icon:'appstore'},
+  {id:'photos',bg:'bg-photos',lbl:'Photos',icon:'photos'},
+  {id:'camera',bg:'bg-camera',lbl:'Caméra',icon:'camera'},
+  {id:'maps',bg:'bg-maps',lbl:'Plans',icon:'maps'},
+  {id:'uber',bg:'bg-uber',lbl:'Uber',icon:'uber'},
+  {id:'whatsapp',bg:'bg-wa',lbl:'WhatsApp',icon:'wa'},
+  {id:'insta',bg:'bg-ig',lbl:'Instagram',icon:'ig'},
+  {id:'yt',bg:'bg-yt',lbl:'YouTube',icon:'yt'},
+  {id:'tt',bg:'bg-tt',lbl:'TikTok',icon:'tt'},
+  {id:'xf',bg:'bg-x',lbl:'X',icon:'xf'},
+  {id:'mail',bg:'bg-mail',lbl:'Mail',icon:'mail'},
+  {id:'safari',bg:'bg-safari',lbl:'Ysearch',icon:'safari'},
+  {id:'settings',bg:'bg-settings',lbl:'Réglages',icon:'settings'},
+  {id:'clock',bg:'bg-clock',lbl:'Horloge',icon:'clock'},
+  {id:'calc',bg:'bg-calc',lbl:'Calculatrice',icon:'calc'},
+  {id:'weather',bg:'bg-weather',lbl:'Météo',icon:'weather'},
+  {id:'messages',bg:'bg-im',lbl:'Messages',icon:'im'},
+  {id:'netflix',bg:'bg-netflix',lbl:'Netflix',icon:'netflix'},
+  {id:'spotify',bg:'bg-spotify',lbl:'Spotify',icon:'spotify'},
+];
+const dockApps=[
+  {id:'call',bg:'bg-phone',lbl:'Téléphone',icon:'phone'},
+  {id:'safari',bg:'bg-safari',lbl:'Ysearch',icon:'safari'},
+  {id:'whatsapp',bg:'bg-wa',lbl:'WhatsApp',icon:'wa'},
+  {id:'spotify',bg:'bg-spotify',lbl:'Spotify',icon:'spotify'},
+];
+
+/* Vraies photos de fond (avec dégradé de secours si hors-ligne) */
+const WP=[
+  {bg:'#07090d',img:'media/cw20_wall_blue.jpg'},
+  {bg:'#000',img:'media/cw20_wall_city.jpg'},
+  {bg:'#000',img:'media/cw20_wall_night.jpg'},
+  {bg:'#000',img:'media/p_2c63038e80.jpg'},
+  {bg:'linear-gradient(160deg,#000,#2a1a52 55%,#c86fe0)',img:'media/p_776f54884a.jpg'},
+  {bg:'#000',img:'media/p_850c6ead6c.jpg'},
+  {bg:'#000',img:'media/p_edc631267f.jpg'}
+];
+let wpIdx=0;
+function applyWallpaper(el){
+  const w=WP[wpIdx];
+  el.style.backgroundColor=/^(#|rgb|hsl)/.test(w.bg.trim())?w.bg:'#000';
+  el.style.backgroundImage='url('+w.img+')';
+  el.style.backgroundSize='cover';
+  el.style.backgroundPosition='center';
+  el.style.backgroundRepeat='no-repeat';
+}
+let wpPreviewIdx=0;
+function openWallpaperPicker(){
+  wpPreviewIdx=wpIdx;
+  renderWpPicker();
+  document.getElementById('wpOverlay').classList.add('active');
+}
+function closeWallpaperPicker(){
+  document.getElementById('wpOverlay').classList.remove('active');
+}
+function renderWpPicker(){
+  const w=WP[wpPreviewIdx];
+  const prev=document.getElementById('wpPreview');
+  prev.style.backgroundColor=/^(#|rgb|hsl)/.test(w.bg.trim())?w.bg:'#000';
+  prev.style.backgroundImage='url('+w.img+')';
+  const grid=document.getElementById('wpGrid');
+  grid.innerHTML=WP.map((wp,i)=>`<div class="wpThumb ${i===wpPreviewIdx?'sel':''}" style="background-image:url('${wp.img}')" onclick="pickWp(${i})"></div>`).join('');
+}
+function pickWp(i){wpPreviewIdx=i;renderWpPicker();}
+function confirmWallpaper(){
+  wpIdx=wpPreviewIdx;
+  applyWallpaper(document.getElementById('homeWp'));
+  applyWallpaper(document.getElementById('lockWp'));
+  closeWallpaperPicker();
+  toast('Fond d\u2019écran changé');
+}
+
+/* ================= RÉGLAGES (fonctionnels) ================= */
+let devSettings={airplane:false,wifi:true,bluetooth:true,mobile:true};
+const DEV_SETTING_LABELS={airplane:'Mode avion',wifi:'Wi-Fi',bluetooth:'Bluetooth',mobile:'Données mobiles'};
+function toggleDevSetting(key){
+  devSettings[key]=!devSettings[key];
+  if(key==='airplane'){
+    devSettings.wifi=!devSettings.airplane;
+    devSettings.mobile=!devSettings.airplane;
+  }
+  const body=document.getElementById('settingsBody');
+  if(body)body.innerHTML=settingsBodyHTML();
+  updateStatusIcons();
+  toast(DEV_SETTING_LABELS[key]+' '+(devSettings[key]?'activé':'désactivé'));
+}
+function updateStatusIcons(){
+  const cell=document.getElementById('sbCell'),wifi=document.getElementById('sbWifi'),plane=document.getElementById('sbPlane');
+  if(!cell)return;
+  if(devSettings.airplane){
+    cell.style.display='none';wifi.style.display='none';plane.style.display='inline-flex';
+  }else{
+    plane.style.display='none';
+    cell.style.display=devSettings.mobile?'inline-flex':'none';
+    wifi.style.display=devSettings.wifi?'inline-flex':'none';
+  }
+}
+function settingsBodyHTML(){
+  const rows=[['airplane','✈️','Mode avion','#ff9500'],['wifi','📶','Wi-Fi','#0a84ff'],['bluetooth','🔵','Bluetooth','#0a84ff'],['mobile','📡','Données mobiles','#34c759']];
+  return `
+  <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px">
+    ${rows.map(([k,ic,label,c],i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${i<rows.length-1?'border-bottom:1px solid #eee':''}">
+      <div style="width:30px;height:30px;border-radius:8px;background:${c};display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">${ic}</div>
+      <span style="font-weight:500;flex:1">${label}</span>
+      <div class="iosSwitch ${devSettings[k]?'on':''}" onclick="toggleDevSetting('${k}')"><div class="knob"></div></div>
+    </div>`).join('')}
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer" onclick="openWallpaperPicker()">
+    <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#ff6b6b,#556fff);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">🎨</div>
+    <span style="font-weight:500;flex:1">Fond d'écran</span>
+    <span style="color:#c7c7cc;font-size:16px">›</span>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:12px 14px">
+    <span style="color:#ff3b30;font-weight:600;cursor:pointer" onclick="toast('Déconnexion…')">Se déconnecter</span>
+  </div>`;
+}
+
+/* ================= CONSTRUCTION ACCUEIL ================= */
+// Le téléphone démarre avec 3 apps installées ; on télécharge les autres dans l'Ystore
+const installedApps=new Set(['appstore','photos','camera','settings','yt','whatsapp','safari']);
+function renderHome(){
+  const grid=document.getElementById('homeGrid');grid.innerHTML='';
+  apps.filter(a=>installedApps.has(a.id)).forEach(a=>{
+    const d=document.createElement('div');d.className='app';
+    d.innerHTML=`<div class="icon ${a.bg}">${S[a.icon]}</div><div class="lbl">${a.lbl}</div>`;
+    d.onclick=()=>openApp(a.id);grid.appendChild(d);
+  });
+  const dockEl=document.getElementById('dock');dockEl.innerHTML='';
+  dockApps.forEach(a=>{
+    const d=document.createElement('div');d.className='app';
+    d.innerHTML=`<div class="icon ${a.bg}">${S[a.icon]}</div><div class="lbl">${a.lbl}</div>`;
+    d.onclick=()=>openApp(a.id);dockEl.appendChild(d);
+  });
+}
+renderHome();
+
+/* ================= CONTENU DES APPS ================= */
+const screens=document.getElementById('appScreens');
+const PH=['https://picsum.photos/id/1015/200/200','https://picsum.photos/id/1039/200/200','https://picsum.photos/id/1043/200/200','https://picsum.photos/id/1027/200/200','https://picsum.photos/id/1018/200/200','https://picsum.photos/id/1025/200/200','https://picsum.photos/id/1024/200/200','https://picsum.photos/id/1036/200/200','https://picsum.photos/id/1050/200/200','https://picsum.photos/id/1062/200/200','https://picsum.photos/id/1069/200/200','https://picsum.photos/id/1040/200/200'];
+const avatar=(l,c)=>`<div style="width:44px;height:44px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex:none">${l}</div>`;
+
+/* Photos prises avec la caméra du téléphone (enregistrées par le HUD) */
+const USER_PHOTOS=(()=>{try{const a=JSON.parse(localStorage.getItem('crestwoodPhonePhotos')||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}})();
+const appContent={
+appstore:{title:'Ystore',store:true,theme:'dark'},
+photos:{theme:'dark',title:'Photos',body:`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#999"><span>${(2847+USER_PHOTOS.length).toLocaleString('fr-FR')} photos</span><span style="color:#007aff">Sélectionner</span></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+    ${USER_PHOTOS.concat(PH).map(u=>`<div style="aspect-ratio:1;border-radius:3px;overflow:hidden;background:#1c1c1e"><img class="thumb" src="${u}" loading="lazy" onerror="this.style.display='none'"></div>`).join('')}
+  </div>
+  <div style="margin-top:12px;color:#999;font-size:13px">Souvenirs · Personnes · Favoris</div>`},
+maps:{theme:'light',title:'Plans',body:`
+  <div style="height:250px;border-radius:16px;position:relative;overflow:hidden;background:
+    linear-gradient(90deg,#e8eef3 0 18%,transparent 1%) 0 0/40px 40px,linear-gradient(0deg,#e8eef3 0 18%,transparent 1%) 0 0/40px 40px,#dce8de;">
+    <div style="position:absolute;width:48%;height:44%;background:#c6e0c6;border-radius:8px;top:28%;left:28%"></div>
+    <div style="position:absolute;width:26%;height:18%;background:#b8d4f0;border-radius:6px;top:58%;right:16%"></div>
+    <div style="position:absolute;left:0;right:0;top:50%;height:7px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.15)"></div>
+    <div style="position:absolute;left:0;right:0;top:72%;height:6px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.12)"></div>
+    <div style="position:absolute;top:44%;left:72%;font-size:26px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))">${S.maps}</div>
+    <div style="position:absolute;bottom:10px;left:10px;right:10px;background:#fff;border-radius:12px;padding:10px;font-size:13px;font-weight:600">Paris → Versailles · 25 min</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    ${['VOITURE','TRAIN','A PIED'].map(x=>`<div style="flex:1;background:#fff;border-radius:12px;padding:10px;text-align:center;font-size:11px;font-weight:600;color:#333">${x}</div>`).join('')}
+  </div>`},
+uber:{theme:'dark',title:'Uber',body:`
+  <div style="background:#fff;color:#000;border-radius:16px;padding:16px;margin-bottom:12px">
+    <div style="font-weight:800;font-size:20px">Où allons-nous ?</div>
+    <div style="margin-top:12px;background:#f2f2f2;border-radius:12px;padding:12px;font-size:15px">123 av. des Champs</div>
+    <div style="margin-top:8px;background:#f2f2f2;border-radius:12px;padding:12px;font-size:15px">Maison</div>
+  </div>
+  ${[['UberX','7 900 $','4 places · 4 min'],['Comfort','12 150 $','Véhicule plus'],['Green','9 850 $','100% électrique']].map(([n,p,d])=>`
+  <div class="card" style="background:#1c1c1e;color:#fff;box-shadow:none"><div style="display:flex;justify-content:space-between"><span style="font-weight:700">${n}</span><span style="color:#0a84ff;font-weight:700">${p}</span></div><div style="color:#888;font-size:13px;margin-top:4px">${d}</div><button class="btn" style="background:#fff;color:#000;margin-top:10px" onclick="toast('Uber ${n} réservé')">Réserver ${n}</button></div>`).join('')}`},
+whatsapp:{title:'WhatsApp',whatsapp:true,theme:'dark'},
+messages:{title:'Messages',messages:true,theme:'dark'},
+netflix:{theme:'dark',title:'Netflix',body:(()=>{
+  const rows=[['NOUVEAUTÉS','1035'],['SÉRIES POPULAIRES','1080'],['FILMS','1061'],['DOCUMENTAIRES','1084']];
+  let h='<div style="display:flex;align-items:center;gap:8px;padding-bottom:10px"><span style="color:#e50914;font-weight:900;font-size:22px">NETFLIX</span></div>';
+  rows.forEach(r=>{h+='<div style="margin-bottom:14px"><div style="font-weight:700;color:#fff;margin-bottom:6px">'+r[0]+'</div><div style="display:flex;gap:8px"><img class="thumb" style="flex:1;aspect-ratio:16/9;border-radius:8px" src="https://picsum.photos/id/'+r[1]+'/300/170"><img class="thumb" style="flex:1;aspect-ratio:16/9;border-radius:8px" src="https://picsum.photos/id/'+(parseInt(r[1])+13)+'/300/170"></div></div>';});
+  return h;
+})()},
+music:{title:'Musique',music:true,theme:'dark'},
+spotify:{title:'Spotify',spotify:true,theme:'dark'},
+insta:{theme:'light',title:'Instagram',insta:true},
+yt:{theme:'dark',title:'YouTube',body:''},
+settings:{theme:'light',title:'Réglages'},
+weather:{theme:'light',title:'Météo',body:`
+  <div style="text-align:center;padding:20px 0 10px"><div style="font-size:16px">Paris, France</div><div style="font-size:52px;font-weight:200">21°</div><div style="color:#888">Partiellement nuageux</div><div style="color:#888;font-size:13px">Max 24° · Min 13°</div></div>
+  <div class="card"><div style="font-weight:700;margin-bottom:8px">Prévisions</div>${[['Lun','☀','21°'],['Mar','⛅','22°'],['Mer','☔','17°'],['Jeu','☁','19°'],['Ven','☀','23°']].map(([d,i,t])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0"><span>${d}</span><span>${i}</span><span style="font-weight:600">${t}</span></div>`).join('')}</div>`},
+call:{theme:'dark',title:'Téléphone'},
+snap:{theme:'dark',title:'Snapchat',snap:true},
+tt:{theme:'dark',title:'TikTok',tt:true},
+xf:{theme:'dark',title:'X',xf:true},
+mail:{theme:'light',title:'Mail',mail:true},
+cal:{theme:'light',title:'Calendrier',cal:true},
+safari:{theme:'light',title:'Ysearch',safari:true},
+};
+
+/* ================= APPS SPÉCIALES ================= */
+const calcHTML=`
+<div style="display:flex;flex-direction:column;height:100%">
+  <div style="flex:1;display:flex;align-items:flex-end;justify-content:flex-end;padding:10px 16px;font-size:58px;font-weight:200;color:#fff;overflow:hidden;min-width:0"><span id="calcDisp" style="white-space:nowrap;overflow:hidden;text-overflow:clip">0</span></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 20px;box-sizing:border-box">
+    ${['AC','±','%','÷','7','8','9','×','4','5','6','−','1','2','3','+','0','.','='].map(k=>{
+      const orange=['÷','×','−','+','='].includes(k);const grey=['AC','±','%'].includes(k);
+      const c=orange?'#ff9f0a':(grey?'#a5a5a5':'#333');
+      const fg=orange?'#fff':(grey?'#000':'#fff');
+      const span=k==='0'?'grid-column:span 2;justify-content:flex-start;padding-left:32px;':'';
+      return `<div data-k="${k}" style="${span}cursor:pointer;height:70px;border-radius:35px;background:${c};color:${fg};display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:400">${k}</div>`;
+    }).join('')}
+  </div>
+</div>`;
+let calcState='0',calcPrev='',calcOp='',calcFresh=true;
+function calcKey(k){
+  const el=document.getElementById('calcDisp');if(!el)return;
+  if(k==='AC'){calcState='0';calcPrev='';calcOp='';calcFresh=true;}
+  else if(k==='±'){calcState=String(-parseFloat(calcState));}
+  else if(k==='%'){calcState=String(parseFloat(calcState)/100);}
+  else if('÷×−+'.includes(k)){if(calcOp&&!calcFresh){calcState=String(eval(calcPrev+calcOp+calcState));calcPrev=calcState;}else{calcPrev=calcState;}calcOp=k;calcFresh=true;}
+  else if(k==='='){if(calcOp&&calcPrev!==''){calcState=String(eval(calcPrev+calcOp+calcState));calcPrev='';calcOp='';}calcFresh=false;}
+  else{if(calcFresh){calcState=k==='.'?'0.':k;calcFresh=false;}else{if(k==='.'&&calcState.includes('.'))return;calcState=(calcState==='0'&&k!=='.')?k:calcState+k;}}
+  el.textContent=calcState;
+}
+const notesHTML=`
+  <div class="card"><textarea id="notesArea" rows="6" placeholder="Écris une note…" style="font-size:15px;resize:none;width:100%;border:none;outline:none">Acheter du pain\nAppeler maman\nPréparer le projet</textarea>
+  <button class="btn" onclick="toast('Note enregistrée')">Enregistrer</button></div>`;
+let stopwatch=0,sp=false,clockInt=null;
+const clockHTML=`
+  <div style="text-align:center;padding:30px 0"><div id="stopDisp" style="font-size:64px;font-weight:200;color:#fff">00:00.0</div></div>
+  <div style="display:flex;gap:20px;justify-content:center">
+    <div id="stopReset" onclick="stopReset()" style="width:84px;height:84px;border-radius:50%;background:#3a3a3c;color:#ff453a;display:flex;align-items:center;justify-content:center;font-weight:600;cursor:pointer">Reset</div>
+    <div id="stopStart" onclick="stopStart()" style="width:84px;height:84px;border-radius:50%;background:#1c3d2a;color:#30d158;display:flex;align-items:center;justify-content:center;font-weight:600;cursor:pointer">Start</div>
+  </div>`;
+function stopTick(){stopwatch+=100;const m=Math.floor(stopwatch/60000),s=Math.floor((stopwatch%60000)/1000),t=Math.floor((stopwatch%1000)/100);
+  document.getElementById('stopDisp').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${t}`;}
+function stopStart(){const el=document.getElementById('stopStart');if(!sp){sp=true;el.textContent='Stop';el.style.background='#3a1c1c';el.style.color='#ff453a';clockInt=setInterval(stopTick,100);}else{sp=false;el.textContent='Start';el.style.background='#1c3d2a';el.style.color='#30d158';clearInterval(clockInt);}}
+function stopReset(){stopwatch=0;if(!sp){document.getElementById('stopDisp').textContent='00:00.0';}}
+
+/* ================= SNAPCHAT ================= */
+const SNAP_FRIENDS=[
+  {l:'M',name:'Maman',color:'#f59d0c',seen:false},
+  {l:'J',name:'Julien',color:'#3f7c5f',seen:true},
+  {l:'A',name:'Anna',color:'#4f5bd5',seen:false},
+  {l:'G',name:'Groupe Team',color:'#e34f9a',seen:true},
+];
+function snapHTML(){
+  return `<div style="display:flex;gap:14px;overflow-x:auto;padding:2px 2px 16px">
+  ${SNAP_FRIENDS.map(f=>`<div onclick="toast('Story de ${f.name}')" style="flex:none;text-align:center;cursor:pointer">
+    <div style="width:56px;height:56px;border-radius:50%;padding:3px;background:${f.seen?'#4a4a4a':'linear-gradient(45deg,#fffc00,#ff9500)'}">
+      <div style="width:100%;height:100%;border-radius:50%;background:${f.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">${f.l}</div>
+    </div>
+    <div style="color:#fff;font-size:11px;margin-top:4px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div>
+  </div>`).join('')}
+  </div>
+  <div onclick="toast('📸 Snap envoyé !')" style="height:320px;border-radius:20px;background:linear-gradient(160deg,#1c1c1e,#000);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;margin-bottom:16px">
+    <div style="width:74px;height:74px;border-radius:50%;border:5px solid #fff"></div>
+    <div style="position:absolute;bottom:16px;color:#fff;font-size:12px;opacity:.75">Appuie pour prendre un Snap</div>
+  </div>
+  <div style="color:#8e8e93;font-size:12px;margin-bottom:8px">DISCUSSIONS</div>
+  ${SNAP_FRIENDS.map(f=>`<div onclick="toast('Ouverture du chat avec ${f.name}')" style="display:flex;align-items:center;gap:12px;padding:9px 2px;cursor:pointer">
+    <div style="width:40px;height:40px;border-radius:50%;background:${f.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none">${f.l}</div>
+    <div style="flex:1;min-width:0"><div style="color:#fff;font-weight:600;font-size:14px">${f.name}</div><div style="color:#fffc00;font-size:12px">${f.seen?'Ouvert':'Nouveau Snap'}</div></div>
+  </div>`).join('')}`;
+}
+
+const USER_IMGS={
+  '340434':'media/p_6df14aa7fe.jpg',
+  '340440':'media/p_89886fc8a9.jpg',
+  '340439':'media/p_2e6744a79f.jpg',
+  '340436':'media/p_d35df037e8.jpg',
+  '340433':'media/p_3bd556e235.jpg',
+  '340432':'media/p_164e575733.jpg',
+  '340431':'media/p_c354104547.jpg',
+  '340429':'media/p_2c2f6670a5.jpg',
+  '340428':'media/p_7cecdb1440.jpg',
+  '340427':'media/p_0f1c534504.jpg',
+  '340426':'media/p_46f235fd29.jpg',
+  '340424':'media/p_8ee6975cf1.jpg',
+  '340425':'media/p_651007713c.jpg',
+  '340446':'media/p_d69b78ae16.jpg',
+  '340441':'media/p_a1ed37d8ab.jpg',
+  '340442':'media/p_ecb9a5b5fc.jpg',
+  '340443':'media/p_6750222968.jpg',
+  '339687':'media/p_aae7a871e2.jpg',
+  '339688':'media/p_b18efca5f0.jpg',
+  '339689':'media/p_60ede95e25.jpg',
+  '339690':'media/p_171f3b9363.jpg',
+  '339691':'media/p_03945ad2a7.jpg',
+  '339692':'media/p_a7e5276335.jpg',
+  '339693':'media/p_3c71fa3925.jpg',
+  '339694':'media/p_457d19e6e4.jpg',
+  '339697':'media/p_5eae53d76e.jpg',
+  '339698':'media/p_41fef6dab1.jpg',
+  '339699':'media/p_a520db8c1e.jpg',
+  '339700':'media/p_128336d510.jpg',
+  '339701':'media/p_6244a1a108.jpg',
+  '339702':'media/p_e889b339be.jpg',
+  '339704':'media/p_50005a5e32.jpg',
+  '339705':'media/p_a685139bc1.jpg',
+  '339706':'media/p_ff54095627.jpg',
+  '339707':'media/p_2f39322f7e.jpg',
+};
+
+/* ================= TIKTOK ================= */
+function fmtCount(n){return n>=1000?(n/1000).toFixed(1).replace('.0','')+'k':String(n);}
+
+/*
+  TikTok-style feed:
+  - Existing photo posts are preserved.
+  - New vertical stock-video posts are added.
+  - If a remote video is unavailable, its poster image remains visible.
+  - The "Publier" button now accepts photos OR videos from the gallery.
+*/
+const TT_FEED=[
+  {id:'v1',user:'@citynight',caption:'La ville la nuit 🌃✨',video:'https://assets.mixkit.co/videos/preview/mixkit-two-avenues-with-many-cars-traveling-at-night-34562-large.mp4',img:'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80',likes:18400,comments:612},
+  {id:'v2',user:'@urbanlife',caption:'Vue aérienne de la ville 🏙️',video:'https://assets.mixkit.co/videos/preview/mixkit-big-city-at-night-from-an-aerial-shot-49878-large.mp4',img:'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=900&q=80',likes:23100,comments:840},
+  {id:'v3',user:'@nightdrive',caption:'Night drive 🚘💨',video:'https://assets.mixkit.co/videos/preview/mixkit-old-street-at-night-3456-large.mp4',img:'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80',likes:15600,comments:477},
+  {id:'v4',user:'@cityviews',caption:'Les lumières de la ville ✨',video:'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-a-highway-in-a-big-city-1231-large.mp4',img:'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=900&q=80',likes:19800,comments:703},
+  {id:'v5',user:'@carsdaily',caption:'Cars + neon = 🔥',video:'https://assets.mixkit.co/videos/preview/mixkit-stylish-woman-leaning-in-a-camaro-39895-large.mp4',img:'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80',likes:27400,comments:991},
+  {id:'v6',user:'@streetvibes',caption:'Ambiance street 🌆',video:'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-city-roads-and-big-illuminated-city-buildings-at-night-3457-large.mp4',img:'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=900&q=80',likes:11900,comments:351},
+
+  {id:'t1',user:'@voyage.fr',caption:'Coucher de soleil incroyable 🌅',img:'https://picsum.photos/id/1015/420/740',likes:1240,comments:88},
+  {id:'t2',user:'@cuisine.maison',caption:'Recette de pâtes en 60 secondes 🍝',img:'https://picsum.photos/id/292/420/740',likes:3260,comments:212},
+  {id:'t3',user:'@fitness.life',caption:'3 exercices pour le dos 💪',img:'https://picsum.photos/id/1074/420/740',likes:890,comments:41},
+  {id:'u1',user:'@toi',caption:'Ambiance du soir 😤',img:USER_IMGS['339705'],likes:5200,comments:340},
+  {id:'u2',user:'@toi',caption:'Le crew est là 💀🕶️',img:USER_IMGS['339704'],likes:8100,comments:512},
+  {id:'u3',user:'@toi',caption:'Chill sesh 💨',img:USER_IMGS['339701'],likes:2430,comments:198},
+  {id:'u4',user:'@toi',caption:'Bikini Bottom is boring 🛹',img:USER_IMGS['339707'],likes:9600,comments:721},
+  {id:'u5',user:'@toi',caption:'Nakama for life ⚓',img:USER_IMGS['339706'],likes:7800,comments:455},
+  {id:'u6',user:'@toi',caption:'NYC vibes 🗽',img:USER_IMGS['339702'],likes:6400,comments:388},
+  {id:'u7',user:'@toi',caption:'Setup du soir 🎮',img:USER_IMGS['339699'],likes:4100,comments:266},
+  {id:'u8',user:'@toi',caption:'Ambiance concert 🎤🔥',img:USER_IMGS['339700'],likes:5900,comments:301},
+  {id:'u9',user:'@toi',caption:'Le patron du quartier 🐶😎',img:USER_IMGS['339693'],likes:11200,comments:940},
+  {id:'u10',user:'@toi',caption:'Selfie avec la caisse 🐱🚗',img:USER_IMGS['339692'],likes:6700,comments:412},
+  {id:'u11',user:'@toi',caption:'Golden hour 🌅',img:USER_IMGS['339694'],likes:3900,comments:189},
+  {id:'u12',user:'@toi',caption:'Team noir sur noir 🖤',img:USER_IMGS['339690'],likes:5300,comments:277},
+  {id:'u13',user:'@toi',caption:'Objectif $$$ 💭',img:USER_IMGS['339691'],likes:2100,comments:130},
+  {id:'u14',user:'@toi',caption:'BMW mood 🖤',img:USER_IMGS['339689'],likes:7200,comments:398},
+  {id:'u15',user:'@toi',caption:'Mood du lundi 😹',img:USER_IMGS['339687'],likes:9900,comments:820},
+  {id:'u16',user:'@toi',caption:'Old school 🖤',img:USER_IMGS['339688'],likes:4600,comments:210},
+  {id:'u17',user:'@toi',caption:'Session gaming 🎮🥤',img:USER_IMGS['339697'],likes:3300,comments:176},
+  {id:'u18',user:'@toi',caption:'Ready to play 🎮✨',img:USER_IMGS['339698'],likes:4800,comments:255},
+  {id:'u19',user:'@toi',caption:'On vise la lune 🌙✨',img:USER_IMGS['340446'],likes:15400,comments:980},
+  {id:'u20',user:'@toi',caption:'Franklin et Chop 🐕🔥',img:USER_IMGS['340441'],likes:22100,comments:1430},
+  {id:'u21',user:'@toi',caption:'Duo du soir 🤍',img:USER_IMGS['340442'],likes:9700,comments:610},
+  {id:'u22',user:'@toi',caption:'Ballon rond, cœur à fond ⚽',img:USER_IMGS['340443'],likes:6300,comments:275},
+  {id:'u23',user:'@toi',caption:'Studio session 💎',img:USER_IMGS['340434'],likes:18700,comments:1210},
+  {id:'u24',user:'@toi',caption:'Nouveau maillot 🩷⚽',img:USER_IMGS['340440'],likes:4200,comments:260},
+  {id:'u25',user:'@toi',caption:'Focus. Create. Escape. 🎨',img:USER_IMGS['340439'],likes:7600,comments:410},
+  {id:'u26',user:'@toi',caption:'IDK 😁💎',img:USER_IMGS['340436'],likes:13900,comments:980},
+  {id:'u27',user:'@toi',caption:'Cybertruck vibes ⚡',img:USER_IMGS['340433'],likes:9800,comments:520},
+  {id:'u28',user:'@toi',caption:'Automne + Escalade 🍁🖤',img:USER_IMGS['340432'],likes:6100,comments:340},
+  {id:'u29',user:'@toi',caption:'Full black, full silence 🖤',img:USER_IMGS['340431'],likes:15600,comments:890},
+  {id:'u30',user:'@toi',caption:'Nuit de neige ❄️🖤',img:USER_IMGS['340429'],likes:11200,comments:705},
+  {id:'u31',user:'@toi',caption:'Néon mode activé 💡',img:USER_IMGS['340428'],likes:8300,comments:470},
+  {id:'u32',user:'@toi',caption:'Skeleton fit 💀',img:USER_IMGS['340427'],likes:5200,comments:288},
+  {id:'u33',user:'@toi',caption:'BKG drip 🔥💎',img:USER_IMGS['340426'],likes:9700,comments:615},
+  {id:'u34',user:'@toi',caption:'Rest in peace 🖤',img:USER_IMGS['340424'],likes:21400,comments:1650},
+  {id:'u35',user:'@toi',caption:'Bunny mood 🐰',img:USER_IMGS['340425'],likes:3600,comments:190},
+];
+
+let ttLiked={};
+
+function ttToggleLike(id){
+  const b=document.getElementById('ttLike_'+id),c=document.getElementById('ttCount_'+id);
+  const item=TT_FEED.find(v=>v.id===id);
+  if(!item)return;
+  if(!ttLiked[id]){ttLiked[id]=true;b.textContent='❤️';c.textContent=fmtCount(item.likes+1);}
+  else{ttLiked[id]=false;b.textContent='🤍';c.textContent=fmtCount(item.likes);}
+}
+
+function ttPickPhoto(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*,video/*';
+  inp.onchange=(e)=>{
+    const file=e.target.files&&e.target.files[0];if(!file)return;
+    const isVideo=file.type.startsWith('video/');
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      const item={
+        id:'p'+Date.now(),
+        user:'@toi',
+        caption:isVideo?'Nouvelle vidéo 🎬':'Nouvelle publication 📸',
+        img:isVideo?'':ev.target.result,
+        video:isVideo?ev.target.result:'',
+        likes:0,
+        comments:0
+      };
+      TT_FEED.unshift(item);
+      ttRefresh();
+      toast(isVideo?'Vidéo publiée !':'Photo publiée !');
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function ttRefresh(){
+  const w=document.getElementById('ttWrap');
+  if(w)w.innerHTML=ttHTML();
+}
+
+function ttHTML(){
+  return `<div style="margin:0;overflow-y:auto;height:100%;scroll-snap-type:y mandatory;position:relative;background:#000">
+  <div onclick="ttPickPhoto()" style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(28,28,30,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;border-radius:14px;padding:11px;margin:7px 8px 8px;cursor:pointer;font-weight:600;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25)">
+    <span style="font-size:17px">＋</span> Publier une photo ou vidéo
+  </div>
+  ${TT_FEED.map(v=>`
+  <div style="position:relative;height:100%;min-height:560px;scroll-snap-align:start;background:#000;margin-bottom:6px;border-radius:16px;overflow:hidden">
+    ${v.video
+      ? `<video src="${v.video}" poster="${v.img||''}" autoplay muted loop playsinline preload="metadata"
+           style="width:100%;height:100%;object-fit:cover;display:block;opacity:.94;background:#000"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'"></video>
+         <img src="${v.img||''}" style="display:none;width:100%;height:100%;object-fit:cover;opacity:.85" loading="lazy"
+           onerror="this.style.display='none'">`
+      : `<img src="${v.img}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:.88" loading="lazy" onerror="this.style.display='none'">`
+    }
+    <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.68),transparent 38%,rgba(0,0,0,.08) 75%,rgba(0,0,0,.25))"></div>
+    ${v.video?`<div style="position:absolute;top:52px;left:12px;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);color:#fff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.2px">▶ VIDÉO</div>`:''}
+    <div style="position:absolute;left:14px;right:72px;bottom:18px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">
+      <div style="font-weight:700;margin-bottom:6px">${v.user}</div>
+      <div style="font-size:13px;opacity:.96">${v.caption}</div>
+    </div>
+    <div style="position:absolute;right:12px;bottom:20px;display:flex;flex-direction:column;align-items:center;gap:18px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.55)">
+      <div style="text-align:center;cursor:pointer" onclick="ttToggleLike('${v.id}')"><div id="ttLike_${v.id}" style="font-size:26px">🤍</div><div id="ttCount_${v.id}" style="font-size:11px">${fmtCount(v.likes)}</div></div>
+      <div style="text-align:center;cursor:pointer" onclick="toast('${v.comments} commentaires')"><div style="font-size:24px">💬</div><div style="font-size:11px">${v.comments}</div></div>
+      <div style="text-align:center;cursor:pointer" onclick="toast('Partagé')"><div style="font-size:24px">↗️</div></div>
+    </div>
+  </div>`).join('')}
+  </div>`;
+}
+/* ================= X (TWITTER) ================= */
+const XF_TWEETS=[
+  {id:'x1',user:'Actu Monde',handle:'@actumonde',color:'#1d9bf0',text:"Dernière minute : nouvelle avancée technologique annoncée ce matin. Les détails arrivent très vite. 🧵",likes:412,rt:88,replies:34},
+  {id:'x2',user:'Julien',handle:'@julien_dev',color:'#3f7c5f',text:'Journée productive, le nouveau projet avance bien 🚀',likes:56,rt:4,replies:9},
+  {id:'x3',user:'Sport Live',handle:'@sportlive',color:'#e34f9a',text:'Quel match hier soir ! Les statistiques du joueur du match sont impressionnantes 📊',likes:980,rt:210,replies:145},
+];
+let xfLiked={},xfRt={};
+function xfToggleLike(id){
+  const b=document.getElementById('xfLike_'+id),c=document.getElementById('xfLikeCount_'+id);
+  const t=XF_TWEETS.find(x=>x.id===id);
+  if(!xfLiked[id]){xfLiked[id]=true;b.style.color='#f91880';c.textContent=t.likes+1;}
+  else{xfLiked[id]=false;b.style.color='#8e8e93';c.textContent=t.likes;}
+}
+function xfToggleRt(id){
+  const b=document.getElementById('xfRt_'+id),c=document.getElementById('xfRtCount_'+id);
+  const t=XF_TWEETS.find(x=>x.id===id);
+  if(!xfRt[id]){xfRt[id]=true;b.style.color='#00ba7c';c.textContent=t.rt+1;}
+  else{xfRt[id]=false;b.style.color='#8e8e93';c.textContent=t.rt;}
+}
+function xfHTML(){
+  return `<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #222;margin-bottom:6px">
+    <span style="font-size:22px;font-weight:900;color:#fff">𝕏</span><span onclick="toast('Post envoyé')" style="background:#fff;color:#000;border-radius:20px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:13px">Poster</span>
+  </div>
+  ${XF_TWEETS.map(t=>`
+  <div style="display:flex;gap:10px;padding:14px 0;border-bottom:1px solid #222">
+    <div style="width:42px;height:42px;border-radius:50%;background:${t.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none">${t.user[0]}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px"><span style="font-weight:700;color:#fff">${t.user}</span> <span style="color:#8e8e93">${t.handle}</span></div>
+      <div style="color:#fff;font-size:14px;margin:4px 0 8px;line-height:1.4">${t.text}</div>
+      <div style="display:flex;gap:26px;color:#8e8e93;font-size:12px;align-items:center">
+        <span onclick="toast('${t.replies} réponses')" style="cursor:pointer">💬 ${t.replies}</span>
+        <span id="xfRt_${t.id}" onclick="xfToggleRt('${t.id}')" style="cursor:pointer;color:#8e8e93">🔁 <span id="xfRtCount_${t.id}">${t.rt}</span></span>
+        <span id="xfLike_${t.id}" onclick="xfToggleLike('${t.id}')" style="cursor:pointer;color:#8e8e93">🤍 <span id="xfLikeCount_${t.id}">${t.likes}</span></span>
+      </div>
+    </div>
+  </div>`).join('')}`;
+}
+
+/* ================= MAIL ================= */
+const MAIL_INBOX=[
+  {id:'m1',from:'Apple',subject:'Votre facture Ystore',preview:'Voici le reçu de votre récent achat…',time:'09:14',unread:true},
+  {id:'m2',from:'Julien',subject:'Photos du week-end',preview:'Salut ! Je t’envoie les photos qu’on a prises…',time:'Hier',unread:true},
+  {id:'m3',from:'LinkedIn',subject:'3 nouvelles offres pour vous',preview:'Découvrez des opportunités correspondant à votre profil…',time:'Hier',unread:false},
+  {id:'m4',from:'Amazon',subject:'Votre colis est en route 📦',preview:'Livraison prévue demain entre 12h et 14h…',time:'Lundi',unread:false},
+];
+function mailToggle(id){
+  const it=MAIL_INBOX.find(m=>m.id===id);it.unread=!it.unread;mailRefresh();
+}
+function mailRefresh(){const el=document.getElementById('scr-mail');if(el){const c=el.querySelector('.content');if(c)c.innerHTML=mailHTML();}}
+function mailHTML(){
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="color:#888">${MAIL_INBOX.filter(m=>m.unread).length} non lus</span><span onclick="toast('Nouveau message')" style="color:#007aff;font-size:20px;cursor:pointer">✎</span></div>
+  ${MAIL_INBOX.map(m=>`<div onclick="mailToggle('${m.id}')" style="display:flex;gap:10px;padding:12px 4px;border-bottom:1px solid #f0f0f0;cursor:pointer">
+    ${m.unread?'<div style="width:8px;height:8px;border-radius:50%;background:#007aff;margin-top:6px;flex:none"></div>':'<div style="width:8px;flex:none"></div>'}
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;justify-content:space-between"><span style="font-weight:${m.unread?'700':'500'}">${m.from}</span><span style="color:#999;font-size:12px">${m.time}</span></div>
+      <div style="font-weight:${m.unread?'600':'400'};font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.subject}</div>
+      <div style="color:#888;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.preview}</div>
+    </div>
+  </div>`).join('')}`;
+}
+
+/* ================= CALENDRIER ================= */
+function calHTML(){
+  const now=new Date();
+  const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const dayNames=['L','M','M','J','V','S','D'];
+  const y=now.getFullYear(),m=now.getMonth();
+  const firstDay=(new Date(y,m,1).getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const today=now.getDate();
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    cells+=`<div style="text-align:center;padding:6px 0;border-radius:50%;${d===today?'background:#ff3b30;color:#fff;font-weight:700':'color:#111'}">${d}</div>`;
+  }
+  const events=[
+    {time:'09:00',title:'Réunion équipe',color:'#0a84ff'},
+    {time:'12:30',title:'Déjeuner avec Anna',color:'#30d158'},
+    {time:'18:00',title:'Sport',color:'#ff9500'},
+  ];
+  return `<div class="card"><div style="font-weight:700;margin-bottom:10px">${monthNames[m]} ${y}</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px;color:#888;margin-bottom:4px">${dayNames.map(d=>`<div style="text-align:center">${d}</div>`).join('')}</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:13px">${cells}</div>
+  </div>
+  <div style="color:#888;font-size:13px;margin:14px 0 8px">AUJOURD’HUI</div>
+  ${events.map(e=>`<div class="card" style="display:flex;align-items:center;gap:10px"><div style="width:4px;height:36px;border-radius:2px;background:${e.color}"></div><div><div style="font-weight:600;font-size:14px">${e.title}</div><div style="color:#888;font-size:12px">${e.time}</div></div></div>`).join('')}`;
+}
+
+/* ================= TÉLÉPHONE (dialer + contacts + récents + appel) ================= */
+const phoneContacts=[
+  {name:'Maman',number:'+33 6 12 34 56 78',fav:true},
+  {name:'Papa',number:'+33 6 98 76 54 32',fav:true},
+  {name:'Lil Zino',number:'+33 7 11 22 33 44',fav:true},
+  {name:'Sarah',number:'+33 6 45 67 89 10',fav:false},
+  {name:'Yanis',number:'+33 7 55 44 33 22',fav:false},
+  {name:'Docteur Petit',number:'+33 1 42 33 44 55',fav:false},
+];
+let phoneRecents=[
+  {name:'Maman',number:'+33 6 12 34 56 78',type:'out',time:'Hier'},
+  {name:'Numéro inconnu',number:'+33 6 00 11 22 33',type:'missed',time:'Hier'},
+  {name:'Lil Zino',number:'+33 7 11 22 33 44',type:'in',time:'Lun. 09:14'},
+];
+let phoneTab='favoris';
+let phoneDialed='';
+let phoneCallActive=null; // {name,number}
+let phoneCallTimerInt=null;
+
+function phoneInitial(n){return (n||'?').trim().charAt(0).toUpperCase();}
+function phoneAvatarColor(n){const cols=['#4f5bd5','#ff9500','#34c759','#ff3b30','#5856d6','#00b4d8'];let h=0;for(const c of (n||''))h+=c.charCodeAt(0);return cols[h%cols.length];}
+
+function phoneHTML(){
+  if(phoneCallActive)return phoneCallScreenHTML();
+  return `<div class="callBg" style="display:flex;flex-direction:column;height:100%;color:#fff">
+    <div style="flex:1;overflow-y:auto;padding:12px 16px">${phoneTabBodyHTML()}</div>
+    <div class="phoneTabbar">
+      ${[['favoris','⭐','Favoris'],['recents','🕓','Récents'],['contacts','👤','Contacts'],['clavier','🔢','Clavier']].map(([k,i,l])=>`
+      <div class="phoneTab" onclick="phoneSwitchTab('${k}')" style="color:${phoneTab===k?'#0a84ff':'#8e8e93'}">
+        <div class="pti">${i}</div><div class="ptl">${l}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+function phoneTabBodyHTML(){
+  if(phoneTab==='favoris'||phoneTab==='contacts'){
+    const list=phoneTab==='favoris'?phoneContacts.filter(c=>c.fav):phoneContacts;
+    return `<div style="display:flex;align-items:center;margin:8px 0 16px">
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.3px">${phoneTab==='favoris'?'Favoris':'Contacts'}</div>
+        ${phoneTab==='contacts'?`<div onclick="phoneToggleAddForm()" style="margin-left:auto;width:30px;height:30px;border-radius:50%;background:#0a84ff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 3px 10px rgba(10,132,255,.4)">+</div>`:''}
+      </div>
+      ${phoneTab==='contacts'?`<div id="phoneAddForm" style="display:none;background:#1c1c1e;border-radius:14px;padding:14px;margin-bottom:16px;box-shadow:inset 0 1px 1px rgba(255,255,255,.06)">
+        <input id="phoneNewName" type="text" placeholder="Nom" style="width:100%;background:#2c2c2e;border:none;color:#fff;padding:11px;border-radius:9px;margin-bottom:8px;box-sizing:border-box;font-size:14px">
+        <input id="phoneNewNumber" type="tel" placeholder="Numéro" style="width:100%;background:#2c2c2e;border:none;color:#fff;padding:11px;border-radius:9px;margin-bottom:10px;box-sizing:border-box;font-size:14px">
+        <button class="btn" style="background:#0a84ff" onclick="phoneAddContact()">Ajouter</button>
+      </div>`:''}
+      ${list.length?list.map(c=>`
+      <div class="phoneRow">
+        <div class="phoneAv" style="background:linear-gradient(160deg,${phoneAvatarColor(c.name)},#1a1a1e)">${phoneInitial(c.name)}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px">${escapeHtml(c.name)}</div><div style="font-size:12.5px;color:#8e8e93">${c.number}</div></div>
+        <div class="phoneCallDot" onclick="phoneStartCall('${escapeHtml(c.name).replace(/'/g,"\\'")}','${c.number}')">📞</div>
+      </div>`).join(''):`<div style="text-align:center;color:#666;font-size:13px;margin-top:40px">Aucun contact</div>`}`;
+  }
+  if(phoneTab==='recents'){
+    return `<div style="font-size:26px;font-weight:800;letter-spacing:-.3px;margin:8px 0 16px">Récents</div>` + (phoneRecents.length?phoneRecents.map(r=>`
+      <div class="phoneRow" onclick="phoneStartCall('${escapeHtml(r.name).replace(/'/g,"\\'")}','${r.number}')" style="cursor:pointer">
+        <div style="font-size:17px;width:26px;text-align:center">${r.type==='missed'?'📵':(r.type==='in'?'📲':'📞')}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:15px;color:${r.type==='missed'?'#ff453a':'#fff'}">${escapeHtml(r.name)}</div><div style="font-size:12.5px;color:#8e8e93">${r.type==='missed'?'Appel manqué':(r.type==='in'?'Entrant':'Sortant')}</div></div>
+        <div style="font-size:12.5px;color:#8e8e93">${r.time}</div>
+      </div>`).join(''):`<div style="text-align:center;color:#666;font-size:13px;margin-top:40px">Aucun appel récent</div>`);
+  }
+  // clavier
+  return `<div style="text-align:center;padding-top:8px">
+    <div id="phoneDialedNum" style="font-size:32px;font-weight:300;letter-spacing:1.5px;min-height:44px;margin:14px 0 26px;word-break:break-all">${phoneDialed||'&nbsp;'}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:270px;margin:0 auto">
+      ${[['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['*',''],['0','+'],['#','']].map(([d,l])=>`
+      <div class="keypadBtn" onclick="phoneDialDigit('${d}')">
+        <div class="kd">${d}</div><div class="kl">${l}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:26px;margin-top:26px">
+      <div style="width:34px"></div>
+      <div class="callActionBtn" style="background:linear-gradient(160deg,#3fdd68,#22a844);box-shadow:0 8px 22px rgba(34,168,68,.45)" onclick="phoneCallDialed()">📞</div>
+      <div onclick="phoneBackspace()" style="width:34px;font-size:22px;cursor:pointer;visibility:${phoneDialed?'visible':'hidden'};color:#ccc">⌫</div>
+    </div>
+  </div>`;
+}
+function phoneRender(){const el=document.getElementById('scr-call');if(!el)return;const c=el.querySelector('.content')||el.querySelector('div[style*="display:flex"]');const wrap=document.getElementById('phoneWrap');if(wrap)wrap.innerHTML=phoneHTML();}
+function phoneToggleAddForm(){
+  const f=document.getElementById('phoneAddForm');
+  if(f)f.style.display=f.style.display==='none'?'block':'none';
+}
+function phoneAddContact(){
+  const name=(document.getElementById('phoneNewName').value||'').trim();
+  const number=(document.getElementById('phoneNewNumber').value||'').trim();
+  if(!name||!number){toast('Nom et numéro requis');return;}
+  phoneContacts.push({name,number,fav:false});
+  phoneRender();
+  toast('Contact ajouté ✅');
+}
+function phoneSwitchTab(t){phoneTab=t;phoneRender();}
+function phoneDialDigit(d){phoneDialed+=d;phoneRender();}
+function phoneBackspace(){phoneDialed=phoneDialed.slice(0,-1);phoneRender();}
+function phoneCallDialed(){
+  if(!phoneDialed)return;
+  phoneStartCall('Numéro inconnu',phoneDialed);
+}
+function phoneStartCall(name,number){
+  phoneCallActive={name,number,seconds:0,status:'ringing'};
+  phoneDialed='';
+  phoneRender();
+  clearInterval(phoneCallTimerInt);
+  // sonnerie / composition pendant ~3s, puis décroché
+  setTimeout(()=>{
+    if(!phoneCallActive||phoneCallActive.name!==name)return;
+    phoneCallActive.status='connected';
+    phoneRender();
+    phoneCallTimerInt=setInterval(()=>{
+      if(!phoneCallActive)return;
+      phoneCallActive.seconds++;
+      const d=document.getElementById('callTimer');
+      if(d){const s=phoneCallActive.seconds;d.textContent='00:'+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+    },1000);
+  },3000+Math.random()*1500);
+}
+function phoneEndCall(){
+  if(phoneCallActive)phoneRecents.unshift({name:phoneCallActive.name,number:phoneCallActive.number,type:phoneCallActive.incoming?'in':'out',time:'À l’instant'});
+  phoneCallActive=null;
+  clearInterval(phoneCallTimerInt);
+  toast('Appel terminé');
+  phoneRender();
+}
+function phoneCallScreenHTML(){
+  const c=phoneCallActive;
+  const ringing=c.status==='ringing';
+  return `<div class="callBg" style="color:#fff;height:100%;display:flex;flex-direction:column">
+    <div style="text-align:center;padding:56px 0 24px">
+      <div class="callAvatarWrap">
+        ${ringing?`<div class="ringWave"></div><div class="ringWave w2"></div><div class="ringWave w3"></div>`:''}
+        <div class="callAvatar" style="background:linear-gradient(150deg,${phoneAvatarColor(c.name)},#1a1a1e)">${phoneInitial(c.name)}</div>
+      </div>
+      <div class="callName">${escapeHtml(c.name)}</div>
+      <div class="callSub">${c.number}</div>
+      ${ringing?`<div class="callStatus ringing">Appel en cours…</div>`:`<div class="callStatus" id="callTimer">00:00:00</div>`}
+    </div>
+    <div class="callGrid" style="margin-top:auto;margin-bottom:44px">
+      ${['Muet','Vidéo','Haut-parleur','Disque','+','Raccrocher'].map((x,i)=>`<div class="callBtn${i===5?' hangupBtn':''}" onclick="${i===5?'phoneEndCall()':''}">${x}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---- Appel entrant (peut sonner à tout moment, même hors de l'app Téléphone) ---- */
+function phoneShowIncoming(name,number){
+  if(phoneCallActive||document.getElementById('incomingCallOverlay').style.display==='flex')return;
+  phonePendingIncoming={name,number};
+  const av=document.getElementById('incAvatar');
+  av.style.background=`linear-gradient(135deg,${phoneAvatarColor(name)},#222)`;
+  av.textContent=phoneInitial(name);
+  document.getElementById('incName').textContent=name;
+  document.getElementById('incNumber').textContent=number;
+  document.getElementById('incomingCallOverlay').style.display='flex';
+}
+function phoneAcceptIncoming(){
+  const p=phonePendingIncoming;if(!p)return;
+  document.getElementById('incomingCallOverlay').style.display='none';
+  phonePendingIncoming=null;
+  phoneCallActive={name:p.name,number:p.number,seconds:0,status:'connected',incoming:true};
+  clearInterval(phoneCallTimerInt);
+  phoneCallTimerInt=setInterval(()=>{
+    if(!phoneCallActive)return;
+    phoneCallActive.seconds++;
+    const d=document.getElementById('callTimer');
+    if(d){const s=phoneCallActive.seconds;d.textContent='00:'+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+  },1000);
+  openApp('call');
+  phoneRender();
+}
+function phoneDeclineIncoming(){
+  const p=phonePendingIncoming;if(!p)return;
+  document.getElementById('incomingCallOverlay').style.display='none';
+  phonePendingIncoming=null;
+  phoneRecents.unshift({name:p.name,number:p.number,type:'missed',time:'À l’instant'});
+  toast('Appel refusé');
+}
+let phonePendingIncoming=null;
+/* L'appel entrant automatique/aléatoire a été retiré : un appel n'apparaît
+   désormais que lorsqu'un vrai joueur appelle. Pour déclencher un appel entrant
+   depuis l'extérieur (ex. depuis l'app qui gère le multijoueur), utiliser :
+     phoneShowIncoming('Nom du joueur','Numéro')
+   ou envoyer un postMessage à cette fenêtre : {type:'incomingCall', name, number} */
+window.addEventListener('message',(e)=>{
+  const d=e.data;
+  if(d && d.type==='incomingCall' && d.name){phoneShowIncoming(d.name,d.number||'');}
+});
+
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ================= SAFARI ================= */
+const SAFARI_FAV=[
+  {name:'Wikipedia',color:'#000',l:'W'},
+  {name:'YouTube',color:'#ff0000',l:'▶'},
+  {name:'Amazon',color:'#ff9900',l:'a'},
+  {name:'Le Monde',color:'#111',l:'M'},
+  {name:'GitHub',color:'#181717',l:'⌥'},
+  {name:'Gmail',color:'#ea4335',l:'M'},
+];
+function safariGo(name){
+  const q=document.getElementById('safariSearchInput');
+  if(q){q.value=name;safariSearch(name);}
+}
+let safariDebounce=null;
+function safariSearch(q){
+  clearTimeout(safariDebounce);
+  const res=document.getElementById('safariResults');
+  const fav=document.getElementById('safariFavWrap');
+  if(!q||!q.trim()){res.innerHTML='';res.style.display='none';fav.style.display='block';return;}
+  fav.style.display='none';
+  res.style.display='block';
+  res.innerHTML='<div style="color:#888;font-size:13px;padding:10px 2px">Recherche…</div>';
+  safariDebounce=setTimeout(async()=>{
+    try{
+      const url='https://fr.wikipedia.org/w/api.php?action=opensearch&search='+encodeURIComponent(q)+'&limit=8&namespace=0&format=json&origin=*';
+      const r=await fetch(url);
+      const data=await r.json();
+      const titles=data[1]||[],descs=data[2]||[],links=data[3]||[];
+      if(!titles.length){res.innerHTML='<div style="color:#888;font-size:13px;padding:10px 2px">Aucun résultat</div>';return;}
+      res.innerHTML=titles.map((t,i)=>`<div onclick="safariOpenPage('${encodeURIComponent(t)}',${JSON.stringify(links[i])})" style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+        <div style="color:#0a6fd0;font-size:13px;margin-bottom:3px">${links[i]}</div>
+        <div style="font-weight:600;font-size:15px;margin-bottom:2px">${t}</div>
+        <div style="color:#666;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${descs[i]||''}</div>
+      </div>`).join('');
+    }catch(e){
+      res.innerHTML='<div style="color:#c00;font-size:13px;padding:10px 2px">Recherche indisponible (réseau)</div>';
+    }
+  },350);
+}
+async function safariOpenPage(encodedTitle,url){
+  const res=document.getElementById('safariResults');
+  const fav=document.getElementById('safariFavWrap');
+  fav.style.display='none';
+  res.style.display='block';
+  res.innerHTML='<div style="color:#888;font-size:13px;padding:10px 2px">Chargement…</div>';
+  try{
+    const r=await fetch('https://fr.wikipedia.org/api/rest_v1/page/summary/'+encodedTitle);
+    const d=await r.json();
+    res.innerHTML=`<div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:10px">
+      <div onclick="safariBackToResults()" style="color:#0a6fd0;font-size:13px;margin-bottom:12px;cursor:pointer">‹ Résultats</div>
+      ${d.thumbnail?`<img src="${d.thumbnail.source}" style="width:100%;border-radius:10px;margin-bottom:10px;display:block">`:''}
+      <div style="font-weight:700;font-size:18px;margin-bottom:6px">${d.title||''}</div>
+      <div style="font-size:14px;line-height:1.5;color:#222">${d.extract||'Pas de résumé disponible.'}</div>
+      <div class="btn" onclick="window.open('${url}','_blank')">Ouvrir la page complète</div>
+    </div>`;
+  }catch(e){
+    res.innerHTML='<div style="color:#c00;font-size:13px;padding:10px 2px">Page indisponible (réseau)</div>';
+  }
+}
+function safariBackToResults(){
+  const inp=document.getElementById('safariSearchInput');
+  if(inp)safariSearch(inp.value);
+}
+function safariHTML(){
+  return `<div style="display:flex;align-items:center;gap:8px;background:#e9e9eb;border-radius:10px;padding:10px 14px;margin-bottom:20px">
+    <span style="color:#888">🔍</span>
+    <input id="safariSearchInput" oninput="safariSearch(this.value)" placeholder="Rechercher ou saisir une adresse" style="border:none;background:transparent;outline:none;flex:1;font-size:14px;color:#111">
+  </div>
+  <div id="safariResults" style="display:none"></div>
+  <div id="safariFavWrap">
+  <div style="color:#888;font-size:12px;margin-bottom:10px">FAVORIS</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+  ${SAFARI_FAV.map(f=>`<div onclick="safariGo('${f.name}')" style="text-align:center;cursor:pointer">
+    <div style="width:52px;height:52px;border-radius:14px;background:${f.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;margin:0 auto 6px">${f.l}</div>
+    <div style="font-size:11px;color:#333">${f.name}</div>
+  </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+/* ================= CHAT (WhatsApp & Messages) ================= */
+const CHAT={
+  whatsapp:{bubble:'#202c33',color:'#005c4b',replies:['Haha vrai 😄','D\u2019accord, on fait ça','Je vois 👀','Ah carré !','OK je te tiens au courant'],contacts:[
+    {id:'c1',letter:'M',name:'Maman',color:'#f59d0c',msgs:[['t','D\u2019accord, à demain alors'],['m','Oui maman 👍']]},
+    {id:'c2',letter:'J',name:'Julien',color:'#3f7c5f',msgs:[['t','Le match est samedi 👀'],['m','Je suis chaud !']]},
+    {id:'c3',letter:'G',name:'Groupe Team',color:'#e34f9a',msgs:[['t','Sarah : On arrive 🚀'],['m','On vous attend !']]},
+    {id:'c4',letter:'A',name:'Anna',color:'#4f5bd5',msgs:[['t','T\u2019as vu la story ?'],['m','Pas encore']]}]},
+  messages:{bubble:'#a8f0b0',color:'#34c759',replies:['Haha vrai ?','D\u2019accord','Ah carré','On s\u2019appelle ?','😄'],contacts:[
+    {id:'m1',letter:'T',name:'Tata',color:'#2b8a3e',msgs:[['t','Tu viens dimanche ?'],['m','Oui bien sûr !']]},
+    {id:'m2',letter:'L',name:'Lucas',color:'#1f70d0',msgs:[['t','GG à la manche 🔥'],['m','Merci !']]},
+    {id:'m3',letter:'P',name:'Papa',color:'#c04a2a',msgs:[['t','Le colis est arrivé'],['m','Parfait merci']]}]}
+};
+let curChat=null;
+function chatAppHTML(appId){
+  if(appId==='whatsapp')return waAppHTML();
+  const d=CHAT[appId];
+  return `<div id="${appId}-list" style="flex:1;display:block;overflow:auto;padding:6px 10px">
+    ${d.contacts.map(c=>`
+    <div onclick="openChat('${appId}','${c.id}')" style="display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;cursor:pointer">
+      ${avatar(c.letter,c.color)}
+      <div style="flex:1;min-width:0"><div style="font-weight:700;color:#fff">${c.name}</div><div style="color:#888;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.msgs[c.msgs.length-1][1]}</div></div>
+    </div>`).join('')}
+  </div>
+  <div id="${appId}-chat" style="flex:1;display:none;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:4px 12px 8px"><span onclick="chatBack('${appId}')" style="font-size:22px;color:#fff;cursor:pointer">‹</span><span id="${appId}-title" style="color:#fff;font-weight:700;font-size:16px"></span></div>
+    <div id="${appId}-msgs" style="flex:1;overflow:auto;padding:10px 14px;display:flex;flex-direction:column"></div>
+    <div style="display:flex;gap:8px;padding:10px 12px">
+      <input id="${appId}-in" type="text" placeholder="Message" onkeydown="if(event.key==='Enter')sendChat('${appId}')" style="flex:1;border-radius:16px;border:none;background:#1c1c1e;color:#fff;padding:10px 14px;outline:none;font-size:14px">
+      <div onclick="sendChat('${appId}')" style="background:${d.color};color:#fff;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex:none">➤</div>
+    </div>
+  </div>`;
+}
+function openChat(appId,id){
+  document.getElementById(appId+'-list').style.display='none';
+  const chat=document.getElementById(appId+'-chat');chat.style.display='flex';
+  const c=CHAT[appId].contacts.find(x=>x.id===id);
+  curChat={appId,id};
+  document.getElementById(appId+'-title').textContent=c.name;
+  const av=document.getElementById(appId+'-av');if(av)av.innerHTML=avatar(c.letter,c.color);
+  const box=document.getElementById(appId+'-msgs');box.innerHTML='';
+  c.msgs.forEach((m,i)=>addMsg(appId,m[0]==='t',m[1],appId==='whatsapp'?waShift(-(c.msgs.length-i)*9-3):undefined));
+}
+function chatBack(appId){
+  document.getElementById(appId+'-chat').style.display='none';
+  document.getElementById(appId+'-list').style.display=(appId==='whatsapp'?'flex':'block');
+}
+function addMsg(appId,them,txt,time){
+  if(appId==='whatsapp'){waAddMsg(them,txt,{time});return;}
+  const box=document.getElementById(appId+'-msgs');
+  const el=document.createElement('div');
+  el.textContent=txt;
+  el.style.cssText='max-width:78%;padding:8px 12px;border-radius:14px;margin:3px 0;font-size:14px;color:#111;background:'+(them?CHAT[appId].bubble:CHAT[appId].color)+(them?'':'')+' ;align-self:'+(them?'flex-start':'flex-end');
+  if(!them)el.style.color='#fff';
+  box.appendChild(el);box.scrollTop=box.scrollHeight;
+}
+function sendChat(appId){
+  const inp=document.getElementById(appId+'-in');const txt=inp.value.trim();
+  if(!txt)return;inp.value='';
+  addMsg(appId,false,txt);
+  const rep=CHAT[appId].replies[Math.floor(Math.random()*CHAT[appId].replies.length)];
+  setTimeout(()=>addMsg(appId,true,rep),800+Math.random()*900);
+}
+
+/* ================= WHATSAPP : inscription (numéro → code → profil) ================= */
+let waRegistered=false;
+function waRenderStep(step,phone){
+  const wrap=document.getElementById('waOnboardWrap');if(!wrap)return;
+  if(step===1){
+    wrap.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center;color:#fff">
+      <img src="WhatsIcon.png" alt="" style="width:96px;height:96px;margin-bottom:20px">
+      <div style="font-size:22px;font-weight:700;margin-bottom:10px">Bienvenue sur WhatsApp</div>
+      <div style="color:#9aa0a6;font-size:14px;margin-bottom:28px;line-height:1.5">Entre ton numéro de téléphone pour vérifier ton compte.</div>
+      <input id="waPhone" type="tel" placeholder="+33 6 12 34 56 78" style="width:100%;background:#1c1c1e;border:1px solid #333;color:#fff;padding:14px;border-radius:12px;text-align:center;font-size:16px;margin-bottom:16px">
+      <button class="btn" style="background:#25D366" onclick="waSubmitPhone()">Suivant</button>
+    </div>`;
+  }else if(step===2){
+    wrap.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center;color:#fff">
+      <div style="font-size:20px;font-weight:700;margin-bottom:10px">Vérification</div>
+      <div style="color:#9aa0a6;font-size:14px;margin-bottom:24px">Code envoyé au ${phone}</div>
+      <div style="display:flex;gap:8px;margin-bottom:20px">${[0,1,2,3,4,5].map(i=>`<div id="waBox${i}" style="width:38px;height:46px;border-radius:10px;background:#1c1c1e;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700">·</div>`).join('')}</div>
+      <div style="color:#8e8e93;font-size:13px" id="waVerifStatus">Vérification en cours…</div>
+    </div>`;
+    waAutoVerify();
+  }else if(step===3){
+    wrap.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center;color:#fff">
+      <div style="font-size:20px;font-weight:700;margin-bottom:16px">Ton profil</div>
+      <div id="waAvatarPreview" style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#4f5bd5,#303a90);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#fff;margin-bottom:18px">?</div>
+      <input id="waName" type="text" placeholder="Ton prénom" oninput="waUpdateAvatar()" style="width:100%;background:#1c1c1e;border:1px solid #333;color:#fff;padding:14px;border-radius:12px;text-align:center;font-size:16px;margin-bottom:16px">
+      <button class="btn" style="background:#25D366" onclick="waFinishProfile()">Terminé</button>
+    </div>`;
+  }
+}
+function waSubmitPhone(){
+  const val=(document.getElementById('waPhone').value||'').trim();
+  waRenderStep(2,val||'+33 6 12 34 56 78');
+}
+function waAutoVerify(){
+  let i=0;
+  const iv=setInterval(()=>{
+    const box=document.getElementById('waBox'+i);
+    if(box){box.textContent=Math.floor(Math.random()*10);box.style.borderColor='#25D366';}
+    i++;
+    if(i>=6){
+      clearInterval(iv);
+      const st=document.getElementById('waVerifStatus');if(st)st.textContent='Numéro vérifié ✓';
+      setTimeout(()=>waRenderStep(3),700);
+    }
+  },220);
+}
+function waUpdateAvatar(){
+  const name=(document.getElementById('waName').value||'').trim();
+  const av=document.getElementById('waAvatarPreview');
+  if(av)av.textContent=name?name[0].toUpperCase():'?';
+}
+function waFinishProfile(){
+  const name=(document.getElementById('waName').value||'').trim()||'Moi';
+  waRegistered=true;
+  const el=document.getElementById('scr-whatsapp');if(!el)return;
+  const atop=el.querySelector('.atop').outerHTML;
+  el.innerHTML=atop+`<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">${chatAppHTML('whatsapp')}</div>`;
+  toast('Bienvenue '+name+' 👋');
+}
+
+/* ================= MUSIQUE / SPOTIFY (fonctionnel) ================= */
+const PLAYLIST=[
+  {t:'Starboy',a:'The Weeknd',tur:230,art:'https://picsum.photos/id/1036/400/400'},
+  {t:'Blinding Lights',a:'The Weeknd',tur:200,art:'https://picsum.photos/id/1035/400/400'},
+  {t:'Dura',a:'Daddy Yankee',tur:190,art:'https://picsum.photos/id/1039/400/400'},
+  {t:'Levitating',a:'Dua Lipa',tur:203,art:'https://picsum.photos/id/1043/400/400'}
+];
+let musI=0,musPlaying=false,musInt=null,musProg=0;
+function musHTML(){
+  return `<div style="display:flex;flex-direction:column;height:100%">
+    <div style="text-align:center;padding:20px 0 8px"><img id="musArt" src="${PLAYLIST[0].art}" style="width:210px;height:210px;border-radius:16px;object-fit:cover;margin:0 auto;display:block">
+      <div id="musTitle" style="font-size:20px;font-weight:700;color:#fff;margin-top:12px">${PLAYLIST[0].t}</div>
+      <div id="musArtist" style="color:#8e8e93;font-size:14px">${PLAYLIST[0].a}</div></div>
+    <div style="padding:0 26px">
+      <div style="display:flex;justify-content:space-between;color:#8e8e93;font-size:12px;margin-bottom:6px"><span id="musCur">0:00</span><span id="musDur">4:33</span></div>
+      <div style="height:4px;background:#3a3a3c;border-radius:2px;overflow:hidden"><div id="musBar" style="height:4px;width:0%;background:#fff;border-radius:2px"></div></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:38px;margin-top:16px">
+        <span onclick="musPrev()" style="font-size:24px;color:#fff;cursor:pointer">⏮</span>
+        <span id="musBtn" onclick="musPlay()" style="font-size:44px;color:#fff;cursor:pointer">▶</span>
+        <span onclick="musNext()" style="font-size:24px;color:#fff;cursor:pointer">⏭</span>
+      </div>
+    </div>
+    <div style="padding:16px 24px;flex:1;overflow:auto"><div style="color:#8e8e93;font-size:12px;margin-bottom:8px">À écouter</div>
+      ${PLAYLIST.map((p,i)=>`<div onclick="musPick(${i})" style="display:flex;gap:12px;align-items:center;padding:6px 0;cursor:pointer"><div style="width:44px;height:44px;border-radius:8px;overflow:hidden;flex:none"><img src="${p.art}" class="thumb"></div><div style="flex:1;min-width:0"><div style="color:#fff;font-size:14px;font-weight:600">${p.t}</div><div style="color:#8e8e93;font-size:12px">${p.a}</div></div></div>`).join('')}
+    </div></div>`;
+}
+function musFmt(s){const m=Math.floor(s/60),x=s%60;return m+':'+String(x).padStart(2,'0');}
+function musRender(){const p=PLAYLIST[musI];const a=document.getElementById('musArt');if(a){a.src=p.art;document.getElementById('musTitle').textContent=p.t;document.getElementById('musArtist').textContent=p.a;document.getElementById('musDur').textContent=musFmt(p.tur);}
+document.getElementById('musCur').textContent=musFmt(musProg);document.getElementById('musBar').style.width=((musProg/p.tur)*100)+'%';}
+function musPlay(){
+  const p=PLAYLIST[musI];musPlaying=!musPlaying;document.getElementById('musBtn').textContent=musPlaying?'❚❚':'▶';
+  if(musPlaying){musInt=setInterval(()=>{musProg+=1;if(musProg>=p.tur){musProg=0;musNext();return;}document.getElementById('musCur').textContent=musFmt(musProg);document.getElementById('musBar').style.width=((musProg/p.tur)*100)+'%';},1000);}
+  else clearInterval(musInt);
+}
+function musNext(){musI=(musI+1)%PLAYLIST.length;musProg=0;musRender();}
+function musPrev(){musI=(musI-1+PLAYLIST.length)%PLAYLIST.length;musProg=0;musRender();}
+function musPick(i){musI=i;musProg=0;musRender();}
+
+/* ================= INSTAGRAM : connexion/inscription + feed ================= */
+let igLoggedIn=false;
+const INSTA_POSTS=[['A','alex_pro','#f26b3f','https://picsum.photos/id/1084/300/240','124'],['S','sarah.travel','#e34f9a','https://picsum.photos/id/1015/300/240','98'],['T','tech.ali','#3f7c5f','https://picsum.photos/id/1080/300/240','230'],
+  ['V1','toi','#5a6efe',USER_IMGS['339705'],'812'],
+  ['V2','toi','#5a6efe',USER_IMGS['339704'],'1340'],
+  ['V3','toi','#5a6efe',USER_IMGS['339701'],'560'],
+  ['V4','toi','#5a6efe',USER_IMGS['339707'],'1920'],
+  ['V5','toi','#5a6efe',USER_IMGS['339706'],'1670'],
+  ['V6','toi','#5a6efe',USER_IMGS['339702'],'1450'],
+  ['V7','toi','#5a6efe',USER_IMGS['339699'],'980'],
+  ['V8','toi','#5a6efe',USER_IMGS['339700'],'1100'],
+  ['V9','toi','#5a6efe',USER_IMGS['339693'],'2430'],
+  ['V10','toi','#5a6efe',USER_IMGS['339692'],'1240'],
+  ['V11','toi','#5a6efe',USER_IMGS['339694'],'790'],
+  ['V12','toi','#5a6efe',USER_IMGS['339690'],'1050'],
+  ['V13','toi','#5a6efe',USER_IMGS['339691'],'430'],
+  ['V14','toi','#5a6efe',USER_IMGS['339689'],'1380'],
+  ['V15','toi','#5a6efe',USER_IMGS['339687'],'2010'],
+  ['V16','toi','#5a6efe',USER_IMGS['339688'],'860'],
+  ['V17','toi','#5a6efe',USER_IMGS['339697'],'640'],
+  ['V18','toi','#5a6efe',USER_IMGS['339698'],'910'],
+];
+function igRenderAuth(mode){
+  const wrap=document.getElementById('igAuthWrap');if(!wrap)return;
+  if(mode==='signup'){
+    wrap.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center">
+      <img src="instagram/logo.png" alt="" style="width:64px;height:64px;margin-bottom:14px"><div style="font-size:20px;font-weight:700;margin-bottom:6px">Inscription</div>
+      <div style="color:#888;font-size:13px;margin-bottom:20px">Rejoins Instagram en quelques secondes</div>
+      <input id="igNewName" type="text" placeholder="Nom complet" style="width:100%;background:#fafafa;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:14px;margin-bottom:10px">
+      <input id="igNewUser" type="text" placeholder="Nom d'utilisateur" style="width:100%;background:#fafafa;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:14px;margin-bottom:16px">
+      <button class="btn" style="background:#0095f6" onclick="igSignup()">S'inscrire</button>
+      <div style="color:#00376b;font-size:13px;margin-top:18px;cursor:pointer" onclick="igRenderAuth('login')">J'ai déjà un compte</div>
+    </div>`;
+  }else{
+    wrap.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;text-align:center">
+      <img src="instagram/logo.png" alt="" style="width:72px;height:72px;margin-bottom:26px">
+      <input id="igUser" type="text" placeholder="Numéro, nom d'utilisateur ou e-mail" style="width:100%;background:#fafafa;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:14px;margin-bottom:10px">
+      <input id="igPass" type="password" placeholder="Mot de passe" style="width:100%;background:#fafafa;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:14px;margin-bottom:16px">
+      <button class="btn" style="background:#0095f6" onclick="igLogin()">Se connecter</button>
+      <div style="color:#00376b;font-size:13px;margin-top:18px;cursor:pointer" onclick="igRenderAuth('signup')">Créer un compte</div>
+    </div>`;
+  }
+}
+function igLogin(){const u=(document.getElementById('igUser').value||'').trim();igEnterApp(u||'toi');}
+function igSignup(){const u=(document.getElementById('igNewUser').value||'').trim();igEnterApp(u||'toi');}
+function igEnterApp(name){
+  igLoggedIn=true;igUserName=name||'toi';igTabCur='home';
+  const el=document.getElementById('scr-insta');if(!el)return;
+  const atop=el.querySelector('.atop').outerHTML;
+  el.innerHTML=atop+instaAppHTML();
+  toast('Bienvenue @'+name+' 👋');
+}
+function instaStoriesHTML(){
+  const people=[['Votre story','#ddd',true],...INSTA_POSTS.map(p=>[p[1],p[2],false])];
+  return `<div style="display:flex;gap:14px;overflow-x:auto;padding:10px 2px 14px">
+  ${people.map(([name,color,isMe])=>`<div onclick="toast('${isMe?'Ajouter une story':'Story de '+name}')" style="flex:none;text-align:center;cursor:pointer">
+    <div style="width:56px;height:56px;border-radius:50%;padding:2px;background:${isMe?'#e0e0e0':'linear-gradient(45deg,#feda75,#d62976,#4f5bd5)'}">
+      <div style="width:100%;height:100%;border-radius:50%;background:${isMe?'#fff':color};border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;color:${isMe?'#333':'#fff'};font-size:20px">${isMe?'+':name[0].toUpperCase()}</div>
+    </div>
+    <div style="font-size:11px;margin-top:4px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#333">${name}</div>
+  </div>`).join('')}
+  </div>`;
+}
+/* ================= INSTAGRAM : interface (images phone.zip) ================= */
+let igUserName='toi',igTabCur='home',igProfTab='grid',igMyPosts=[],igLiked={},igPicked=-1;
+function igEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+const IG_ICON=(name,h,extra)=>`<img src="instagram/${name}" alt="" style="height:${h}px;width:auto;display:block;${extra||''}">`;
+function igHeart(on){return on?IG_ICON('notifies_filled_red.svg',22):IG_ICON('notifies_outlined.svg',22);}
+function instaNavHTML(){
+  const t=(id,on,off)=>`<div onclick="igTab('${id}')" style="flex:1;display:flex;justify-content:center;padding:4px 0;cursor:pointer">${IG_ICON(igTabCur===id?on:off,24)}</div>`;
+  const prof=`<div onclick="igTab('profile')" style="flex:1;display:flex;justify-content:center;padding:4px 0;cursor:pointer"><img src="instagram/avatar.png" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;box-sizing:border-box;border:2px solid ${igTabCur==='profile'?'#262626':'transparent'}"></div>`;
+  return t('home','home_filled.svg','home_outlined.svg')+t('search','search_filled.svg','search_outlined.svg')+t('add','more_filled.svg','more_outlined.svg')+t('notifs','notifies_filled.svg','notifies_outlined.svg')+prof;
+}
+function instaAppHTML(){
+  return `<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;background:#fff;color:#262626">
+    <div id="igBody" class="content" style="flex:1;overflow:auto;padding:4px 14px 12px;min-height:0">${igBodyHTML()}</div>
+    <div id="igNav" style="flex:none;display:flex;align-items:center;border-top:1px solid #dbdbdb;background:#fff;padding:6px 0 12px">${instaNavHTML()}</div>
+  </div>`;
+}
+function igBodyHTML(){
+  if(igTabCur==='search')return igSearchHTML();
+  if(igTabCur==='add')return igAddHTML();
+  if(igTabCur==='notifs')return igNotifsHTML();
+  if(igTabCur==='profile')return igProfileHTML();
+  return instaFeedHTML();
+}
+function igTab(id){
+  igTabCur=id;
+  const bd=document.getElementById('igBody'),nv=document.getElementById('igNav');
+  if(bd){bd.innerHTML=igBodyHTML();bd.scrollTop=0;}
+  if(nv)nv.innerHTML=instaNavHTML();
+}
+function instaFeedHTML(){
+  return `<img src="instagram/instagram_text.svg" alt="Instagram" style="height:26px;width:auto;display:block;margin:4px 0 2px">
+  ${instaStoriesHTML()}
+  ${INSTA_POSTS.map(([l,user,c,img,likes],i)=>`
+  <div style="margin:14px 0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(45deg,#feda75,#d62976,#4f5bd5);flex:none"><div style="width:100%;height:100%;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">${l}</div></div>
+      <span style="font-weight:700">${user==='toi'?igEsc(igUserName):user}</span>${i===0?'<img src="instagram/verified.png" alt="" style="width:14px;height:14px;margin-left:-4px">':''}
+    </div>
+    <div style="aspect-ratio:1;border-radius:10px;overflow:hidden;background:#ddd"><img class="thumb" src="${img}" loading="lazy" onerror="this.style.display='none'"></div>
+    <div style="display:flex;align-items:center;gap:16px;padding:9px 2px">
+      <span id="igB_${l}" onclick="igToggle('${l}')" style="cursor:pointer;display:flex">${igHeart(!!igLiked[l])}</span>
+      <span onclick="toast('Commentaires')" style="cursor:pointer;display:flex">${IG_ICON('instagram_comment.svg',22)}</span>
+      <span onclick="toast('Partagé')" style="font-size:22px;cursor:pointer;line-height:1">➤</span>
+    </div>
+    <div style="font-weight:600;font-size:13px"><span id="igC_${l}">${likes}</span> j'aime</div>
+  </div>`).join('')}
+  <div style="text-align:center;color:#888;font-size:13px;padding:8px 0">Suggestions pour vous</div>`;
+}
+function igToggle(l){
+  const bt=document.getElementById('igB_'+l),ct=document.getElementById('igC_'+l);if(!bt||!ct)return;
+  if(!igLiked[l]){igLiked[l]=true;ct.textContent=String(parseInt(ct.textContent)+1);}
+  else{igLiked[l]=false;ct.textContent=String(parseInt(ct.textContent)-1);}
+  bt.innerHTML=igHeart(!!igLiked[l]);
+}
+function igGridHTML(list){
+  return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px">${list.map(u=>`<div style="aspect-ratio:1;background:#ddd;overflow:hidden"><img class="thumb" src="${u}" loading="lazy" onerror="this.style.display='none'"></div>`).join('')}</div>`;
+}
+function igSearchHTML(){
+  return `<div style="display:flex;align-items:center;gap:8px;background:#efefef;border-radius:10px;padding:9px 11px;margin:6px 0 10px">${IG_ICON('search_outlined.svg',16,'opacity:.55')}<span style="color:#8e8e93;font-size:14px">Rechercher</span></div>${igGridHTML(INSTA_POSTS.map(p=>p[3]))}`;
+}
+function igAddHTML(){
+  const photos=USER_PHOTOS||[];
+  if(!photos.length)return `<div style="text-align:center;padding:50px 20px"><img src="instagram/empty_images.png" alt="" style="width:96px;height:96px;opacity:.85"><div style="font-weight:700;font-size:17px;margin-top:14px">Aucune photo</div><div style="color:#8e8e93;font-size:13px;margin-top:6px;line-height:1.5">Prends une photo avec l\u2019app Caméra pour la publier ici.</div></div>`;
+  return `<div style="font-weight:800;font-size:17px;margin:8px 0 2px">Nouvelle publication</div>
+   <div style="color:#8e8e93;font-size:13px;margin-bottom:8px">Choisis une photo de ta galerie</div>
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px">${photos.map((u,i)=>`<div id="igPick${i}" onclick="igPickPhoto(${i})" style="aspect-ratio:1;background:#ddd;overflow:hidden;cursor:pointer;outline-offset:-3px"><img class="thumb" src="${u}" loading="lazy"></div>`).join('')}</div>
+   <input id="igCaption" type="text" placeholder="Écris une légende…" style="width:100%;margin-top:12px;background:#fafafa;border:1px solid #ddd;padding:12px;border-radius:8px;font-size:14px">
+   <button class="btn" style="background:#0095f6" onclick="igPublish()">Partager</button>`;
+}
+function igPickPhoto(i){
+  igPicked=i;
+  document.querySelectorAll('[id^="igPick"]').forEach(e=>{e.style.outline='none';});
+  const e=document.getElementById('igPick'+i);if(e)e.style.outline='3px solid #0095f6';
+}
+function igPublish(){
+  const photos=USER_PHOTOS||[];
+  if(igPicked<0||!photos[igPicked]){toast('Choisis une photo');return;}
+  const cap=((document.getElementById('igCaption')||{}).value||'').trim();
+  igMyPosts.unshift({img:photos[igPicked],caption:cap});
+  igPicked=-1;toast('Publication partagée');igTab('profile');
+}
+function igNotifsHTML(){
+  const rows=[['sarah.travel','#e34f9a','a aimé ta photo.','2 min'],['alex_pro','#f26b3f','a commencé à te suivre.','15 min'],['tech.ali','#3f7c5f','a commenté : « Trop fort ! 🔥 »','1 h'],['sarah.travel','#e34f9a','a aimé ta photo.','3 h']];
+  return `<div style="font-weight:800;font-size:17px;margin:8px 0 6px">Notifications</div>`+rows.map(([u,c,t,h])=>`<div style="display:flex;align-items:center;gap:12px;padding:9px 0"><div style="width:42px;height:42px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none">${u[0].toUpperCase()}</div><div style="flex:1;font-size:13.5px;line-height:1.35"><b>${u}</b> ${t} <span style="color:#8e8e93">${h}</span></div></div>`).join('');
+}
+function igProfileHTML(){
+  const mine=igMyPosts.map(p=>p.img).concat(INSTA_POSTS.filter(p=>p[1]==='toi').map(p=>p[3]));
+  const content=igProfTab==='grid'
+    ? igGridHTML(mine)
+    : `<div style="text-align:center;padding:40px 20px"><img src="instagram/empty_images.png" alt="" style="width:84px;height:84px;opacity:.85"><div style="font-weight:700;font-size:16px;margin-top:12px">Photos de toi</div><div style="color:#8e8e93;font-size:13px;margin-top:6px;line-height:1.5">Quand des personnes t\u2019identifient sur des photos, elles apparaissent ici.</div></div>`;
+  const stat=(n,l)=>`<div style="text-align:center"><div style="font-weight:800;font-size:16px">${n}</div><div style="font-size:12px">${l}</div></div>`;
+  const tabBtn=(id,on,off)=>`<div onclick="igProfSwitch('${id}')" style="flex:1;display:flex;justify-content:center;padding:10px 0;margin-top:-1px;cursor:pointer;border-top:2px solid ${igProfTab===id?'#262626':'transparent'}"><img src="instagram/${igProfTab===id?on:off}" alt="" style="width:22px;height:22px"></div>`;
+  return `<div style="display:flex;align-items:center;gap:18px;padding:10px 0 12px">
+      <img src="instagram/avatar.png" alt="" style="width:78px;height:78px;border-radius:50%;object-fit:cover;flex:none">
+      <div style="flex:1;display:flex;justify-content:space-around">${stat(mine.length,'publications')}${stat('1 248','abonnés')}${stat('312','suivi(e)s')}</div>
+    </div>
+    <div style="font-weight:700;font-size:14px">${igEsc(igUserName)}</div>
+    <div style="color:#555;font-size:13px;margin:2px 0 10px">Crestwood Roleplay</div>
+    <div onclick="toast('Modifier le profil')" style="background:#efefef;border-radius:8px;padding:8px;text-align:center;font-weight:600;font-size:13px;cursor:pointer">Modifier le profil</div>
+    <div style="display:flex;margin:14px 0 4px;border-top:1px solid #dbdbdb">${tabBtn('grid','menu.png','menu_gray.png')}${tabBtn('tag','tag_down_dark.png','tag_down_gray.png')}</div>
+    ${content}`;
+}
+function igProfSwitch(t){igProfTab=t;const bd=document.getElementById('igBody');if(bd)bd.innerHTML=igProfileHTML();}
+
+/* ================= WHATSAPP : interface (images phone.zip) ================= */
+const WA_TIMES={c1:'09:12',c2:'Hier',c3:'08:41',c4:'Lun'};
+let waTabCur='chats';
+function waEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function waShift(min){const d=new Date(Date.now()+min*60000);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function waChatsPaneHTML(){
+  return CHAT.whatsapp.contacts.map(c=>`
+    <div onclick="openChat('whatsapp','${c.id}')" style="display:flex;gap:12px;align-items:center;padding:10px 8px;border-radius:12px;cursor:pointer">
+      ${avatar(c.letter,c.color)}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;color:#fff">${c.name}</span><span style="color:#8e8e93;font-size:12px;flex:none">${WA_TIMES[c.id]||''}</span></div>
+        <div style="color:#8e8e93;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.msgs[c.msgs.length-1][1]}</div>
+      </div>
+    </div>`).join('');
+}
+function waStatusPaneHTML(){
+  const rows=CHAT.whatsapp.contacts.map((c,i)=>`
+    <div onclick="toast('Statut de ${c.name}')" style="display:flex;gap:12px;align-items:center;padding:8px;cursor:pointer">
+      <div style="padding:2px;border-radius:50%;border:2px solid #25D366;flex:none">${avatar(c.letter,c.color)}</div>
+      <div><div style="font-weight:700;color:#fff">${c.name}</div><div style="color:#8e8e93;font-size:12px">il y a ${[12,34,58,95][i%4]} min</div></div>
+    </div>`).join('');
+  return `<div onclick="toast('Ajouter un statut')" style="display:flex;gap:12px;align-items:center;padding:8px;cursor:pointer">
+      <div style="width:48px;height:48px;border-radius:50%;background:#1c1c1e;display:flex;align-items:center;justify-content:center;color:#25D366;font-size:26px;flex:none">+</div>
+      <div><div style="font-weight:700;color:#fff">Mon statut</div><div style="color:#8e8e93;font-size:12px">Appuie pour ajouter un statut</div></div>
+    </div>
+    <div style="color:#8e8e93;font-size:12px;margin:12px 8px 4px">Mises à jour récentes</div>${rows}`;
+}
+function waTabsHTML(){
+  const tab=(id,on,off,label)=>{const act=waTabCur===id;return `<div onclick="waTab('${id}')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer"><img src="${act?on:off}" alt="" style="height:24px;width:auto;display:block"><span style="font-size:11px;font-weight:${act?700:500};color:${act?'#25D366':'#8e8e93'}">${label}</span></div>`;};
+  return tab('chats','whatsapp/message_on_green.png','whatsapp/message_off_gray.png','Discussions')+tab('status','whatsapp/status_on_green.png','whatsapp/status_off_gray.png','Statuts');
+}
+function waTab(id){
+  waTabCur=id;
+  const pane=document.getElementById('waPane'),tabs=document.getElementById('waTabs');
+  if(pane)pane.innerHTML=id==='status'?waStatusPaneHTML():waChatsPaneHTML();
+  if(tabs)tabs.innerHTML=waTabsHTML();
+}
+function waAppHTML(){
+  waTabCur='chats';
+  return `<div id="whatsapp-list" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+    <div style="display:flex;align-items:center;gap:8px;padding:2px 16px 10px">
+      <img src="whatsapp/whatsapp_logo_green.png" alt="" style="width:26px;height:26px">
+      <span style="font-size:22px;font-weight:800;color:#25D366;flex:1">WhatsApp</span>
+      <img src="whatsapp/more_white.png" alt="" onclick="toast('Nouvelle discussion')" style="height:24px;width:auto;cursor:pointer">
+    </div>
+    <div id="waPane" style="flex:1;overflow:auto;padding:0 10px;min-height:0">${waChatsPaneHTML()}</div>
+    <div id="waTabs" style="display:flex;flex:none;border-top:1px solid #222;background:#0b0b0d;padding:8px 0 12px">${waTabsHTML()}</div>
+  </div>
+  <div id="whatsapp-chat" style="flex:1;display:none;flex-direction:column;min-height:0">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 12px 8px;background:#0b0b0d">
+      <span onclick="chatBack('whatsapp')" style="font-size:26px;color:#fff;cursor:pointer;line-height:1">‹</span>
+      <div id="whatsapp-av"></div>
+      <div style="min-width:0"><div id="whatsapp-title" style="color:#fff;font-weight:700;font-size:16px"></div><div style="color:#25D366;font-size:11px">en ligne</div></div>
+    </div>
+    <div id="whatsapp-msgs" style="flex:1;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;min-height:0;background:#0b141a url(whatsapp/night_background_chat.jpg) center/cover"></div>
+    <div style="display:flex;gap:8px;padding:8px 10px 10px;align-items:center;background:#0b141a">
+      <div onclick="waSendLocation()" style="width:38px;height:38px;border-radius:50%;background:#1f2c34;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#8e8e93" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></div>
+      <input id="whatsapp-in" type="text" placeholder="Message" onkeydown="if(event.key==='Enter')sendChat('whatsapp')" style="flex:1;border-radius:20px;border:none;background:#1f2c34;color:#fff;padding:10px 14px;outline:none;font-size:14px;min-width:0">
+      <div onclick="sendChat('whatsapp')" style="background:#00a884;color:#fff;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex:none">➤</div>
+    </div>
+  </div>`;
+}
+function waAddMsg(them,txt,opts){
+  opts=opts||{};
+  const box=document.getElementById('whatsapp-msgs');if(!box)return;
+  const el=document.createElement('div');
+  el.style.cssText='max-width:78%;padding:6px 9px 4px 10px;border-radius:10px;margin:2px 0;font-size:14px;line-height:1.35;color:#e9edef;box-shadow:0 1px 1px rgba(0,0,0,.35);align-self:'+(them?'flex-start':'flex-end')+';background:'+(them?'#202c33':'#005c4b');
+  const body=opts.loc
+    ? `<img src="whatsapp/maps.jpg" alt="" style="width:190px;max-width:100%;height:116px;object-fit:cover;border-radius:7px;display:block;margin-bottom:5px"><div style="font-size:13px">Position actuelle</div>`
+    : waEsc(txt);
+  el.innerHTML=body+`<span style="display:inline-flex;align-items:center;gap:3px;float:right;margin:4px 0 0 10px;font-size:10px;color:rgba(233,237,239,.6)">${opts.time||waShift(0)}${them?'':'<img src="whatsapp/message_check_blue.png" alt="" style="height:11px;width:auto">'}</span><div style="clear:both"></div>`;
+  box.appendChild(el);box.scrollTop=box.scrollHeight;
+}
+function waSendLocation(){
+  waAddMsg(false,'',{loc:true});
+  setTimeout(()=>waAddMsg(true,'Je te vois sur la carte 👀'),900+Math.random()*700);
+}
+
+/* ================= UBER : interface (images phone.zip) ================= */
+const UBER_RIDES=[
+  {id:'x',name:'UberX',img:'uber/uber_x.png',desc:'4 places · Économique',eta:4,price:7900},
+  {id:'comfort',name:'Comfort',img:'uber/uber_confort.png',desc:'Plus d\u2019espace · Véhicule récent',eta:6,price:12150},
+  {id:'black',name:'Black',img:'uber/uber_black.png',desc:'Premium · Chauffeur confirmé',eta:8,price:18500},
+  {id:'moto',name:'Moto',img:'uber/uber_motorcycle.png',desc:'Rapide · 1 passager',eta:3,price:4500}
+];
+const UBER_DRIVERS=['Moussa K.','Ibrahim D.','Awa S.','Koffi A.','Serge T.'];
+const UBER_CARS=['Toyota Corolla','Hyundai Elantra','Kia Rio','Toyota Yaris'];
+const UBER_PLACES=['Maison','Travail','Marché central','Aéroport'];
+let uberSel='x',uberState='idle',uberTimer=null,uberTrip=null,uberDest='';
+function uberFmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' $';}
+function uberEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function uberRand(a){return a[Math.floor(Math.random()*a.length)];}
+function uberStop(){clearInterval(uberTimer);clearTimeout(uberTimer);uberTimer=null;}
+function uberHTML(){return `<div id="uberRoot" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;background:#000;color:#fff">${uberBodyHTML()}</div>`;}
+function uberRender(){const r=document.getElementById('uberRoot');if(r)r.innerHTML=uberBodyHTML();}
+function uberMapHTML(){
+  const moving=uberState==='enroute'||uberState==='trip'||uberState==='arrived';
+  const left=uberState==='arrived'?50:8;
+  return `<div style="position:relative;height:124px;flex:none;overflow:hidden;background:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(180deg,#14233a,#0b1220)">
+    <img src="uber/map_icon.png" alt="" style="position:absolute;left:50%;top:46%;width:100px;height:100px;transform:translate(-50%,-50%);opacity:.85">
+    ${moving?`<img id="uberCar" src="uber/uberx_top.png" alt="" style="position:absolute;top:72%;left:${left}%;height:36px;width:auto;transform:translate(-50%,-50%) rotate(90deg);filter:drop-shadow(0 3px 5px rgba(0,0,0,.6))">`:''}
+  </div>`;
+}
+function uberBodyHTML(){
+  const ride=UBER_RIDES.find(r=>r.id===uberSel)||UBER_RIDES[0];
+  const t=uberTrip;
+  const wrap=(inner,footer)=>uberMapHTML()+`<div style="flex:1;overflow:auto;padding:12px 14px 6px;min-height:0">${inner}</div>`+(footer?`<div style="flex:none;padding:0 14px 14px;background:#000">${footer}</div>`:'');
+  const btn=(label,fn,style)=>`<button class="btn" style="margin-top:12px;font-weight:800;${style||'background:#fff;color:#000'}" onclick="${fn}">${label}</button>`;
+  const grey='background:#1c1c1e;color:#fff';
+  if(uberState==='searching'){
+    return wrap(`<div style="text-align:center;padding:22px 0 6px">
+      <div style="width:46px;height:46px;margin:0 auto 14px;border-radius:50%;border:4px solid #333;border-top-color:#fff;animation:uspin .9s linear infinite"></div>
+      <div style="font-weight:800;font-size:18px">Recherche d\u2019un chauffeur…</div>
+      <div style="color:#8e8e93;font-size:13px;margin-top:6px">${ride.name} · ${uberFmt(ride.price)}</div>
+    </div>${btn('Annuler','uberCancel()',grey)}`);
+  }
+  if(uberState==='enroute'||uberState==='trip'){
+    const trip=uberState==='trip';
+    return wrap(`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:46px;height:46px;border-radius:50%;background:#2b2b2e;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none">${t.driver[0]}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:16px">${t.driver}</div><div style="color:#8e8e93;font-size:13px">${t.car} · ${t.plate}</div></div>
+      <div style="font-weight:700;font-size:13px">4,9 ★</div>
+    </div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px">${trip?'En route vers '+uberEsc(t.dest):'Votre chauffeur arrive'}</div>
+    <div style="background:#d9d9de;border-radius:12px;padding:4px 12px"><img src="uber/vehicle_arrow_white.png" alt="" style="width:100%;height:auto;display:block"></div>
+    <div style="height:4px;background:#2b2b2e;border-radius:2px;overflow:hidden;margin:8px 0"><div id="uberBar" style="height:4px;width:0%;background:#fff"></div></div>
+    <div style="display:flex;justify-content:space-between;color:#8e8e93;font-size:13px"><span>${trip?'Arrivée dans':'Arrive dans'} <b id="uberEta" style="color:#fff">${t.min} min</b></span><span>${uberFmt(t.ride.price)}</span></div>
+    ${trip?'':btn('Annuler la course','uberCancel()',grey)}`);
+  }
+  if(uberState==='arrived'){
+    return wrap(`<div style="text-align:center;padding:14px 0 4px">
+      <div style="font-weight:800;font-size:20px">Votre chauffeur est arrivé</div>
+      <div style="color:#8e8e93;font-size:13px;margin-top:6px">${t.driver} · ${t.car} · ${t.plate}</div>
+    </div>${btn('Commencer la course','uberStart()')}${btn('Annuler la course','uberCancel()',grey)}`);
+  }
+  if(uberState==='done'){
+    return wrap(`<div style="text-align:center;padding:14px 0 4px">
+      <div style="font-weight:800;font-size:20px">Course terminée</div>
+      <div style="font-weight:800;font-size:30px;margin:10px 0 4px">${uberFmt(t.ride.price)}</div>
+      <div style="color:#8e8e93;font-size:13px">${t.ride.name} · ${uberEsc(t.dest)}</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;font-size:30px;color:#ffd60a">${[1,2,3,4,5].map(()=>`<span onclick="toast('Merci pour ta note !')" style="cursor:pointer">★</span>`).join('')}</div>
+    </div>${btn('Terminé','uberDone()')}`);
+  }
+  return wrap(`<div style="font-weight:800;font-size:20px;margin-bottom:10px">Où allons-nous ?</div>
+    <div style="background:#1c1c1e;border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:9px;height:9px;border-radius:50%;background:#fff;flex:none"></span><span style="color:#8e8e93;font-size:14px">Ma position actuelle</span></div>
+    <input id="uberDest" type="text" value="${uberEsc(uberDest)}" placeholder="Destination" style="width:100%;background:#1c1c1e;border:none;color:#fff;border-radius:12px;padding:11px 12px;font-size:14px;outline:none">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px">${UBER_PLACES.map(p=>`<span onclick="uberSetDest(this.dataset.p)" data-p="${p}" style="background:#1c1c1e;border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer">${p}</span>`).join('')}</div>
+    ${UBER_RIDES.map(r=>{const sel=r.id===uberSel;return `<div onclick="uberPick('${r.id}')" style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:14px;margin-bottom:8px;cursor:pointer;background:${sel?'#1c1c1e':'transparent'};border:2px solid ${sel?'#fff':'transparent'}">
+      <img src="${r.img}" alt="" style="width:84px;height:56px;object-fit:contain;flex:none">
+      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">${r.name}</div><div style="color:#8e8e93;font-size:12px">${r.desc}</div><div style="color:#8e8e93;font-size:12px">Arrivée dans ${r.eta} min</div></div>
+      <div style="font-weight:800;font-size:13px;white-space:nowrap">${uberFmt(r.price)}</div>
+    </div>`;}).join('')}
+    `,btn('Demander '+ride.name,'uberRequest()'));
+}
+function uberPick(id){const d=document.getElementById('uberDest');if(d)uberDest=d.value;uberSel=id;uberRender();}
+function uberSetDest(p){uberDest=p;const d=document.getElementById('uberDest');if(d)d.value=p;}
+function uberRun(durMs,next){
+  uberStop();
+  const t0=Date.now();
+  uberTimer=setInterval(()=>{
+    const p=Math.min(1,(Date.now()-t0)/durMs);
+    const car=document.getElementById('uberCar'),bar=document.getElementById('uberBar'),eta=document.getElementById('uberEta');
+    if(car)car.style.left=(8+p*84)+'%';
+    if(bar)bar.style.width=(p*100)+'%';
+    if(eta&&uberTrip){const left=Math.ceil((1-p)*uberTrip.min);eta.textContent=left>0?left+' min':'moins d\u2019une minute';}
+    if(p>=1){uberStop();next();}
+  },120);
+}
+function uberRequest(){
+  const d=document.getElementById('uberDest');
+  uberDest=((d&&d.value)||uberDest||'').trim()||'Maison';
+  const ride=UBER_RIDES.find(r=>r.id===uberSel)||UBER_RIDES[0];
+  const L='ABCDEFGHJKLMNPRSTUVWXYZ';
+  const plate=String(Math.floor(1000+Math.random()*9000))+' '+L.charAt(Math.floor(Math.random()*L.length))+L.charAt(Math.floor(Math.random()*L.length))+' 01';
+  uberTrip={ride,dest:uberDest,driver:uberRand(UBER_DRIVERS),car:uberRand(UBER_CARS),plate,min:ride.eta};
+  uberStop();uberState='searching';uberRender();
+  uberTimer=setTimeout(()=>{
+    uberState='enroute';uberRender();
+    uberRun(9000,()=>{uberState='arrived';uberRender();toast('Votre chauffeur est arrivé');});
+  },2200);
+}
+function uberStart(){
+  uberStop();
+  if(uberTrip)uberTrip.min=6+Math.floor(Math.random()*6);
+  uberState='trip';uberRender();
+  uberRun(10000,()=>{uberState='done';uberRender();});
+}
+function uberCancel(){uberStop();uberState='idle';uberRender();toast('Course annulée');}
+function uberDone(){uberStop();uberState='idle';uberTrip=null;uberRender();}
+
+/* ================= APP STORE (téléchargements) ================= */
+const storeInfo={maps:'Navigation · GPS',uber:'VTC · Livraison',whatsapp:'Messagerie',insta:'Réseaux sociaux',yt:'Vidéos',snap:'Snaps',tt:'Vidéos courtes',xf:'Réseau social',mail:'E-mail',cal:'Agenda',notes:'Notes',weather:'Météo',messages:'Messages · iMessage',music:'Musique',netflix:'Films & séries',spotify:'Musique & podcasts'};
+function storeHTML(){
+  const notInst=apps.filter(a=>!installedApps.has(a.id));
+  let h='<div style="padding:6px 2px"><div style="font-size:24px;font-weight:800;color:#fff">Ystore</div><div style="color:#8e8e93;font-size:13px;margin:2px 0 10px">'+installedApps.size+' app(s) installée(s)</div></div>';
+  h+='<div style="color:#8e8e93;font-size:12px;margin-bottom:6px">TENDANCES À INSTALLER</div>';
+  notInst.forEach(a=>{
+    h+='<div style="display:flex;align-items:center;gap:12px;background:#1c1c1e;border-radius:14px;padding:10px;margin-bottom:10px">'
+      +'<div class="icon '+a.bg+'" style="width:52px;height:52px;flex:none;border-radius:14px;overflow:hidden">'+S[a.icon]+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;color:#fff;font-size:15px">'+a.lbl+'</div><div style="color:#8e8e93;font-size:12px">'+(storeInfo[a.id]||'Gratuit')+'</div></div>'
+      +'<button id="st-'+a.id+'" onclick="storeDownload(\''+a.id+'\')" style="background:#0a84ff;border:none;color:#fff;border-radius:16px;padding:7px 18px;font-weight:600;font-size:13px;cursor:pointer;flex:none;min-width:78px">Obtenir</button></div>';
+  });
+  return h;
+}
+function storeInstall(id){
+  installedApps.add(id);
+  renderHome();
+  const st=document.getElementById('scr-appstore');
+  if(st){const c=st.querySelector('.content');if(c)c.innerHTML=storeHTML();}
+  toast((apps.find(x=>x.id===id)||{}).lbl+' installée');
+}
+function storeDownload(id){
+  const btn=document.getElementById('st-'+id);if(!btn)return;
+  btn.disabled=true;btn.textContent='0%';btn.style.width='78px';btn.style.padding='7px 0';btn.style.background='#0a84ff';
+  let p=0;const iv=setInterval(()=>{
+    p+=8;
+    btn.textContent=p+'%';
+    btn.style.background= p>=100 ? '#30d158' : 'rgba(10,132,255,'+(0.35+p/140)+')';
+    if(p>=100){clearInterval(iv);btn.textContent='✓';btn.style.background='#30d158';setTimeout(()=>storeInstall(id),220);}
+  },95);
+}
+
+/* ================= YOUTUBE (lecture de vraies vidéos) ================= */
+const ytVideos=[
+  {id:'BFQMdaJGohk',title:'Vidéo YouTube',channel:'Short',vertical:true},
+  {id:'sv2pCTtKYYc',title:'Vidéo YouTube',channel:'Short',vertical:true},
+  {id:'ZrHQEX1PMzA',title:'Vidéo YouTube',channel:'Short',vertical:true},
+];
+function ytExtractId(url){
+  url=(url||'').trim();
+  const patterns=[
+    /(?:youtube\.com\/watch\?[^#]*\bv=)([\w-]{11})/,
+    /(?:youtu\.be\/)([\w-]{11})/,
+    /(?:youtube\.com\/shorts\/)([\w-]{11})/,
+    /(?:youtube\.com\/embed\/)([\w-]{11})/,
+    /(?:youtube\.com\/live\/)([\w-]{11})/,
+  ];
+  for(const p of patterns){const m=url.match(p);if(m)return m[1];}
+  if(/^[\w-]{11}$/.test(url))return url;
+  return null;
+}
+function ytHTML(){
+  let h='<div style="display:flex;gap:8px;margin-bottom:14px">'
+    +'<input id="ytUrlInput" type="text" placeholder="Coller un lien YouTube..." onkeydown="if(event.key===\'Enter\')ytAddFromInput()" style="flex:1;min-width:0;background:#1c1c1e;border:none;border-radius:10px;padding:10px 12px;color:#fff;font-size:14px">'
+    +'<button onclick="ytAddFromInput()" style="background:#ff0000;border:none;color:#fff;border-radius:10px;padding:0 18px;font-weight:600;cursor:pointer;flex:none">Lire</button></div>';
+  if(ytVideos.length===0){
+    h+='<div style="text-align:center;color:#8e8e93;padding:50px 24px;font-size:14px;line-height:1.6">Aucune vidéo pour l\'instant.<br>Colle un lien YouTube ci-dessus 👆</div>';
+  }else{
+    ytVideos.forEach((v,i)=>{
+      h+='<div onclick="ytOpenPlayer('+i+')" style="background:#1c1c1e;border-radius:12px;overflow:hidden;margin-bottom:12px;cursor:pointer">'
+        +'<div style="height:170px;position:relative;background:#000">'
+        +'<img src="https://img.youtube.com/vi/'+v.id+'/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">'
+        +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center">'+S.yt+'</div></div>'
+        +'</div><div style="padding:10px"><div style="font-weight:700;font-size:14px">'+v.title+'</div><div style="color:#999;font-size:12px">'+v.channel+'</div></div></div>';
+    });
+  }
+  return h;
+}
+function ytRefreshList(){const el=document.getElementById('scr-yt');if(el){const c=el.querySelector('.content');if(c)c.innerHTML=ytHTML();}}
+function ytAddFromInput(){
+  const input=document.getElementById('ytUrlInput');
+  const url=input.value.trim();
+  if(!url)return;
+  const id=ytExtractId(url);
+  if(!id){toast('Lien YouTube invalide');return;}
+  ytVideos.unshift({id:id,title:'Vidéo YouTube',channel:'Ajoutée par toi',vertical:/\/shorts\//.test(url)});
+  input.value='';
+  ytRefreshList();
+  ytOpenPlayer(0);
+}
+function ytOpenPlayer(i){
+  const v=ytVideos[i];if(!v)return;
+  let el=document.getElementById('scr-ytplayer');
+  if(!el){
+    el=document.createElement('div');el.id='scr-ytplayer';el.className='view dark';
+    el.innerHTML='<div class="atop" style="color:#fff">'
+      +'<span onclick="ytClosePlayer()" style="cursor:pointer;font-size:20px">‹</span>'
+      +'<span style="font-weight:600;font-size:16px" id="ytPlayerTitle">Vidéo</span>'
+      +'<span style="width:18px"></span></div>'
+      +'<div style="background:#000"><div style="position:relative;width:100%;padding-top:'+(v.vertical?'177.78%':'56.25%')+'">'
+      +'<iframe id="ytIframe" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>'
+      +'</div></div><div id="ytPlayerInfo" style="padding:14px;color:#fff"></div>';
+    screens.appendChild(el);
+  }
+  document.getElementById('ytPlayerTitle').textContent=v.title;
+  document.getElementById('ytPlayerInfo').innerHTML='<div style="font-weight:700;font-size:16px">'+v.title+'</div><div style="color:#999;font-size:13px;margin-top:4px">'+v.channel+'</div>';
+  document.getElementById('ytIframe').src='https://www.youtube-nocookie.com/embed/'+v.id+'?playsinline=1&rel=0';
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+function ytClosePlayer(){
+  const f=document.getElementById('ytIframe');if(f)f.src='';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('scr-yt').classList.add('active');
+}
+
+/* ================= NAVIGATION ================= */
+function openApp(id){
+  if(id==='camera'){
+    try{
+      if(window.AndroidHUD&&AndroidHUD.onHudAction){AndroidHUD.onHudAction('camera:open','{}');return;}
+    }catch(e){}
+    toast('Caméra indisponible');
+    return;
+  }
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('lock').classList.remove('active');
+  document.getElementById('home').classList.remove('active');
+  let el=document.getElementById('scr-'+id);
+  if(!el){
+    el=document.createElement('div');el.id='scr-'+id;
+    const spec=appContent[id]||{title:id,body:'<div class="card">Démo</div>'};
+    const theme=spec.theme||'light';
+    el.className='view '+(theme==='dark'?'dark':'light');
+    let body;
+    if(id==='calc'){el.className='view dark';body=`<div class="content" style="padding:0;display:flex;height:100%">${calcHTML}</div>`;}
+    else if(id==='notes'){body=`<div class="content">${notesHTML}</div>`;}
+    else if(id==='clock'){el.className='view dark';body=`<div class="content">${clockHTML}</div>`;}
+    else if(id==='call'){el.className='view dark';body=`<div id="phoneWrap" style="height:100%">${phoneHTML()}</div>`;}
+    else if(id==='whatsapp'||id==='messages'){el.className='view dark';body = id==='whatsapp'
+      ? (waRegistered ? `<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">${chatAppHTML('whatsapp')}</div>` : `<div id="waOnboardWrap" style="flex:1;overflow:hidden"></div>`)
+      : `<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">${chatAppHTML('messages')}</div>`;}
+    else if(id==='insta'){body = igLoggedIn ? instaAppHTML() : `<div id="igAuthWrap" style="flex:1;overflow:hidden"></div>`;}
+    else if(id==='uber'){el.className='view dark';body=`<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">${uberHTML()}</div>`;}
+    else if(id==='music'||id==='spotify'){el.className='view dark';body=`<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">${musHTML()}</div>`;}
+    else if(id==='appstore'){el.className='view dark';body=`<div class="content">${storeHTML()}</div>`;}
+    else if(id==='yt'){el.className='view dark';body=`<div class="content">${ytHTML()}</div>`;}
+    else if(id==='snap'){body=`<div class="content">${snapHTML()}</div>`;}
+    else if(id==='tt'){body=`<div id="ttWrap" style="flex:1;overflow:hidden;padding:8px">${ttHTML()}</div>`;}
+    else if(id==='xf'){body=`<div class="content">${xfHTML()}</div>`;}
+    else if(id==='mail'){body=`<div class="content">${mailHTML()}</div>`;}
+    else if(id==='cal'){body=`<div class="content">${calHTML()}</div>`;}
+    else if(id==='safari'){body=`<div class="content">${safariHTML()}</div>`;}
+    else if(id==='settings'){body=`<div class="content" id="settingsBody">${settingsBodyHTML()}</div>`;}
+    else body=`<div class="content">${spec.body}</div>`;
+    el.innerHTML=`<div class="atop" style="color:${theme==='dark'?'#fff':'#000'};justify-content:center">
+      <span style="font-weight:600;font-size:16px">${spec.title}</span></div>${body}`;
+    screens.appendChild(el);
+    if(id==='calc'){calcState='0';calcPrev='';calcOp='';calcFresh=true;document.getElementById('calcDisp').textContent='0';el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>calcKey(b.dataset.k));}
+    if(id==='clock'){sp=false;clearInterval(clockInt);document.getElementById('stopStart').textContent='Start';}
+    if(id==='call'&&!phoneCallActive){phoneTab='favoris';phoneDialed='';clearInterval(phoneCallTimerInt);}
+    if(id==='music'||id==='spotify'){musProg=0;musPlaying=false;clearInterval(musInt);document.getElementById('musBtn').textContent='▶';musRender();}
+    if(id==='whatsapp'&&!waRegistered){waRenderStep(1);}
+    if(id==='insta'&&!igLoggedIn){igRenderAuth('login');}
+  }
+  setTimeout(()=>el.classList.add('active'),10);
+}
+function closeApp(){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('home').classList.add('active');}
+
+/* ================= BARRE DE FERMETURE (home indicator) ================= */
+function goHomeFromBar(){
+  if(document.getElementById('home').classList.contains('active'))return;
+  if(document.getElementById('lock').classList.contains('active'))return;
+  closeApp();
+}
+/* Ferme le téléphone (retour au jeu) via le pont Android ; dans un navigateur on revient juste à l'accueil. */
+function closePhone(){
+  try{
+    if(window.AndroidHUD&&AndroidHUD.onHudAction){AndroidHUD.onHudAction('settings:close','{}');return;}
+  }catch(e){}
+  goHomeFromBar();
+}
+(function(){
+  const bar=document.getElementById('homeBar');
+  if(!bar)return;
+  let sy=null,moved=false;
+  bar.addEventListener('pointerdown',e=>{sy=e.clientY;moved=false;try{bar.setPointerCapture(e.pointerId);}catch(_){}});
+  bar.addEventListener('pointermove',e=>{if(sy!=null && Math.abs(e.clientY-sy)>6)moved=true;});
+  bar.addEventListener('pointercancel',()=>{sy=null;});
+  bar.addEventListener('pointerup',e=>{
+    if(sy==null)return;
+    const swipeUp=moved && sy-e.clientY>16;
+    const inApp=!document.getElementById('home').classList.contains('active') && !document.getElementById('lock').classList.contains('active');
+    sy=null;
+    /* Glisser vers le haut depuis une application : retour à l'accueil. */
+    if(swipeUp && inApp){closeApp();return;}
+    /* La barre du bas ne ferme plus le téléphone : on utilise la petite flèche à côté (#phoneCloseArrow). */
+  });
+})();
+
+(function(){
+  var a=document.getElementById('phoneCloseArrow');
+  if(a)a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();closePhone();});
+})();
+
+/* ================= DÉVERROUILLAGE (cliquer OU glisser) ================= */
+function unlock(){document.getElementById('lock').classList.remove('active');document.getElementById('home').classList.add('active');}
+(function(){
+  const zone=document.getElementById('swipeZone');
+  let startY=null,dy=0;
+  zone.addEventListener('pointerdown',e=>{startY=e.clientY;dy=0;zone.setPointerCapture(e.pointerId);});
+  zone.addEventListener('pointermove',e=>{if(startY==null)return;dy=Math.max(0,startY-e.clientY);zone.style.transform=`translateY(${-dy}px)`;zone.style.opacity=String(Math.max(.25,1-dy/140));});
+  zone.addEventListener('pointerup',()=>{zone.style.transform='';zone.style.opacity='';if(dy>50)unlock();else dy=0;});
+  // un simple clic/tap déverrouille aussi
+  zone.addEventListener('click',()=>unlock());
+})();
+
+/* toast */
+let toastT=null;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1600);}
+
+/* ================= ÉCRAN DE VERROUILLAGE : notifications, torche, appareil photo ================= */
+const LOCK_NOTIFS=[
+  {app:'Messages',icon:'💬',color:'#34c759',title:'Maman',msg:"D’accord, à demain alors",time:'2 min'},
+  {app:'WhatsApp',icon:'💬',img:'WhatsIcon.png',color:'#25D366',title:'Groupe Team',msg:'Sarah : On arrive 🚀',time:'8 min'},
+];
+function renderLockNotifs(){
+  const el=document.getElementById('lockNotifs');if(!el)return;
+  el.innerHTML=LOCK_NOTIFS.map((n,i)=>`<div class="lockNotif" style="animation-delay:${i*.08}s" onclick="unlock()">
+    <div class="nIcon" style="background:${n.img?'transparent':n.color}">${n.img?`<img src="${n.img}" alt="" style="width:100%;height:100%;object-fit:contain">`:n.icon}</div>
+    <div class="nBody">
+      <div class="nTop"><span class="nApp">${n.app}</span><span>${n.time}</span></div>
+      <div class="nTitle">${n.title}</div>
+      <div class="nMsg">${n.msg}</div>
+    </div>
+  </div>`).join('');
+}
+renderLockNotifs();
+let torchOn=false;
+function toggleTorch(e){
+  e.stopPropagation();
+  torchOn=!torchOn;
+  document.getElementById('screen').classList.toggle('torchOn',torchOn);
+  document.getElementById('torchBtn').classList.toggle('on',torchOn);
+  toast(torchOn?'Torche activée':'Torche désactivée');
+}
+function lockCamera(e){
+  e.stopPropagation();
+  const f=document.getElementById('flashOverlay');
+  f.classList.add('on');
+  setTimeout(()=>f.classList.remove('on'),90);
+  toast('📸 Photo capturée');
+}
+
+/* horloge + fonds */
+function tick(){const d=new Date();
+  const hm=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const elt=document.getElementById('sbTime');if(elt)elt.textContent=hm;
+  const lk=document.getElementById('lockTime');if(lk)lk.textContent=hm;
+  const dt=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const ld=document.getElementById('lockDate');if(ld)ld.textContent=dt;
+}
+setInterval(tick,1000);tick();
+applyWallpaper(document.getElementById('homeWp'));
+applyWallpaper(document.getElementById('lockWp'));
+updateStatusIcons();
+document.getElementById('lockWp').addEventListener('click',()=>{wpIdx=(wpIdx+1)%WP.length;applyWallpaper(document.getElementById('lockWp'));applyWallpaper(document.getElementById('homeWp'));});
+
+/* ================= CENTRE DE CONTRÔLE ================= */
+function openCC(){document.getElementById('ccOverlay').classList.add('active');}
+function closeCC(){document.getElementById('ccOverlay').classList.remove('active');}
+function ccZoneTap(){document.getElementById('ccOverlay').classList.toggle('active');}
+
+function ccToast(label){toast(label);}
+
+function ccToggle(id){
+  const el=document.getElementById(id);
+  const on=el.classList.toggle('on');
+  if(id==='ccWifi') toast(on?'Wi-Fi activé':'Wi-Fi désactivé');
+  if(id==='ccBt') toast(on?'Bluetooth activé':'Bluetooth désactivé');
+  if(id==='ccAirplane') toast(on?'Mode avion activé':'Mode avion désactivé');
+  if(id==='ccHotspot') toast(on?'Point d’accès activé':'Point d’accès désactivé');
+  if(id==='ccFocus'){document.getElementById('ccFocusTxt').textContent=on?'Activée':'Désactivée';toast('Concentration '+(on?'activée':'désactivée'));}
+  if(id==='ccOrient'){document.getElementById('ccOrientTxt').textContent=on?'Rotation déverrouillée':'Rotation verrouillée';el.querySelector('.ico').textContent=on?'🔓':'🔒';}
+  if(id==='ccBgSound'){document.getElementById('ccBgSoundTxt').textContent=on?'Activés':'Désactivés';}
+}
+
+let ccPlaying=true,ccProg=2,ccInt=null;
+function ccMusRender(){
+  document.getElementById('ccMusBtn').textContent=ccPlaying?'⏸️':'▶️';
+  document.getElementById('ccMusFill').style.width=Math.min(100,ccProg)+'%';
+}
+function ccMusTick(){ccProg+=0.4;if(ccProg>100)ccProg=0;ccMusRender();}
+function ccMusToggle(){
+  ccPlaying=!ccPlaying;
+  clearInterval(ccInt);
+  if(ccPlaying)ccInt=setInterval(ccMusTick,300);
+  ccMusRender();
+}
+ccMusRender();
+ccInt=setInterval(ccMusTick,300);
+/* [v21] ouverture directe d'une appli (galerie apres une photo, WhatsApp apres une notification), aussi quand la page est reutilisee */
+function cwOpenRequested(){try{const a=localStorage.getItem('crestwoodPhoneOpenApp');if(a&&/^[a-z]+$/.test(a)){localStorage.removeItem('crestwoodPhoneOpenApp');if(document.getElementById('lock'))document.getElementById('lock').classList.remove('active');openApp(a);}}catch(e){}}
+cwOpenRequested();window.addEventListener('cw:pageshow',cwOpenRequested);
+
+/* Sliders verticaux luminosité / volume (glisser avec le doigt ou la souris) */
+function ccSliderStart(e,type){
+  e.preventDefault();
+  const track=type==='bright'?document.getElementById('ccBright'):document.getElementById('ccVol');
+  const fill=type==='bright'?document.getElementById('ccBrightFill'):document.getElementById('ccVolFill');
+  const rect=track.getBoundingClientRect();
+  const update=(clientY)=>{
+    let pct=100-((clientY-rect.top)/rect.height*100);
+    pct=Math.max(4,Math.min(100,pct));
+    fill.style.height=pct+'%';
+    if(type==='bright'){
+      const b=0.35+ (pct/100)*0.65;
+      document.getElementById('screen').style.filter=(torchOn?'brightness(1.35) saturate(0) ':'')+'brightness('+b+')';
+    }
+  };
+  update(e.clientY);
+  track.setPointerCapture(e.pointerId);
+  const move=(ev)=>update(ev.clientY);
+  const up=()=>{track.removeEventListener('pointermove',move);track.removeEventListener('pointerup',up);};
+  track.addEventListener('pointermove',move);
+  track.addEventListener('pointerup',up);
+}
+</script>
+<script src="net.js"></script>
+<script src="store.js"></script>
+</body>
+</html>

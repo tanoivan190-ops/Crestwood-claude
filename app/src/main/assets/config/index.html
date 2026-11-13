@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="fr" data-sg>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Paramètres — Crestwood RP</title>
+<!--
+  [v15] Paramètres en jeu, style menu pause GTA V (noir / gris).
+  Page -> Java : AndroidHUD.onHudAction("settings:set", {"key":"fps_limit","value":"60"})
+                 settings:aspect {value}, settings:reset, settings:close
+  Java -> page : valeurs actuelles dans l'URL (?s={...}) ; Java applique au moteur (game/CwSettings.cpp)
+-->
+<style>
+:root{
+  --bg:rgba(0,0,0,.58); --panel:rgba(12,12,12,.62); --row:rgba(255,255,255,.04); --row-on:#f2f2f2;
+  --text:#f4f4f4; --muted:#9a9a9a; --dim:#6b6b6b; --line:rgba(255,255,255,.10); --accent:#ffffff; --seg:rgba(255,255,255,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;color:var(--text);
+  font-family:"Chalet","Helvetica Neue",Inter,Roboto,Arial,sans-serif;-webkit-user-select:none;user-select:none}
+body{background:linear-gradient(180deg,rgba(0,0,0,0.58),rgba(0,0,0,.45) 40%,rgba(0,0,0,0.58));
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;padding:3.2vh 4vw 2.6vh}
+/* en-tete */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.brand{font-size:clamp(22px,7.2vh,40px);font-weight:900;font-style:italic;letter-spacing:-.01em;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.brand small{display:block;font-size:clamp(10px,2.4vh,13px);font-style:normal;font-weight:600;letter-spacing:.3em;color:var(--muted);margin-top:4px}
+.who{text-align:right;font-size:clamp(10px,2.5vh,13px);color:var(--muted);line-height:1.4}
+.who b{color:var(--text);font-weight:700}
+/* onglets */
+.tabs{display:flex;gap:2px;margin-top:2vh}
+.tab{flex:1;padding:1.3vh 8px;background:var(--bg);font-size:clamp(10px,2.6vh,13px);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-top:3px solid transparent;text-align:center}
+.tab.on{background:rgba(0,0,0,0.62);color:#fff;border-top-color:#fff}
+.tab.go{color:#fff}
+.tab.go:active,.tab.quit:active{background:rgba(255,255,255,.12)}
+/* corps */
+.body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(150px,27%) 1fr;gap:2px;margin-top:2px}
+.cats{background:var(--panel);display:flex;flex-direction:column;overflow:auto}
+.cat{padding:1.6vh 16px;text-align:left;font-size:clamp(11px,2.9vh,14.5px);font-weight:700;color:#d6d6d6;border-bottom:1px solid var(--line)}
+.cat.on{background:var(--row-on);color:#111}
+.list{background:var(--panel);overflow:auto;display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;min-height:clamp(34px,8.4vh,46px);padding:0 16px;
+  border-bottom:1px solid var(--line);font-size:clamp(11px,2.9vh,14.5px);font-weight:600}
+.row.on{background:var(--row-on);color:#111}
+.row.info .val{color:var(--muted)}
+.row.on.info .val{color:#555}
+.val{display:flex;align-items:center;gap:6px;min-width:clamp(150px,30vw,260px);justify-content:flex-end}
+.arrow{width:clamp(26px,6.4vh,34px);height:clamp(26px,6.4vh,34px);display:grid;place-items:center;font-size:clamp(14px,3.6vh,18px);font-weight:900;opacity:.9}
+.arrow:active{transform:scale(.88)}
+.vtxt{min-width:clamp(80px,15vw,130px);text-align:center;font-weight:800;letter-spacing:.02em}
+.bar{display:flex;gap:3px;min-width:clamp(110px,18vw,160px)}
+.bar i{flex:1;height:clamp(9px,2.2vh,12px);background:var(--seg)}
+.bar i.f{background:#fff}
+.row.on .bar i{background:#bdbdbd}
+.row.on .bar i.f{background:rgba(17,17,17,0.62)}
+.row.btn .vtxt{padding:.6vh 12px;border:1px solid currentColor}
+/* pied */
+.desc{margin-top:2px;background:rgba(0,0,0,0.58);padding:1.4vh 16px;font-size:clamp(10px,2.6vh,13px);color:#cfcfcf;min-height:5.6vh;line-height:1.35}
+.foot{display:flex;justify-content:flex-end;gap:18px;margin-top:1.2vh;font-size:clamp(10px,2.5vh,12.5px);font-weight:700;color:#e8e8e8}
+.foot button{display:flex;align-items:center;gap:7px;padding:.6vh 4px}
+.key{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:50%;background:#fff;color:#111;font-size:11px;font-weight:900}
+.toast{position:fixed;left:50%;bottom:11vh;transform:translateX(-50%);background:rgba(0,0,0,0.68);border-left:3px solid #fff;padding:9px 18px;font-size:12.5px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3)}
+@media (max-height:340px){.wrap{padding:2vh 3vw 1.6vh}.brand small{display:none}}
+</style>
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+<link rel="stylesheet" href="../common/cw-signal.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="brand">Crestwood RP<small>PARAMÈTRES</small></div>
+    <div class="who" id="who">Résolution <b id="screen">—</b></div>
+  </header>
+  <nav class="tabs">
+    <button class="tab on" type="button">Paramètres</button>
+    <button class="tab go" type="button" data-close>Reprendre le jeu</button>
+  </nav>
+  <section class="body">
+    <aside class="cats" id="cats"></aside>
+    <div class="list" id="list"></div>
+  </section>
+  <div class="desc" id="desc"></div>
+  <footer class="foot">
+    <button type="button" data-reset><span class="key">↺</span>Réinitialiser</button>
+    <button type="button" data-close><span class="key">✕</span>Retour</button>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  function send(action, payload) {
+    try { if (window.AndroidHUD && window.AndroidHUD.onHudAction) window.AndroidHUD.onHudAction(action, JSON.stringify(payload || {})); }
+    catch (e) { console.log(e); }
+  }
+  var V = { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 1, res_scale: 100, gfx_preset: 2, aspect: "16:9", screen: "" };
+  try {
+    var q = new URLSearchParams(location.search).get("s");
+    if (q) { var o = JSON.parse(q); for (var k in o) V[k] = o[k]; }
+  } catch (e) { /* valeurs par defaut */ }
+
+  var PRESETS = [
+    { n: "Bas", res_scale: 60, draw_dist: 55, post_fx: 0 },
+    { n: "Moyen", res_scale: 80, draw_dist: 80, post_fx: 1 },
+    { n: "Élevé", res_scale: 100, draw_dist: 100, post_fx: 1 },
+    { n: "Ultra", res_scale: 100, draw_dist: 140, post_fx: 1 }
+  ];
+  var ONOFF = [["Désactivé", 0], ["Activé", 1]];
+  var CATS = [
+    { id: "gfx", n: "Graphismes", rows: [
+      { k: "gfx_preset", n: "Qualité graphique", t: "list", o: PRESETS.map(function (p, i) { return [p.n, i]; }),
+        d: "Règle d'un coup la résolution, la distance d'affichage et les effets. « Bas » pour les petits téléphones." },
+      { k: "res_scale", n: "Échelle de résolution", t: "bar", min: 50, max: 100, step: 5, u: " %",
+        d: "Moins de pixels = plus de FPS. 100 % = la résolution de ton écran." },
+      { k: "draw_dist", n: "Distance d'affichage", t: "bar", min: 40, max: 160, step: 10, u: " %",
+        d: "Distance à laquelle les bâtiments détaillés apparaissent. Plus bas = plus fluide." },
+      { k: "post_fx", n: "Effets visuels", t: "list", o: ONOFF,
+        d: "Filtres de couleur et effets d'image du jeu. Les couper donne quelques FPS en plus." },
+      { k: "fps_limit", n: "Limite d'images (FPS)", t: "list", o: [["30", 30], ["45", 45], ["60", 60], ["90", 90], ["120", 120]],
+        d: "Images par seconde maximum. 30 ou 45 économisent la batterie et chauffent moins le téléphone." },
+      { k: "fps_counter", n: "Compteur de FPS", t: "list", o: ONOFF,
+        d: "Affiche les images par seconde à gauche de l'écran." }
+    ] },
+    { id: "screen", n: "Affichage", rows: [
+      { k: "aspect", n: "Format d'image", t: "list", o: [["16:9", "16:9"], ["16:10", "16:10"], ["4:3", "4:3"], ["5:4", "5:4"]],
+        d: "Format de l'image du jeu. 16:9 conseillé pour la plupart des téléphones." },
+      { k: "screen", n: "Résolution de l'écran", t: "info", d: "Résolution native de ton téléphone." }
+    ] },
+    { id: "ctrl", n: "Commandes & HUD", rows: [
+      { k: "cw_buttons", n: "Icônes Crestwood des boutons", t: "list", o: [["Désactivées", 0], ["Activées", 1]],
+        d: "Voiture, poing / balle, saut, accroupi, course : les icônes Crestwood à la place des boutons d'origine." },
+      { k: "voice_btn", n: "Bouton micro (VOCAL)", t: "list", o: [["Masqué", 0], ["Affiché", 1]],
+        d: "Maintiens le bouton VOCAL pour parler aux joueurs proches (et dans un appel téléphonique)." },
+      { k: "_lang", n: "Langue · Language · Idioma", t: "list", o: [["Français", "fr"], ["English", "en"], ["Português", "pt"]],
+        d: "Langue des menus, du chargement et de la connexion (appliquée au prochain lancement). Les messages du serveur restent en français." }
+    ] },
+    { id: "misc", n: "Réinitialiser", rows: [
+      { k: "_reset", n: "Remettre les paramètres par défaut", t: "btn", label: "Réinitialiser",
+        d: "Toutes les options reviennent à leur valeur d'origine." }
+    ] }
+  ];
+
+  var cat = 0, sel = 0, toastT = 0;
+  function toast(t) { var e = $("toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(function () { e.classList.remove("show"); }, 1300); }
+  function curIndex(r) {
+    for (var i = 0; i < r.o.length; i++) if (String(r.o[i][1]) === String(V[r.k])) return i;
+    return 0;
+  }
+  try { V._lang = localStorage.getItem("cw.lang") || "fr"; } catch (e) { V._lang = "fr"; }
+  function apply(key, value, silent) {
+    V[key] = value;
+    if (key === "_lang") {   // [v20] langue de l'interface (common/i18n.js)
+      try { localStorage.setItem("cw.lang", String(value)); } catch (e) {}
+      toast(value === "en" ? "Language saved: applied next launch" : (value === "pt" ? "Idioma salvo: aplicado no próximo início" : "Langue enregistrée : appliquée au prochain lancement"));
+      return;
+    }
+    if (key === "aspect") send("settings:aspect", { key: "aspect", value: String(value) });
+    else send("settings:set", { key: key, value: String(value) });
+    if (!silent) toast("Paramètre appliqué");
+  }
+  function change(r, dir) {
+    if (r.t === "list") {
+      var i = (curIndex(r) + dir + r.o.length) % r.o.length;
+      apply(r.k, r.o[i][1]);
+      if (r.k === "gfx_preset") {
+        var p = PRESETS[r.o[i][1]];
+        apply("res_scale", p.res_scale, true); apply("draw_dist", p.draw_dist, true); apply("post_fx", p.post_fx, true);
+        toast("Qualité « " + p.n + " » appliquée");
+      }
+    } else if (r.t === "bar") {
+      var v = Math.max(r.min, Math.min(r.max, Number(V[r.k]) + dir * r.step));
+      if (v !== Number(V[r.k])) apply(r.k, v);
+    } else if (r.t === "btn") {
+      send("settings:reset", {});
+      V = Object.assign(V, { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 1, res_scale: 100, gfx_preset: 2, aspect: "16:9" });
+      toast("Paramètres réinitialisés");
+    }
+    render();
+  }
+  function valueHtml(r) {
+    if (r.t === "info") return '<span class="vtxt">' + (V[r.k] || "—") + "</span>";
+    if (r.t === "btn") return '<span class="vtxt">' + r.label + "</span>";
+    var txt, inner;
+    if (r.t === "bar") {
+      var segs = 10, f = Math.round((Number(V[r.k]) - r.min) / (r.max - r.min) * segs), b = "";
+      for (var i = 0; i < segs; i++) b += '<i class="' + (i < f ? "f" : "") + '"></i>';
+      inner = '<span class="bar">' + b + "</span>";
+      txt = "";
+    } else {
+      inner = '<span class="vtxt">' + r.o[curIndex(r)][0] + "</span>";
+    }
+    return '<button class="arrow" type="button" data-dir="-1" aria-label="Précédent">‹</button>' + inner + (txt || "") +
+      '<button class="arrow" type="button" data-dir="1" aria-label="Suivant">›</button>';
+  }
+  function render() {
+    $("screen").textContent = V.screen || "—";
+    $("cats").innerHTML = CATS.map(function (c, i) { return '<button class="cat' + (i === cat ? " on" : "") + '" type="button" data-cat="' + i + '">' + c.n + "</button>"; }).join("");
+    var rows = CATS[cat].rows;
+    if (sel >= rows.length) sel = 0;
+    $("list").innerHTML = rows.map(function (r, i) {
+      return '<div class="row' + (i === sel ? " on" : "") + (r.t === "info" ? " info" : "") + (r.t === "btn" ? " btn" : "") + '" data-row="' + i + '"><span>' + r.n + '</span><span class="val">' + valueHtml(r) + "</span></div>";
+    }).join("");
+    $("desc").textContent = rows[sel] ? rows[sel].d : "";
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    var c = t.closest("[data-cat]");
+    if (c) { cat = Number(c.dataset.cat); sel = 0; render(); return; }
+    if (t.closest("[data-close]")) { send("settings:close", {}); return; }
+    if (t.closest("[data-reset]")) { change({ t: "btn" }, 0); return; }
+    var row = t.closest("[data-row]");
+    if (!row) return;
+    var idx = Number(row.dataset.row), r = CATS[cat].rows[idx];
+    var a = t.closest("[data-dir]");
+    if (a) { sel = idx; change(r, Number(a.dataset.dir)); return; }
+    if (sel !== idx) { sel = idx; render(); return; }
+    if (r.t === "list" || r.t === "btn") change(r, 1);   // second appui sur la ligne = valeur suivante
+  });
+  render();
+})();
+</script>
+</body>
+</html>

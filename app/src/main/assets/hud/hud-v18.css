@@ -1,0 +1,229 @@
+/* =====================================================================
+   Crestwood v18 · HUD
+   - petit bouton chat collé à la minimap (toucher : écrire, maintenir : masquer le chat)
+   - rangée rapide : roue · paramètres · téléphone
+   - roue à 16 entrées sur 2 anneaux, nom au centre
+   - chat : bulle de saisie et fil de messages retravaillés
+   Palette : gris / noir / bleu Crestwood #3B82FF, bords carrés, verre légèrement transparent.
+   ===================================================================== */
+:root{
+  --cw18-blue:#3B82FF;
+  --cw18-blue-d:#1E4FA8;
+  --cw18-glass:rgba(10,11,14,.78);
+  --cw18-line:rgba(255,255,255,.14);
+  --cw18-text:#F3F4F6;
+  --cw18-muted:#9AA0A8;
+  --cw18-mm:min(34vh,16vw);
+}
+
+/* ---------- bouton chat près de la carte ---------- */
+.cw18-chatpin{
+  position:absolute;z-index:14;pointer-events:auto;
+  left:calc(var(--cw18-mm) + 16px + env(safe-area-inset-left));
+  top:calc(6px + env(safe-area-inset-top));
+  width:clamp(26px,8.2vh,34px);height:clamp(26px,8.2vh,34px);
+  display:grid;place-items:center;padding:0;overflow:hidden;
+  border-radius:3px;border:1px solid var(--cw18-line);
+  background:var(--cw18-glass);color:var(--cw18-text);
+  box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+  -webkit-tap-highlight-color:transparent;transition:background .15s ease,border-color .15s ease,transform .12s ease,left .25s ease;
+}
+.cw18-chatpin::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--cw18-blue)}
+.cw18-chatpin svg{width:56%;height:56%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:1}
+.cw18-chatpin .cw-dots{stroke-width:2.6}
+.cw18-chatpin .cw-off{display:none;stroke:#ff6b72}
+.cw18-chatpin:active{transform:scale(.93)}
+.cw18-chatpin.chat-open{background:var(--cw18-blue);border-color:var(--cw18-blue)}
+.cw18-chatpin.chat-open::before{background:#fff}
+.cw18-chatpin.off{color:var(--cw18-muted)}
+.cw18-chatpin.off .cw-off{display:inline}
+.cw18-chatpin.off .cw-dots{display:none}
+.cw18-hold{position:absolute;inset:0;background:rgba(59,130,255,.38);transform:scaleY(0);transform-origin:bottom;pointer-events:none}
+.cw18-chatpin.holding .cw18-hold{transform:scaleY(1);transition:transform .52s linear}
+body.cw-minimap-off .cw18-chatpin{left:calc(8px + env(safe-area-inset-left))}
+
+.cw18-tip{position:absolute;z-index:15;pointer-events:none;
+  left:calc(var(--cw18-mm) + 58px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
+  max-width:44vw;padding:6px 10px 6px 9px;border-radius:2px;border-left:2px solid var(--cw18-blue);
+  background:rgba(10,11,14,.86);color:var(--cw18-text);font:700 clamp(9px,2.6vh,11px)/1.2 Montserrat,system-ui,sans-serif;letter-spacing:.02em;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transform:translateX(-6px)}
+.cw18-tip.show{animation:cw18Tip 2.2s ease forwards}
+body.cw-minimap-off .cw18-tip{left:calc(50px + env(safe-area-inset-left))}
+@keyframes cw18Tip{0%{opacity:0;transform:translateX(-6px)}10%,82%{opacity:1;transform:none}100%{opacity:0;transform:none}}
+
+/* ---------- minimap masquée ---------- */
+body.cw-minimap-off .hud-root .minimap-frame,
+body.cw-minimap-off .hud-root .mm-ring,
+body.cw-minimap-off .hud-root .mm-ring-icons{display:none!important}
+body.cw-minimap-off .hud-root .quick-actions{top:calc(44px + env(safe-area-inset-top))!important}
+
+/* ---------- rangée rapide : icônes au trait ---------- */
+.hud-root .cw18-qa svg{fill:none!important;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hud-root .cw18-qa{position:relative}
+.hud-root .cw18-qa .cw18-dot{position:absolute}
+.hud-root .corner-action .menu-icon{filter:none}
+
+/* ---------- roue v18 ---------- */
+.hud-root .radial-menu.open{background:radial-gradient(circle at 50% 50%,rgba(5,6,8,.32),rgba(5,6,8,.52))}
+.hud-root .radial-wheel.cw18-wheel{
+  width:min(84vh,58vw,360px)!important;aspect-ratio:1;border-radius:50%;
+  border:1px solid rgba(59,130,255,.32)!important;
+  background:
+    radial-gradient(circle,rgba(16,18,24,.74) 0 34%,rgba(10,11,14,.68) 34.4% 100%),
+    radial-gradient(circle at 50% 20%,rgba(59,130,255,.10),transparent 60%)!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)!important;
+  animation:cw18WheelIn .22s cubic-bezier(.2,.8,.2,1);
+}
+.hud-root .radial-menu:not(.open) .radial-wheel.cw18-wheel{animation:none}
+@keyframes cw18WheelIn{from{transform:scale(.9) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+.cw18-wheel::before,.cw18-wheel::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.cw18-wheel::before{inset:8.5%;border:1px solid rgba(255,255,255,.07)}
+.cw18-wheel::after{inset:25.5%;border:1px dashed rgba(59,130,255,.22)}
+.hud-root .wheel-slot.cw18-slot{
+  width:12.6%!important;height:12.6%!important;min-width:30px;min-height:30px;padding:0;
+  border-radius:3px!important;border:1px solid var(--cw18-line)!important;
+  background:rgba(18,20,26,.86)!important;color:var(--cw18-text);
+  box-shadow:0 4px 12px rgba(0,0,0,.35)!important;overflow:visible;z-index:2;
+  transition:background .12s ease,border-color .12s ease,transform .12s ease;
+}
+.hud-root .wheel-slot.cw18-slot svg{width:54%;height:54%;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.hud-root .wheel-slot.cw18-slot .cw-off{display:none;stroke:#ff6b72}
+.hud-root .wheel-slot.cw18-slot.off{color:var(--cw18-muted)}
+.hud-root .wheel-slot.cw18-slot.off .cw-off{display:inline}
+.hud-root .wheel-slot.cw18-slot.hot,
+.hud-root .wheel-slot.cw18-slot:active{background:var(--cw18-blue)!important;border-color:var(--cw18-blue)!important;transform:translate(-50%,-50%) scale(1.08)!important;color:#fff}
+.hud-root .wheel-slot.cw18-slot[data-slot="jobs"]::before{content:"";position:absolute;right:-3px;top:-3px;width:7px;height:7px;background:var(--cw18-blue);border:1px solid #0a0b0e}
+.hud-root .wheel-center.cw18-center{
+  inset:36.5%!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(59,130,255,.22),rgba(10,11,14,.94) 70%)!important;
+  border:1px solid rgba(59,130,255,.45)!important;box-shadow:inset 0 0 18px rgba(0,0,0,.5)!important;text-align:center;
+}
+.cw18-center b{font:900 clamp(9px,2.7vh,12px)/1.1 Montserrat,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#fff;max-width:92%}
+.cw18-center small{font:700 clamp(5px,1.5vh,6.5px)/1 Montserrat,system-ui,sans-serif;letter-spacing:.32em;color:var(--cw18-muted)}
+
+/* ---------- chat : petit, compact, bords arrondis ---------- */
+.hud-root .cw-chat{
+  font:600 clamp(9.5px,2.65vh,11px)/1.3 Montserrat,system-ui,sans-serif!important;
+  left:calc(var(--cw18-mm) + 16px + clamp(28px,8.6vh,36px) + 8px + env(safe-area-inset-left))!important;
+  top:calc(6px + env(safe-area-inset-top))!important;
+  width:min(26vw,320px)!important;max-height:24vh!important;gap:2px!important;
+}
+body.cw-minimap-off .hud-root .cw-chat{left:calc(8px + clamp(28px,8.6vh,36px) + 8px + env(safe-area-inset-left))!important}
+.hud-root .cw-chat .cw-chat-line{
+  background:rgba(10,11,14,.46)!important;border:1px solid rgba(255,255,255,.06);
+  border-radius:9px!important;padding:2px 8px!important;margin:0!important;color:#F5F6F8!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.85)!important;
+}
+.hud-root .cw-chat .cw-chat-line b{font-weight:800}
+body.cw-chat-typing .hud-root .cw-chat{max-height:42vh!important;opacity:1!important;filter:none!important;
+  top:calc(6px + clamp(30px,9vh,38px) + 6px + env(safe-area-inset-top))!important;-webkit-mask-image:none!important;mask-image:none!important}
+body.cw-chat-typing .hud-root .cw-chat .cw-chat-line{background:rgba(10,11,14,.66)!important}
+
+/* saisie : la barre s'ouvre juste à droite du petit bouton chat, le fil passe dessous */
+.hud-root .floating-chat-composer{
+  left:calc(var(--cw18-mm) + 16px + clamp(28px,8.6vh,36px) + 8px + env(safe-area-inset-left))!important;right:auto!important;
+  top:calc(6px + env(safe-area-inset-top))!important;margin:0!important;
+  width:min(40vw,440px)!important;height:clamp(30px,9vh,38px)!important;padding:3px!important;gap:3px!important;
+  grid-template-columns:1fr clamp(64px,9vw,84px)!important;
+  border-radius:11px!important;border:1px solid rgba(255,255,255,.16)!important;
+  background:rgba(10,11,14,.82)!important;box-shadow:0 8px 24px rgba(0,0,0,.4)!important;
+  transform:translateY(-4px);transition:opacity .13s ease,visibility .13s ease,transform .16s ease!important;
+}
+.hud-root .floating-chat-composer.open{transform:none;border-color:rgba(59,130,255,.6)!important}
+.hud-root .floating-chat-composer input{border-radius:8px!important;background:rgba(255,255,255,.07)!important;border:0!important;
+  font:600 clamp(10px,2.9vh,12px) Montserrat,system-ui,sans-serif!important;color:#f3f4f6!important;padding:0 10px!important}
+.hud-root .floating-chat-composer .chat-send{
+  border-radius:8px!important;background:var(--cw18-blue)!important;color:#fff!important;border:0!important;
+  font:800 clamp(8.5px,2.4vh,10px) Montserrat,system-ui,sans-serif!important;letter-spacing:.08em;text-transform:uppercase;
+}
+body.cw-minimap-off .hud-root .floating-chat-composer{left:calc(8px + clamp(28px,8.6vh,36px) + 8px + env(safe-area-inset-left))!important}
+
+/* bouton chat : même famille que le chat (arrondi) */
+.cw18-chatpin{width:clamp(28px,8.6vh,36px);height:clamp(28px,8.6vh,36px);border-radius:9px}
+.cw18-chatpin::before{display:none}
+.cw18-chatpin{border-color:rgba(59,130,255,.5)}
+
+/* ---------- rangée sous la carte : 3 grands boutons qui prennent toute la largeur ---------- */
+.hud-root .quick-actions{
+  --hud-item-scale:1;
+  left:calc(4px + env(safe-area-inset-left))!important;
+  width:calc(var(--cw18-mm) + 14px);gap:6px!important;display:flex!important;
+  top:calc(var(--cw18-mm) + 24px + env(safe-area-inset-top))!important;
+}
+.hud-root .quick-actions > button:not([hidden]){
+  flex:1 1 0;min-width:0;width:auto!important;height:clamp(32px,9.6vh,42px)!important;
+  border-radius:9px!important;border:1px solid rgba(255,255,255,.16)!important;
+  background:rgba(10,11,14,.62)!important;color:#F3F4F6;
+  align-items:center;justify-content:center;
+  transition:background .12s ease,border-color .12s ease,transform .1s ease;
+}
+.hud-root .quick-actions > button:not(.tc-steer-mode):not([hidden]){display:flex!important}
+.hud-root .quick-actions > .tc-steer-mode{display:none!important}
+.hud-root.vehicle-hud-active .quick-actions > .tc-steer-mode{display:flex!important}
+.hud-root .quick-actions > button:active{transform:scale(.95);background:rgba(59,130,255,.45)!important;border-color:var(--cw18-blue)!important}
+.hud-root .quick-actions > button svg,
+.hud-root .quick-actions .corner-action .cw18-wheelicon{width:clamp(17px,5.4vh,22px)!important;height:clamp(17px,5.4vh,22px)!important;opacity:1!important}
+.hud-root .quick-actions .corner-action.menu-open{background:var(--cw18-blue)!important;border-color:var(--cw18-blue)!important}
+.hud-root .quick-actions > button small{display:none!important}
+body.cw-minimap-off .hud-root .quick-actions{top:calc(44px + env(safe-area-inset-top))!important}
+
+/* ---------- jauges autour de la carte : fines, translucides ---------- */
+.hud-root .minimap-frame{border:1.5px solid rgba(255,255,255,.62)!important;background:rgba(10,11,14,.18)!important;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.35)!important}
+.mm-arc.health{--c:#ff4d5e;--g:rgba(255,77,94,.35)}
+.mm-arc.armour{--c:#cfd8e6;--g:rgba(207,216,230,.3)}
+.mm-arc.thirst{--c:#3b82ff;--g:rgba(59,130,255,.38)}
+.mm-arc.hunger{--c:#f59e42;--g:rgba(245,158,66,.35)}
+.mm-arc.energy{--c:#facc15;--g:rgba(250,204,21,.32)}
+.mm-arc .trk{stroke:#fff!important;opacity:.10!important}
+.mm-arc .val{filter:drop-shadow(0 0 3px var(--g))!important;opacity:.95}
+.mm-ring-icons img{width:17px!important;height:17px!important;padding:3px!important;box-sizing:border-box;
+  background:rgba(10,11,14,.74)!important;border:1px solid rgba(255,255,255,.18);filter:none!important}
+.mm-ring-icons img[data-level="critical"]{border-color:#ff4d5e}
+.hud-root .corner-action .cw18-wheelicon{fill:none!important;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;color:#f3f4f6}
+.hud-root .corner-action.menu-open .cw18-wheelicon{display:none}
+
+/* =====================================================================
+   Clavier de jeu Crestwood (hud-kb.js) : verre sombre, touches arrondies, bleu Crestwood
+   ===================================================================== */
+.cw-kb{position:absolute;left:50%;bottom:calc(4px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;
+  width:min(98vw,900px);padding:5px;border-radius:14px;box-sizing:border-box;
+  background:rgba(10,11,14,.80);border:1px solid rgba(255,255,255,.12);box-shadow:0 -6px 30px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;gap:4px;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;
+  font-family:Montserrat,system-ui,sans-serif;animation:cwKbIn .18s cubic-bezier(.2,.8,.2,1)}
+.cw-kb[hidden]{display:none}
+@keyframes cwKbIn{from{transform:translate(-50%,18px);opacity:0}to{transform:translateX(-50%);opacity:1}}
+.cw-kb-macros{display:flex;align-items:center;gap:5px;min-height:clamp(26px,7.6vh,34px)}
+.cw-kb-tag{flex:none;font:900 clamp(6.5px,1.9vh,8px)/1 Montserrat,sans-serif;letter-spacing:.2em;color:#3B82FF;padding:0 4px 0 6px}
+.cw-kb-chips{flex:1;min-width:0;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+.cw-kb-chips::-webkit-scrollbar{display:none}
+.cw-kb-chip{flex:none;height:clamp(24px,7.2vh,32px);padding:0 11px;border-radius:999px;border:1px solid rgba(59,130,255,.45);
+  background:rgba(59,130,255,.14);color:#F3F4F6;font:700 clamp(9px,2.6vh,11px)/1 Montserrat,sans-serif;white-space:nowrap}
+.cw-kb-chip:active{background:#3B82FF}
+.cw-kb.editing .cw-kb-chip{border-color:rgba(255,107,114,.6);background:rgba(255,107,114,.14)}
+.cw-kb.editing .cw-kb-chip::after{content:" ✕";color:#ff6b72}
+.cw-kb-empty{font:600 clamp(8.5px,2.4vh,10px)/1.2 Montserrat,sans-serif;color:#9AA0A8;align-self:center}
+.cw-kb-mbtn{flex:none;width:clamp(26px,7.6vh,34px);height:clamp(26px,7.6vh,34px);border-radius:9px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);color:#F3F4F6;font:800 clamp(12px,3.6vh,15px)/1 Montserrat,sans-serif;display:grid;place-items:center}
+.cw-kb-mbtn[data-kb="save"]{background:#3B82FF;border-color:#3B82FF}
+.cw-kb.editing .cw-kb-mbtn[data-kb="edit"]{background:#ff6b72;border-color:#ff6b72}
+.cw-kb-keys{display:flex;flex-direction:column;gap:4px}
+.cw-kb-row{display:flex;gap:4px}
+.cw-kb-row.r1{padding:0 2.4%}
+.cw-kb-key{flex:1 1 0;min-width:0;height:clamp(28px,8.4vh,40px);border-radius:8px;border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.09);color:#F3F4F6;font:700 clamp(11px,3.5vh,15px)/1 Montserrat,system-ui,sans-serif;
+  display:grid;place-items:center;padding:0;transition:background .06s ease,transform .06s ease}
+.cw-kb-key.down{background:rgba(59,130,255,.55);transform:translateY(1px)}
+.cw-kb-key.fn{background:rgba(255,255,255,.04);color:#C9CDD3;font-size:clamp(9px,2.8vh,12px)}
+.cw-kb-key.fn.on{background:#F3F4F6;color:#0A0B0E}
+.cw-kb-key.wide1{flex:1.5 1 0}
+.cw-kb-key.space{flex:4.6 1 0;font-size:clamp(8px,2.3vh,10px);letter-spacing:.2em;color:#9AA0A8;text-transform:uppercase}
+.cw-kb-key.send{flex:2.2 1 0;background:#3B82FF;border-color:#3B82FF;color:#fff;font-size:clamp(9px,2.6vh,11px);letter-spacing:.1em}
+.cw-kb-key.send.down{background:#1E4FA8}
+.cw-kb::before{content:attr(data-flash);position:absolute;left:50%;top:-30px;transform:translateX(-50%);padding:5px 12px;border-radius:999px;
+  background:rgba(10,11,14,.9);border:1px solid rgba(59,130,255,.5);color:#F3F4F6;font:700 10px/1 Montserrat,sans-serif;white-space:nowrap;
+  opacity:0;transition:opacity .15s ease;pointer-events:none}
+.cw-kb.flash::before{opacity:1}
+body.cw-kb-open.cw-chat-typing .hud-root .cw-chat{max-height:24vh!important}
+/* quand le clavier est ouvert, les commandes de déplacement passent derrière */
+body.cw-kb-open .hud-root .tc-touch-zone,body.cw-kb-open .hud-root .voice-talk-button,body.cw-kb-open .hud-root .interact-tap-button,body.cw-kb-open .hud-root .animations-toggle-button,body.cw-kb-open .hud-root .cw-hotbar{visibility:hidden}

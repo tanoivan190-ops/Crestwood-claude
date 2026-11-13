@@ -1,0 +1,265 @@
+/* =====================================================================
+   Crestwood v19 · HUD (charge en DERNIER, apres hud-v18.css)
+   1. Les 3 boutons sous la carte (Roue · Reglages · Telephone) : colles au bord gauche,
+      alignes sur la carte (sans le decalage de l'encoche), tuiles carrees avec libelle.
+   2. Bouton chat colle a la carte, meme famille.
+   3. Autres boutons du HUD (vocal, animations, interaction) : meme verre, bords carres.
+   4. Notifications du jeu = boite d'aide de GTA San Andreas (celle du BMX) : noir translucide,
+      texte blanc, mots en couleur (~g~ ~r~ ~y~ ~b~ ~p~), petit bip. Voir hud.js "SA HELP".
+   Pas de backdrop-filter / drop-shadow ici (couteux sur la WebView posee sur le jeu).
+   ===================================================================== */
+:root{
+  --cw19-blue:#3B82FF;
+  --cw19-tile:rgba(11,12,16,.74);
+  --cw19-tile-hi:rgba(22,24,31,.82);
+  --cw19-line:rgba(255,255,255,.11);
+  --cw19-text:#F3F4F6;
+  --cw19-muted:#8E949D;
+  --cw19-mm:min(34vh,16vw);                 /* meme taille que la carte (hud-glass.css) */
+  --cw19-qa-h:clamp(36px,10.6vh,46px);
+}
+
+/* ---------------- 1. rangee sous la carte ---------------- */
+.hud-root .quick-actions{
+  left:1px!important;                       /* la carte est a 0 : plus de decalage env(safe-area) */
+  top:calc(var(--cw19-mm) + 20px)!important;
+  width:calc(var(--cw19-mm) + 12px)!important;
+  translate:none!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px!important;
+  padding:0!important;margin:0!important;
+}
+body.cw-minimap-off .hud-root .quick-actions{top:44px!important}
+.hud-root .quick-actions > button:not([hidden]){
+  position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:auto!important;min-width:0!important;height:var(--cw19-qa-h)!important;padding:0!important;margin:0!important;
+  border-radius:3px!important;border:1px solid var(--cw19-line)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,0) 55%),var(--cw19-tile)!important;
+  color:var(--cw19-text)!important;box-shadow:0 3px 10px rgba(0,0,0,.32)!important;
+  overflow:hidden;transition:background .12s ease,border-color .12s ease,transform .1s ease!important;
+}
+/* bouton "direction" : touch-controls.js n'est plus charge -> bouton mort, on le cache aussi au volant */
+.hud-root .quick-actions > button.tc-steer-mode,
+.hud-root.vehicle-hud-active .quick-actions > button.tc-steer-mode{display:none!important}
+/* filet bleu en bas de chaque tuile */
+.hud-root .quick-actions > button::after{
+  content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;border-radius:0;
+  background:var(--cw19-blue);opacity:.0;transition:opacity .12s ease,left .12s ease,right .12s ease;
+}
+.hud-root .quick-actions > button:active{transform:scale(.95)!important;background:var(--cw19-tile-hi)!important;border-color:rgba(59,130,255,.55)!important}
+.hud-root .quick-actions > button:active::after{opacity:1;left:0;right:0}
+.hud-root .quick-actions .corner-action.menu-open{background:var(--cw19-blue)!important;border-color:var(--cw19-blue)!important;
+  box-shadow:inset 0 0 0 2px var(--cw19-blue),inset 0 0 0 3px rgba(255,255,255,.62)!important}   /* plaque de rue */
+.hud-root .quick-actions .corner-action.menu-open::after{opacity:0}
+.hud-root .quick-actions > button svg,
+.hud-root .quick-actions .corner-action .cw18-wheelicon{
+  width:clamp(15px,4.6vh,19px)!important;height:clamp(15px,4.6vh,19px)!important;flex:none;
+  fill:none!important;stroke:currentColor!important;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  filter:none!important;opacity:1!important;margin:0!important;
+}
+.hud-root .quick-actions .corner-action::before{display:none!important}
+.hud-root .quick-actions .corner-action .close-icon{display:none!important}
+.hud-root .quick-actions .corner-action.menu-open .cw18-wheelicon{display:block!important;transform:rotate(45deg)}
+/* libelles sous les icones (<small class="cw19-qa-label"> dans index.html) */
+.hud-root .quick-actions > button::before{display:none}
+.hud-root .quick-actions > button small.cw19-qa-label{display:block!important}
+.cw19-qa-label{
+  display:block;max-width:96%;overflow:hidden;white-space:nowrap;text-overflow:clip;pointer-events:none;
+  font:700 clamp(6.6px,1.95vh,8.4px)/1.3 Montserrat,system-ui,sans-serif;letter-spacing:0;color:var(--cw19-muted);
+}
+.hud-root .quick-actions > button:active .cw19-qa-label,
+.hud-root .quick-actions .corner-action.menu-open .cw19-qa-label{color:#fff}
+@media (max-height:330px){ .cw19-qa-label{display:none} }
+/* pastille "nouveau message" du telephone */
+.hud-root .quick-actions .cw18-dot{
+  position:absolute!important;right:5px;top:5px;width:6px;height:6px;border-radius:50%;background:#ff4d5e;
+  box-shadow:0 0 0 1.5px rgba(11,12,16,.9);
+}
+
+/* ---------------- 2. bouton chat colle a la carte ---------------- */
+.cw18-chatpin{
+  left:calc(var(--cw19-mm) + 12px)!important;top:4px!important;
+  width:clamp(28px,8.6vh,36px)!important;height:clamp(28px,8.6vh,36px)!important;
+  border-radius:3px!important;border:1px solid var(--cw19-line)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,0) 55%),var(--cw19-tile)!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.32)!important;
+}
+.cw18-chatpin::before{display:block!important;left:0;top:auto;bottom:0;right:0;width:auto;height:2px;background:var(--cw19-blue)}
+.cw18-chatpin.chat-open{background:var(--cw19-blue)!important;border-color:var(--cw19-blue)!important}
+.cw18-chatpin.chat-open::before{background:#fff}
+body.cw-minimap-off .cw18-chatpin{left:6px!important}
+.cw18-tip{left:calc(var(--cw19-mm) + 54px)!important;top:6px!important}
+.hud-root .cw-chat{left:calc(var(--cw19-mm) + 12px + clamp(28px,8.6vh,36px) + 6px)!important;top:4px!important}
+.hud-root .floating-chat-composer{left:calc(var(--cw19-mm) + 12px + clamp(28px,8.6vh,36px) + 6px)!important;top:4px!important;border-radius:3px!important}
+.hud-root .floating-chat-composer input,.hud-root .floating-chat-composer .chat-send{border-radius:2px!important}
+.hud-root .cw-chat .cw-chat-line{border-radius:3px!important}
+
+/* ---------------- 3. autres boutons : meme verre, bords carres ---------------- */
+.hud-root .animations-toggle-button,
+.hud-root .voice-talk-button,
+.hud-root .engine-toggle-button,
+.hud-root .radio-talk-button{
+  border-radius:4px!important;border:1px solid var(--cw19-line)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,0) 55%),var(--cw19-tile)!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.32)!important;filter:none!important;
+}
+.hud-root .animations-toggle-button:active,
+.hud-root .voice-talk-button:active,
+.hud-root .engine-toggle-button:active{border-color:rgba(59,130,255,.6)!important;background:var(--cw19-tile-hi)!important}
+.hud-root .voice-talk-button.talking,
+.hud-root .voice-talk-button.active,
+.hud-root .voice-talk-button.locked{border-color:var(--cw19-blue)!important;background:rgba(59,130,255,.28)!important}
+.hud-root .wheel-slot.cw18-slot{border-radius:3px!important}
+.cw-hotbar button,.cw-hotbar .cw-hot-slot{border-radius:3px!important}
+
+/* ---------------- 4. notifications : boite d'aide GTA SA ---------------- */
+.hud-root .game-notification-stack,
+.game-notification-stack{
+  position:absolute!important;z-index:32!important;pointer-events:none!important;
+  right:auto!important;bottom:auto!important;transform:none!important;scale:none!important;
+  width:min(36vw,360px)!important;max-width:none!important;height:auto!important;
+  display:block!important;gap:0!important;padding:0!important;margin:0!important;background:none!important;border:0!important;
+}
+/* position par defaut (si l'editeur du HUD n'a pas place la boite ailleurs) */
+.hud-root .game-notification-stack:not([style*="left"]){left:2px!important;top:calc(var(--cw19-mm) + 20px + var(--cw19-qa-h) + 8px)!important}
+body.cw-minimap-off .hud-root .game-notification-stack:not([style*="left"]){top:calc(44px + var(--cw19-qa-h) + 8px)!important}
+.game-notification-stack[style*="left"]{right:auto!important;bottom:auto!important;transform:none!important}
+.sa-help{
+  position:relative;box-sizing:border-box;width:100%;margin:0;
+  padding:clamp(7px,2.2vh,10px) clamp(9px,1.6vw,13px) clamp(8px,2.4vh,11px);
+  background:rgba(0,0,0,.72);border:0;border-radius:2px;color:#fff;
+  font:700 clamp(10.5px,3.25vh,14px)/1.34 "Roboto Condensed","sans-serif-condensed","Arial Narrow",Arial,sans-serif;
+  letter-spacing:.012em;text-shadow:1px 1px 0 rgba(0,0,0,.55);
+  opacity:0;transition:opacity .2s linear;word-wrap:break-word;overflow-wrap:anywhere;
+}
+.sa-help.show{opacity:1}
+.sa-help::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--sa-accent,#6f9cff);opacity:.9}
+.sa-help-title{display:block;margin:0 0 2px;color:var(--sa-accent,#6f9cff);font-size:.9em}
+.sa-help-text{margin:0}
+.sa-help-text span{font-weight:700}
+/* ancien rendu (cartes) neutralise s'il en reste */
+.game-notification-stack .game-notify{display:none!important}
+.hud-editing .game-notification-stack:empty::before{content:"Notifications (boîte d'aide)"}
+
+/* ---------------- 5. performances ---------------- */
+/* les ombres "drop-shadow" des jauges sont recalculees a chaque mise a jour : coupees */
+.hud-root .mm-arc .val{filter:none!important}
+.hud-root .project-logo,.hud-root .literal-life-box .literal-image-box img{filter:none!important}
+
+/* =====================================================================
+   6. ROUE COMPACTE (v19b) : petit cadran de 6 familles a gauche, sous-menus en panneau
+      Vocabulaire "panneau de signalisation de la ville" : pictogrammes, bandeau bleu, lignes nettes.
+   ===================================================================== */
+:root{
+  --cw19-dial:min(46vh,24vw,214px);
+  --cw19-ink:rgba(12,14,18,.86);
+  --cw19-ink-2:rgba(22,25,31,.9);
+}
+.hud-root .radial-menu.cw19-menu{display:block!important;place-items:initial}
+.hud-root .radial-menu.cw19-menu.open{background:linear-gradient(90deg,rgba(5,6,8,.5) 0%,rgba(5,6,8,.22) 48%,rgba(5,6,8,0) 75%)!important}
+.hud-root .radial-menu .radial-wheel.cw19-wheel{
+  position:absolute!important;left:calc(var(--cw19-mm) + 26px);top:50%;transform:translateY(-50%)!important;
+  width:auto!important;height:auto!important;aspect-ratio:auto!important;border:0!important;border-radius:0!important;
+  background:none!important;box-shadow:none!important;display:flex;align-items:center;gap:10px;animation:none!important;
+}
+.hud-root .radial-menu:not(.open) .cw19-wheel{display:none}
+/* cadran */
+.cw19-dial{position:relative;flex:none;width:var(--cw19-dial);height:var(--cw19-dial);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.04) 0 33%,transparent 33.5%),var(--cw19-ink);
+  border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 44px rgba(0,0,0,.45),inset 0 0 0 6px rgba(255,255,255,.025);
+  animation:cw19Dial .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes cw19Dial{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}
+.cw19-dial::before{content:"";position:absolute;inset:23%;border-radius:50%;border:1px dashed rgba(59,130,255,.25);pointer-events:none}
+.cw19-fam{position:absolute;transform:translate(-50%,-50%);width:27%;height:27%;min-width:40px;min-height:40px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;
+  border-radius:3px;border:1px solid rgba(255,255,255,.12);background:var(--cw19-ink-2);color:var(--cw19-text);
+  transition:background .12s,border-color .12s,transform .1s}
+.cw19-fam svg{width:44%;height:44%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.cw19-fam span{font:700 clamp(6.2px,1.85vh,8px)/1 Montserrat,system-ui,sans-serif;color:var(--cw19-muted);pointer-events:none;white-space:nowrap}
+.cw19-fam:active{transform:translate(-50%,-50%) scale(.93)}
+.cw19-fam.on{background:var(--cw19-blue);border-color:var(--cw19-blue);color:#fff;box-shadow:inset 0 0 0 2px var(--cw19-blue),inset 0 0 0 3px rgba(255,255,255,.62)}
+.cw19-fam.on span{color:#fff}
+.cw19-hub{position:absolute;inset:34%;border-radius:50%;border:1px solid rgba(59,130,255,.4);background:rgba(8,9,12,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;color:#fff}
+.cw19-hub b{font:900 clamp(7.5px,2.35vh,10px)/1.1 Montserrat,system-ui,sans-serif;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw19-hub small{font:600 clamp(6px,1.7vh,7.5px)/1 Montserrat,system-ui,sans-serif;color:var(--cw19-muted)}
+.cw19-hub:active{background:rgba(59,130,255,.25)}
+/* panneau des sous-menus */
+.cw19-panel{flex:none;width:min(31vw,262px);max-height:calc(100vh - 24px);overflow-y:auto;scrollbar-width:none;
+  background:var(--cw19-ink);border:1px solid rgba(255,255,255,.1);border-radius:3px;box-shadow:0 18px 44px rgba(0,0,0,.45)}
+.cw19-panel::-webkit-scrollbar{display:none}
+.cw19-panel.in{animation:cw19Panel .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes cw19Panel{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.cw19-head{display:flex;align-items:stretch;min-height:clamp(32px,9.6vh,40px);border-bottom:1px solid rgba(255,255,255,.08)}
+.cw19-head i{flex:none;width:clamp(32px,9.6vh,40px);display:grid;place-items:center;background:var(--cw19-blue);box-shadow:inset 0 0 0 2px var(--cw19-blue),inset 0 0 0 3px rgba(255,255,255,.62)}
+.cw19-head i svg{width:52%;height:52%;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.cw19-head div{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 11px}
+.cw19-head b{font:900 clamp(10.5px,3.2vh,13.5px)/1.1 Montserrat,system-ui,sans-serif;color:#fff}
+.cw19-head small{font:500 clamp(7.5px,2.2vh,9.5px)/1.1 Montserrat,system-ui,sans-serif;color:var(--cw19-muted)}
+.cw19-item{display:flex;align-items:center;gap:10px;width:100%;height:clamp(30px,8.8vh,37px);padding:0 10px 0 12px;
+  background:none;border:0;border-top:1px solid rgba(255,255,255,.05);color:var(--cw19-text);text-align:left}
+.cw19-group .cw19-item:first-of-type{border-top:0}
+.cw19-item > svg:first-child{flex:none;width:clamp(14px,4.3vh,17px);height:clamp(14px,4.3vh,17px);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.92}
+.cw19-item span{flex:1;min-width:0;font:700 clamp(9.5px,2.9vh,12px)/1 Montserrat,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw19-chev{flex:none;width:12px;height:12px;fill:none;stroke:var(--cw19-muted);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cw19-item.hot,.cw19-item:active{background:var(--cw19-blue)}
+.cw19-item.hot .cw19-chev,.cw19-item:active .cw19-chev{stroke:#fff}
+.cw19-state{flex:none;font:700 clamp(7.5px,2.2vh,9px)/1 Montserrat,system-ui,sans-serif;font-style:normal;padding:4px 7px;border-radius:2px;
+  background:rgba(61,220,151,.16);color:#3DDC97}
+.cw19-item.off .cw19-state{background:rgba(255,90,106,.14);color:#FF6B78}
+.cw19-item.off > svg:first-child{opacity:.45}
+/* bouton ROUE de la rangee : reste visible quand le menu est ouvert */
+.hud-root .quick-actions .corner-action.menu-open .cw19-qa-label{color:#fff}
+@media (max-height:340px){ .cw19-fam span{display:none} .cw19-head small{display:none} }
+
+/* =====================================================================
+   7. CLAVIER DE JEU (hud-kb.js) : bords carres, touches plus nettes, moins d'effets
+   ===================================================================== */
+.cw-kb{border-radius:4px!important;padding:5px 5px 6px!important;background:rgba(10,11,14,.88)!important;
+  border:1px solid rgba(255,255,255,.1)!important;box-shadow:0 -8px 28px rgba(0,0,0,.4)!important;animation-duration:.14s!important}
+.cw-kb-key{border-radius:3px!important;border:0!important;background:rgba(255,255,255,.085)!important;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.35)!important;transition:none!important;text-transform:none!important}
+.cw-kb-key.down,.cw-kb-key:active{background:var(--cw19-blue)!important;color:#fff!important;transform:none!important;box-shadow:none!important}
+.cw-kb-key.fn{background:rgba(255,255,255,.045)!important;color:#C7CBD2!important}
+.cw-kb-key.fn.on{background:rgba(59,130,255,.28)!important;color:#fff!important}
+.cw-kb-key.space{color:#8E949D!important;font-weight:600!important;letter-spacing:.02em!important;text-transform:none!important}
+.cw-kb-key.send{background:var(--cw19-blue)!important;color:#fff!important;letter-spacing:.02em!important;text-transform:none!important}
+.cw-kb-chip{border-radius:2px!important;border-color:rgba(59,130,255,.35)!important;background:rgba(59,130,255,.1)!important}
+.cw-kb-mbtn{border-radius:3px!important}
+.cw-kb-tag{letter-spacing:.04em!important;text-transform:none!important}
+.hud-root .floating-chat-composer{background:rgba(10,11,14,.88)!important;border:1px solid rgba(255,255,255,.1)!important}
+.hud-root .floating-chat-composer .chat-send{text-transform:none!important;letter-spacing:.02em!important}
+
+/* ---------------- 8. Premiers pas : charte Crestwood (v19b) ----------------
+   l'ancien panneau turquoise/hexagone venait d'un autre serveur : asphalte, filets, plaque bleue */
+.hud-root .first-steps-toggle,
+.first-steps-toggle{
+  border:1px solid rgba(255,255,255,.1)!important;border-radius:3px!important;
+  background:rgba(17,20,25,.86)!important;box-shadow:0 8px 22px rgba(0,0,0,.35)!important;height:56px!important;
+}
+.first-steps-toggle::after{display:none!important}
+.first-steps-logo{
+  width:34px!important;height:34px!important;clip-path:none!important;border-radius:2px;
+  background:var(--cw19-blue,#3b82ff)!important;box-shadow:inset 0 0 0 2px var(--cw19-blue,#3b82ff),inset 0 0 0 3px rgba(255,255,255,.62);
+}
+.first-steps-logo::before{display:none!important}
+.first-steps-logo b{color:#fff!important;font-style:normal!important;font-size:18px!important;text-shadow:none!important}
+.first-steps-title strong{font-family:Montserrat,system-ui,sans-serif!important;font-size:14px!important;letter-spacing:0!important}
+.first-steps-title small,.first-steps-count small{letter-spacing:0!important;color:#8c94a0!important;font-size:8px!important;font-weight:600!important}
+.first-steps-count strong{font-family:Montserrat,system-ui,sans-serif!important;color:#fff!important;text-shadow:none!important;font-size:19px!important}
+.first-steps-chevron i{background:#8c94a0!important;box-shadow:none!important;height:2px!important;border-radius:0!important}
+.first-steps-body{border-radius:3px!important;border:1px solid rgba(255,255,255,.1)!important;background:rgba(17,20,25,.86)!important;box-shadow:0 12px 28px rgba(0,0,0,.4)!important}
+.first-step-card{border-radius:2px!important;background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.08)!important}
+.first-step-card.selected{border-color:#3b82ff!important;background:rgba(59,130,255,.14)!important;box-shadow:inset 3px 0 0 #3b82ff!important}
+.first-step-copy em{border-radius:2px!important;letter-spacing:0!important;text-transform:none!important}
+.first-steps-pin,.first-steps-start span{clip-path:none!important;border-radius:2px!important}
+.first-steps-start{border-radius:2px!important;border-color:#3b82ff!important;background:#3b82ff!important;color:#fff!important;
+  box-shadow:inset 0 0 0 2px #3b82ff,inset 0 0 0 3px rgba(255,255,255,.62)!important;text-transform:none!important;letter-spacing:0!important}
+
+/* ---------------- 9. Clavier v20 : reactif ----------------
+   pas de transition sur les touches (le retour visuel est immediat) + bulle d'apercu unique */
+.cw-kb-key{transition:none!important}
+.cw-kb-pop{position:absolute;left:0;top:0;z-index:3;pointer-events:none;min-width:34px;height:40px;margin:-48px 0 0 -17px;
+  display:grid;place-items:center;padding:0 8px;border-radius:3px;background:#eef1f5;color:#0e1116;
+  font:700 20px/1 Montserrat,system-ui,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.cw-kb-pop[hidden]{display:none}
+

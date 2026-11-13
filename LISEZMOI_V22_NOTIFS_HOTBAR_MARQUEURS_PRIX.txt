@@ -1,0 +1,62 @@
+=====================================================================
+ CRESTWOOD RP - V22 (12/11/2026)
+=====================================================================
+!! Recompiler le gamemode (workflow GitHub "Compiler le gamemode") : le basicgm1.amx du zip est l'ancien.
+!! Recompiler l'APK : code natif (samp + samp32 : WorldMarkers.cpp) et pages HUD / admin ont change.
+
+1. NOTIFICATIONS (comme sur ta capture)
+   - Au milieu de l'ecran, sans cadre : grand rond lumineux avec une icone (i = info, coche = reussi,
+     croix = refuse, ! = attention), titre de la couleur du type, texte blanc en gros dessous,
+     petite barre de temps. Toujours : x2 / x3 si le meme message revient, +N = notifs en attente,
+     toucher = passer a la suivante. (hud/hud-v22.css + hud.js NOTE_ICON)
+
+2. MARQUEURS 3D POUR INTERAGIR (le "truc bleu")
+   - Tous les points (garage, vetements, boutique, banque, vestiaire, emploi, pompe, location, PNJ...)
+     = carre bleu arrondi avec son pictogramme + nom du lieu + distance ("Garage  64 m"), visibles
+     jusqu'a 90 m. Tout pres : le marqueur devient une MAIN blanche dans le carre bleu
+     + "Toucher pour interagir". (natif : game/WorldMarkers.cpp, samp + samp32)
+   - Le bouton d'interaction du HUD (joueur, police, vehicule) a le meme style.
+
+3. HOTBAR CRESTWOOD
+   - Onglet "+N" a droite de l'ecran (N = nombre d'objets prets). Toucher l'onglet = les 5 emplacements
+     sortent ; toucher un emplacement = utiliser l'objet (eau, burger, bandage...). Se replie seul apres 6 s.
+   - COMMENT L'ACTIVER : rien a faire, elle s'active toute seule des que tu as un objet. La premiere fois,
+     tes consommables sont ranges automatiquement. Pour choisir toi-meme : Inventaire > un objet >
+     "Emplacement rapide" (1 a 5).
+     /hotbar = masquer / afficher     /hotbar 1-5 = utiliser un emplacement
+   - Serveur : include/Cw22.inc (envoi "@hotbar" 9840 seulement quand quelque chose change).
+
+4. PRIX
+   - Panneau admin > Serveur > "Prix de la boutique" : chaque article de la boutique 24/7 avec son prix,
+     bouton "Modifier" (niveau 6). Le nouveau prix s'applique tout de suite partout et reste apres un
+     redemarrage (table shop_prices de la base inventaire).
+   - Prix actuels (dollars) : eau 15, burger 30, vody 40, montre 450, iPhone 1 100 / 1 200,
+     carte SIM 500, gilet 2 500, tablette job 2 500. Garage : livraison 500, peinture 1 500,
+     plaque 10 000, fourriere 2 500.
+
+5. UN SEUL STYLE POUR LES PAGES
+   - common/cw-signal.css v22 : le meme habillage que le garage pour tous les panneaux (verre graphite,
+     coins 16 / 12 px, onglets en pilule, boutons bleus, fermer rond). Le carnet (blazer) charge maintenant
+     ce style aussi.
+
+6. BOUTONS DU HUD (V22b)
+   - Les 3 boutons sous la carte (Menu / Reglages / Telephone) + le bouton d'animations : style "contour
+     blanc" (carre transparent, fin contour blanc, icone blanche, sans texte). Hotbar : "+N >" en texte blanc.
+   - Petit bouton d'animations (rond, liseret bleu) : ouvre une MINI PAGE A DROITE (dans le HUD, pas de
+     page en plus donc instantane) : onglets Favoris / Tout / Gestes / Repos / Danse / Travail, 33 animations PAR NOMS (sans emojis),
+     toucher = jouer, appui long = favori, bouton rouge "Arreter l'animation". La hotbar se cache pendant.
+     Serveur : /animq <cle> | stop (Cw22.inc). Au clavier : /anim <nom>, /stopanim.
+     (Avant, le bouton envoyait /anim que le serveur ne connaissait plus : il ne faisait rien.)
+
+7. STABILITE REDMI / XIAOMI (V22d)
+   - Mesure du clavier (HeightProvider, ajoutee en V21) : la petite fenetre invisible pouvait s'ouvrir avant
+     la fenetre du jeu -> plantage "BadTokenException" sur MIUI. Maintenant elle attend la fenetre (10 essais),
+     toute erreur est ignoree, et elle est fermee a la sortie du jeu.
+   - setOffscreenPreRaster (V21) retire : trop de memoire graphique sur ces telephones.
+   - Telephones a 4 Go de RAM ou moins : les pages ne restent plus en memoire (cache des pages coupe).
+   - Journal des plantages en 32 ET 64 bits : Android/data/com.crestwood.rp/files/crestwood_log.txt
+     (modele du telephone, RAM, erreur Java exacte). Si ca plante encore : envoie ce fichier.
+
+FICHIERS : hud/anim-mini.js (nouveau), server/basicgm/include/Cw22.inc (nouveau), basicgm1.pwn (hooks + admin), hud (hud-v22.css,
+hud.js, hotbar.js, index.html), admin/admin.js, common/cw-signal.css, blazer/index.html,
+cpp/samp + cpp/samp32 game/WorldMarkers.cpp, COMMANDES_CRESTWOOD_RP.txt. Apercu : apercu_v22.jpg

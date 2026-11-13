@@ -1,0 +1,27 @@
+CRESTWOOD RP - FUSION V15 + INTERFACES HTML RECENTES + VETEMENTS RECENTS
+Date : 01/11/2026
+
+COMPOSITION
+- Base de projet : archive V15.
+- Tous les fichiers de la source recente corrige_fix_connexion (139 Mo) ont ete superposes a V15.
+- Les fichiers propres a V15 ont ete conserves, notamment les ressources vetements absentes de l'archive recente.
+- Les fichiers recents ont priorite en cas de conflit : HTML/CSS/JS, Java, C++, catalogues et systeme vetements.
+
+ARCHITECTURE ANDROID
+- Le CMake principal conserve le choix d'ABI V15 : armeabi-v7a -> samp32 (moteur 2.10), arm64-v8a -> samp (moteur 2.11).
+- Les CMake des clients conservent les exclusions et CONFIGURE_DEPENDS de la source recente pour eviter les fichiers natifs fantomes et les doublons.
+
+VETEMENTS
+- Les fichiers existants du systeme vetements recent (HTML/JS/CSS, catalogues JSON, code natif 64/32 bits) sont inchanges par rapport a la source recente.
+- Les ressources V15 absentes de la source recente sont conservees en complement ; aucun catalogue recent n'a ete remplace.
+
+CONNEXION / STABILITE
+- La source recente conserve ses correctifs de streaming, de validation des archives IMG et de chargement non bloquant des modeles South.
+- Le remplacement LSPD/JBL au demarrage reste desactive comme dans la source recente.
+
+VALIDATION
+- Les 4 108 fichiers de la source recente sont presents et identiques octet par octet dans cette fusion.
+- Les trois fichiers CMake de selection d'architecture (CMake principal + client 64 bits + client 32 bits) ont ete controles.
+- L'archive ZIP finale est controlee apres creation.
+- La compilation APK n'a PAS pu etre executee ici : Gradle devait telecharger Gradle 8.13 depuis Internet, mais l'acces reseau est indisponible dans cet environnement.
+- Le correctif de crash ne peut donc pas etre declare valide sur appareil sans compilation, essai de connexion et logcat si le crash persiste.

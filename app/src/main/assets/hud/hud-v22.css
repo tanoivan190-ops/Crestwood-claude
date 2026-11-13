@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Crestwood RP v22 - charge APRES hud-v21.css
+   1. Notifications facon "grand rond" : rond lumineux + icone (i / coche / croix / !), titre de la couleur
+      du type, texte blanc en gros dessous, sans carte (le jeu reste visible).
+   2. Hotbar Crestwood : onglet "+N" a droite, 5 emplacements qui sortent vers la gauche.
+   ========================================================================== */
+/* ---------- 1. notifications ---------- */
+.hud-root .game-notification-stack:not([style*="left"]){
+  left:50%!important;top:41vh!important;bottom:auto!important;transform:translateX(-50%)!important;width:min(70vw,640px)!important;pointer-events:none}
+.sa-help.cw-note{gap:1.6vh;transform:translateY(10px) scale(.96)}
+.sa-help.cw-note.show{transform:none}
+.cw-note-dot{width:clamp(54px,15vh,74px)!important;height:clamp(54px,15vh,74px)!important;margin:0!important;
+  background:radial-gradient(circle,var(--sa-accent,#3b82ff) 0 54%,transparent 55%)!important;
+  box-shadow:none!important}
+.cw-note-dot::before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--sa-accent,#3b82ff);
+  box-shadow:0 0 18px color-mix(in srgb,var(--sa-accent,#3b82ff) 55%,transparent),inset 0 0 14px color-mix(in srgb,var(--sa-accent,#3b82ff) 35%,transparent);opacity:.9}
+.cw-note-dot::after{inset:-2px!important}
+.cw-note-dot svg{position:relative;width:46%;height:46%;fill:#fff;stroke:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.cw-note-dot i{display:none}
+.cw-note-card{padding:0!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;text-align:center}
+.cw-note-card .sa-help-title{margin:0 0 .6vh!important;font:700 clamp(14px,5vh,22px)/1.1 Montserrat,system-ui,sans-serif!important;
+  color:var(--sa-accent,#3b82ff)!important;text-shadow:0 2px 8px rgba(0,0,0,.65)}
+.cw-note-card .sa-help-text{font:700 clamp(14px,5.6vh,25px)/1.25 Montserrat,system-ui,sans-serif!important;color:#fff!important;
+  text-shadow:0 2px 3px rgba(0,0,0,.85),0 0 16px rgba(0,0,0,.55)}
+.cw-note-bar{left:30%!important;right:30%!important;bottom:-1.4vh!important;height:3px!important;border-radius:3px;opacity:.85}
+.cw-note-count{top:-.4vh!important;right:auto!important;left:calc(100% + 4px);position:absolute}
+.cw-note-card{position:relative}
+.cw-note-card .cw-note-count{left:auto;right:-4px;transform:translateX(100%)}
+.cw-note-more{right:-2px!important;bottom:-2px!important}
+/* compatibilite : moteurs sans color-mix -> lueur neutre */
+@supports not (color:color-mix(in srgb,red 50%,blue)){ .cw-note-dot::before{box-shadow:0 0 16px rgba(255,255,255,.18)} }
+
+/* ---------- 2. hotbar Crestwood ---------- */
+.cw-hotbar.cw22-hb{left:auto!important;right:max(8px,env(safe-area-inset-right))!important;top:44%!important;bottom:auto!important;
+  transform:translateY(-50%)!important;display:flex;align-items:center;gap:6px;padding:0!important;background:none!important;border:0!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.cw22-hb-tab{display:flex;align-items:center;gap:clamp(14px,5vw,36px);height:clamp(34px,10vh,44px);padding:0 4px;border:0;background:none;color:#fff}
+.cw22-hb-tab b{font:800 clamp(17px,6vh,26px)/1 Montserrat,system-ui,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,.7),0 0 10px rgba(0,0,0,.35)}
+.cw22-hb-tab svg{width:clamp(14px,4.4vh,20px);height:clamp(14px,4.4vh,20px);fill:none;stroke:rgba(255,255,255,.85);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  transform:rotate(180deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));transition:transform .2s}
+.cw22-hb.open .cw22-hb-tab svg{transform:none}
+.cw22-hb-slots{display:flex;gap:6px;max-width:0;overflow:hidden;opacity:0;transition:max-width .24s cubic-bezier(.2,.8,.2,1),opacity .18s}
+.cw22-hb.open .cw22-hb-slots{max-width:80vw;opacity:1}
+.cw22-hb .cw-hot-slot{width:clamp(44px,12.5vh,58px)!important;border-radius:14px!important;
+  background:linear-gradient(180deg,rgba(26,30,38,.84),rgba(12,14,19,.88))!important;border:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 6px 14px rgba(0,0,0,.3)!important}
+.cw22-hb .cw-hot-slot.empty{background:rgba(255,255,255,.03)!important;border-style:dashed!important}
+.cw22-hb .cw-hot-slot.tap{transform:scale(.92);border-color:#3b82ff!important;background:rgba(59,130,255,.25)!important}
+.cw22-hb .cw-hot-key{position:absolute;top:3px;left:6px;font:700 9px/1 Montserrat,system-ui,sans-serif;color:#9cc1ff}
+.cw22-hb .cw-hot-qty{position:absolute;right:5px;bottom:3px;font:800 10px/1 Montserrat,system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
+.cw22-hb .cw-hot-name{position:absolute;left:0;right:0;bottom:-15px;font:700 9px/1 Montserrat,system-ui,sans-serif;color:#fff;text-align:center;
+  text-shadow:0 1px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw22-hb-slots{padding-bottom:16px;margin-bottom:-16px}
+
+/* ---------- 3. bouton d'interaction du HUD (joueur, police, vehicule) = le meme marqueur bleu que dans le monde ---------- */
+.hud-root .interact-tap-button{height:auto!important;min-width:0!important;padding:0!important;gap:9px!important;border:0!important;background:none!important;
+  box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;align-items:center!important;
+  flex-direction:row!important;width:auto!important;max-width:none!important;white-space:nowrap;overflow:visible!important}
+.hud-root .interact-tap-button:not([hidden]){display:inline-flex!important}
+.hud-root .interact-tap-button[hidden]{display:none!important}
+.hud-root .interact-tap-button .interact-tap-icon{position:relative;display:grid!important;place-items:center;width:clamp(42px,12.5vh,54px);height:clamp(42px,12.5vh,54px);
+  border-radius:14px;background:linear-gradient(180deg,#4f90ff,#2f74f0);border:1.5px solid rgba(255,255,255,.55);
+  box-shadow:0 6px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+.hud-root .interact-tap-button .interact-tap-icon::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;border:6px solid transparent;border-top-color:#2f74f0;border-bottom:0}
+.hud-root .interact-tap-button .interact-tap-icon svg{width:56%!important;height:56%!important;stroke:#fff!important;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hud-root .interact-tap-button .interact-tap-ring{position:absolute;left:0;top:0;width:clamp(42px,12.5vh,54px);height:clamp(42px,12.5vh,54px);border-radius:14px;
+  border:2px solid #3b82ff;animation:cw22Ring 1.4s ease-out infinite;pointer-events:none}
+@keyframes cw22Ring{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}
+.hud-root .interact-tap-button .interact-tap-label{display:block!important;position:static!important;transform:none!important;text-align:left;
+  max-width:none!important;width:auto!important;overflow:visible!important;text-overflow:clip!important;font:800 clamp(11px,3.4vh,14px)/1.15 Montserrat,system-ui,sans-serif;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.hud-root .interact-tap-button .interact-tap-label::after{content:"Toucher pour interagir";display:block;margin-top:2px;font-size:.72em;font-weight:700;color:#a8c4ff}
+.hud-root .interact-tap-button:active .interact-tap-icon{transform:scale(.93);background:#2563d6}
+@media (prefers-reduced-motion:reduce){.hud-root .interact-tap-button .interact-tap-ring{animation:none}}
+
+/* ---------- 4. les 3 boutons sous la carte : style "contour blanc" (comme ta capture) ----------
+   carre transparent, fin contour blanc, icone blanche avec ombre, pas de fond ni de texte */
+.hud-root .quick-actions{gap:8px!important;padding:0!important;border-radius:0!important;background:none!important;border:0!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;grid-template-columns:repeat(3,auto)!important;justify-content:start!important;width:auto!important}
+.hud-root .quick-actions > button:not([hidden]){width:clamp(38px,11.5vh,48px)!important;height:clamp(38px,11.5vh,48px)!important;border-radius:9px!important;
+  border:1.6px solid rgba(255,255,255,.88)!important;background:rgba(0,0,0,.06)!important;box-shadow:0 1px 4px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.12)!important;gap:0!important}
+.hud-root .quick-actions > button svg{width:52%!important;height:52%!important;padding:0!important;background:none!important;box-shadow:none!important;
+  stroke:#fff!important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.hud-root .quick-actions > button:not([hidden]) small.cw19-qa-label,.hud-root .quick-actions .cw19-qa-label{display:none!important}
+.hud-root .quick-actions > button::before,.hud-root .quick-actions > button::after{display:none!important}
+.hud-root .quick-actions > button:active{transform:scale(.92)!important;background:rgba(255,255,255,.18)!important}
+.hud-root .quick-actions .corner-action.menu-open{background:rgba(255,255,255,.22)!important;box-shadow:0 1px 4px rgba(0,0,0,.35)!important}
+
+/* ---------- 5. petit bouton d'animations (meme style) + mini page a droite ---------- */
+.hud-root .animations-toggle-button{width:clamp(38px,11.5vh,48px)!important;height:clamp(38px,11.5vh,48px)!important;border-radius:9px!important;padding:0!important;
+  display:grid!important;place-items:center;background:rgba(0,0,0,.06)!important;border:1.6px solid rgba(255,255,255,.88)!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.12)!important}
+.hud-root .animations-toggle-button img{width:58%!important;height:58%!important;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.hud-root .animations-toggle-button.on{background:rgba(255,255,255,.22)!important}
+.cw22-anim{position:fixed;z-index:58;right:max(10px,env(safe-area-inset-right));top:13vh;bottom:6vh;width:clamp(220px,30vw,320px);display:flex;flex-direction:column;gap:8px;
+  padding:12px;border-radius:12px;color:#fff;font-family:Montserrat,system-ui,sans-serif;background:rgba(0,0,0,.42);border:1.6px solid rgba(255,255,255,.85);
+  box-shadow:0 2px 10px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  opacity:0;transform:translateX(24px);transition:opacity .18s,transform .22s cubic-bezier(.2,.8,.2,1)}
+.cw22-anim.show{opacity:1;transform:none}
+.cw22-anim[hidden]{display:none!important}
+.cw22-anim header{position:relative;padding-right:34px}
+.cw22-anim header b{display:block;font-weight:800;font-size:clamp(13px,4vh,16px);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.cw22-anim header small{display:block;font-size:clamp(9px,2.6vh,11px);color:rgba(255,255,255,.75);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cw22-anim-x{position:absolute;right:0;top:0;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:none;border:1.4px solid rgba(255,255,255,.85)}
+.cw22-anim-x svg{width:12px;height:12px;stroke:#fff;stroke-width:2.4;fill:none;stroke-linecap:round}
+.cw22-anim-cats{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.25)}
+.cw22-anim-cats::-webkit-scrollbar{display:none}
+.cw22-anim-cats button{flex:none;height:clamp(24px,7vh,28px);padding:0 9px;border:0;border-bottom:2px solid transparent;background:none;
+  font:700 clamp(9px,2.7vh,11px)/1 Montserrat,system-ui,sans-serif;color:rgba(255,255,255,.6)}
+.cw22-anim-cats button.on{color:#fff;border-bottom-color:#fff}
+.cw22-anim-cats button.star{color:rgba(255,255,255,.8)}
+.cw22-anim-grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-content:start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cw22-anim-grid::-webkit-scrollbar{display:none}
+.cw22-anim-tile{position:relative;height:clamp(30px,9vh,36px);padding:0 8px;border-radius:8px;background:rgba(255,255,255,.04);border:1.2px solid rgba(255,255,255,.4);
+  color:#fff;font:700 clamp(9.5px,2.8vh,11.5px)/1 Montserrat,system-ui,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 1px 2px rgba(0,0,0,.6);transition:transform .1s,background .12s}
+.cw22-anim-tile:active{transform:scale(.96);background:rgba(255,255,255,.18)}
+.cw22-anim-tile.on{background:rgba(255,255,255,.2);border-color:#fff}
+.cw22-anim-tile.fav{padding-right:18px}
+.cw22-anim-tile.fav::after{content:"★";position:absolute;top:50%;right:6px;transform:translateY(-50%);font-size:10px;color:#fff}
+.cw22-anim-empty{grid-column:1/-1;padding:14px 6px;text-align:center;font-size:11px;color:rgba(255,255,255,.7)}
+.cw22-anim footer{display:flex;align-items:center;gap:8px}
+.cw22-anim-stop{flex:1;height:clamp(28px,8vh,34px);border-radius:8px;border:1.6px solid #fff;color:#fff;background:rgba(226,72,76,.55);
+  font:700 clamp(9.5px,2.8vh,11.5px)/1 Montserrat,system-ui,sans-serif}
+.cw22-anim footer small{font-size:9px;color:rgba(255,255,255,.7);white-space:nowrap}
+body:has(#cwAnimMini.show) .cw22-hb{visibility:hidden}

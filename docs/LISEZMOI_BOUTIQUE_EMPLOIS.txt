@@ -1,0 +1,89 @@
+BOUTIQUE + EMPLOIS (CONTRATS) + NOUVELLE CARTE
+==============================================
+
+SERVEUR : server/basicgm/basicgm1.pwn (+ basicgm1.amx deja compile, pawncc 3.10)
+ - BOUTIQUE 24/7 : 4 magasins (Idlewood, Mulholland, Las Venturas pres du spawn,
+   Angel Pine). Icone de main "Boutique" ou /boutique (sinon GPS vers la plus proche).
+   Paiement en especes ou par carte (solde bancaire). Les articles vont dans
+   l'inventaire. Prix et magasins : tableaux g_ShopItems / g_Shops.
+ - EMPLOIS : 5 metiers avec contrat de travail a signer au doigt au siege :
+     Bucheron (scierie d'Angel Pine, a pied), Livreur (Mule, Ocean Docks),
+     Chauffeur de bus (Unity Station), Eboueur (Willowfield), Livreur de pizzas (Idlewood).
+   Service -> checkpoints + GPS, paie a chaque etape + prime de fin de tournee,
+   niveau 1 a 5 (+10 % de paie par niveau, 10 tournees par niveau).
+   Commandes : /emplois (agence), /contrat, /travail, /finservice, /demissionner,
+               /position (donne tes coordonnees pour ajuster les points), /gps.
+   Base : scriptfiles/crestwood_jobs.db (creee automatiquement).
+   Sieges : g_Jobs ; tournees : g_JobSteps (les etapes du bucheron sont relatives au siege).
+   IMPORTANT : verifie en jeu les coordonnees des sieges et des arrets (/position) et
+   ajuste-les si un checkpoint tombe dans un mur.
+
+CLIENT
+ - assets/shop/     page boutique (dialogues @shop 9590-9592, commande /shopact)
+ - assets/job/      contrat de travail + agence pour l'emploi (@job 9600-9602, /jobact)
+ - SAMP.java        routage des dialogues + ponts SampShop / SampJob
+                    @blips (9605) : icones banques / boutiques / metiers sur la minimap et la carte
+                    @gps (9606)   : destination GPS (missions) sur la minimap et la carte
+ - Carte sombre :   assets/hud/radar/tiles (144 tuiles regenerees depuis la nouvelle carte)
+                    assets/map/map.jpg (grande carte), icones + GPS + ta position dessus.
+                    Sur la grande carte : touche un point puis "Lancer le GPS" (efface a l'arrivee).
+ - hud.js           libelles "Boutique" / "Contrat" de l'icone de main.
+
+MAPPINGS + /AIDE + DIALOGUES HTML
+=================================
+SERVEUR (basicgm1.pwn)
+ - 5 mappings integres (~1680 objets) : Mecanicien de Los Santos, Centre de reeducation
+   de Palomino Creek, Base de Verdant Meadows (+ bunker), Armurerie et Studio Crestwood News
+   (ex "Balkan News"). Les batiments GTA genants sont retires a la connexion.
+ - AUCUN PLUGIN : les objets des mappings sont streames par le gamemode lui-meme (module
+   "STREAMER D'OBJETS INTEGRE", objets joueur crees a l'approche de chaque mapping).
+   La ligne "plugins" de server.cfg doit rester vide.
+ - Interieurs souterrains : fleche jaune + icone de main "Entrer"/"Sortir" (ou /entrer, /sortir).
+   Portes exterieures par defaut : Ammu-Nation de Market, immeuble San News, base. Un admin
+   peut deplacer une porte : se placer devant puis /setentree <id> (sauvegarde en base).
+   Admin : /lieux (liste), /tplieu <id> (teleportation).
+ - /aide (/help, /commandes) : categories -> tableau des commandes ; "Lieux & GPS" active le GPS.
+CLIENT
+ - assets/dialog/   tous les dialogues SA-MP (ShowPlayerDialog) en HTML style Crestwood :
+                    message, saisie, mot de passe (oeil), liste, tableaux, recherche si > 10 lignes,
+                    codes couleur {RRGGBB}, double tap = valider, retour Android = bouton droit.
+ - DialogManager.java : affiche ces dialogues dans une WebView (l'ancien layout natif reste en secours).
+ - SAMP.java : textes des dialogues decodes en UTF-8 ou Windows-1252 (accents des .pwn Latin-1),
+               reponses renvoyees en Windows-1252.
+
+MAIRIE + INTERFACES JOUEUR (ui.zip)
+==================================
+ - Mairie de Los Santos (City Hall, 131 objets) integree au gamemode en objets streamer
+   (le filterscript cityhall n'est plus necessaire). /mairie (ou /city) = GPS vers la mairie.
+   Le point banque de la mairie a ete deplace sur le nouveau parvis (1492, -1745) : l'ancien
+   perron est supprime par le mapping. Ajuste avec /position si besoin.
+ - assets/ui/index.html (d'apres ui.zip, style Crestwood, sans CDN) pilote par "@ui" 9630-9632 :
+     /interaction (/inter) ou icone de main "Joueur" : saluer (poignee de main), donner de l'argent,
+                 montrer ses papiers, menotter/fouiller (police -> menu police)
+     /vmenu      : moteur, portieres, coffre, capot, portes
+     /papiers    : carte d'identite (age + origine demandes la 1re fois, sauvegardes)
+     /permis     : permis de conduire (lie au module police) ; les autres permis : "Non possede"
+     /tenues     : tenue civile, vestiaire (police), modifier son apparence
+
+GOUVERNEMENT + DOUBLE TAP + STAFF
+=================================
+ - Double tap sur un joueur (dans le monde 3D) : le client (game/PlayerTap.cpp, samp et samp32)
+   repere le joueur touche et envoie /interaction <id> ; le serveur ouvre le menu d'interaction
+   (8 m max). Rien ne change pour les autres touches.
+ - Gouvernement (faction de type "government" : /createfaction government <nom> puis /setfaction) :
+   /gouv, /tresor, /taxe (grade 3+), /subvention (grade 4+), /delivrer, /retirerpermis, /verifier.
+   Les permis delivres s'affichent dans /permis. La TVA est ajoutee aux prix des boutiques et
+   alimente la caisse de l'Etat. Dans le menu d'interaction : delivrer / retirer / verifier.
+ - Panneau admin : claque, muet, avertissement (3 = expulsion), prison, liberer, vie, gilet,
+   desarmer, respawn, reparer le vehicule, observer, infos (IP pour Rcon+), donner une arme (Rcon),
+   skin (Rcon), renvoyer un vehicule (Rcon), argent en banque (Dev), soigner tout le monde,
+   effacer le chat.
+ - /makeadmin <id> <0-3> : proprietaire, connecte en RCON (/rcon login) ou Developpeur (0 a 2).
+   /admins (staff en ligne), /a <texte> (chat staff).
+
+PANNEAU ADMIN : ONGLET STAFF
+============================
+ - Chat du staff (aussi /a en jeu), en direct dans le panneau.
+ - Staff en ligne, "Executer une commande" (n'importe quelle commande du serveur),
+   lieux + teleportation + porte des interieurs, cellule / sortie de prison,
+   creer / supprimer une faction. "Definir le role" = /makeadmin.

@@ -1,0 +1,55 @@
+VETEMENTS + SKINS DIRECTEMENT DANS L'APK (31/10/2026)
+====================================================
+Plus besoin de mettre les vetements ou les corps dans la data du jeu : tout est dans l'APK.
+
+1) CE QUI EST DANS L'APK (app/src/main/assets/clothes/south/)
+   - Corps : maleskin/male.dff + male.txd, femaleskin/female.dff + female.txd (pack Utgawa = pack Lasouth).
+     Copies au 1er lancement dans le cache prive de l'app puis charges sur les 4 corps de creation :
+     Homme 1 (163) et Homme 2 (7) = male ; Femme 1 (9) et Femme 2 (12) = female.
+     Code : gui/SouthModelLoader.cpp (32 et 64 bits) + SAMP.java prepareClothesModel (game et game32).
+   - Pack LASOUTH : 1 223 pieces (hauts, bas, chaussures, sacs, masques, boucles, montres) en PNG/JPEG.
+   - Pack UTGAWA : tout ce que Lasouth n'a pas -> 356 textures dans south/utg/ :
+       tons de peau (torse, jambes, pieds, visage), cheveux, sourcils, barbes, maquillage, tatouages,
+       chapeaux, lunettes, colliers, tatouages d epaule (homme), + 6 hauts courts femme.
+     Les 1 223 pieces communes aux deux packs (memes images) ne sont PAS en double : le pack Utgawa
+     reutilise les fichiers Lasouth.
+   Poids ajoute a l'APK : ~69 Mo.
+
+2) LES DEUX PACKS DANS LE MEME PANNEAU
+   - Onglet "Collection" : toutes les pieces avec image (South + Utgawa) par categorie
+     (Hauts, Bas, Chaussures, Sacs, Tete, Bijoux).
+       Utgawa ajoute : Chapeaux, Lunettes, Colliers (homme), Hauts courts (femme).
+   - Onglet "Personnage" : teint, visage, cheveux, sourcils, barbe, maquillage, tatouages, styles/couleurs.
+     Ces textures (noms brl_...) viennent maintenant de l'APK (gui/UtgBrlMap.h, 1 711 textures),
+     La texdb de la data n'est PLUS consultee pour les vetements / peau / visage (APK uniquement).
+     Exception : uniformes de police (brl_m271_police_ / brl_f272_police_), absents des deux packs.
+   - Une seule piece par emplacement : choisir un haut South retire le haut Utgawa et inversement ;
+     changer le style dans "Personnage" retire la piece de collection du meme emplacement.
+   - Boutiques : pieces de collection hauts/bas/chaussures -> boutique de vetements ;
+     sacs/masques/boucles/montres/chapeaux/lunettes/colliers -> boutique d'accessoires.
+     Payantes comme les autres (piece deja achetee = gratuite).
+
+3) SERVEUR (basicgm1.pwn)
+   - 52 valeurs d'apparence (39 + 7 South + 6 Utgawa). Les anciennes sauvegardes (25 / 39 / 46 valeurs)
+     se chargent sans rien perdre (champs manquants = 0 = tenue actuelle).
+   - Pieces de collection : numero 1..255 (Cloth_MaxOf), achat memorise dans utg_owned.
+
+4) AJUSTEMENTS (pour que tout ce qui est propose existe dans l'APK)
+   - Homme : sous-vetements 5 variantes, bottes 4 : 31, sourcils 23 couleurs, barbe 26, tatouages bras 9,
+     jambes 27.
+   - Femme : maquillage 10, cheveux 5 : 5 variantes, haut 4 = torso4 (42), bas 3 = pants4 (40), etc.
+   ATTENTION : les femmes deja creees avec le haut 4 ou le bas 3 verront une autre piece.
+
+5) REGENERER (si tu changes le pack) : tools/utg_apk/build_utg_apk.py puis emit_utg_apk.py
+   (lit le pack "SISTEMA + ARQUIVOS PARA DATA" et le catalogue Lasouth).
+
+A tester en jeu : chargement des corps, chaque categorie, vu par un autre joueur, 32 et 64 bits.
+
+6) 31/10 (2) : MAPPINGS INVISIBLES EN 64 BITS - CAUSE TROUVEE
+   Dans le client 64 bits (cpp/samp/net/scriptrpc.cpp), la reception des objets du serveur
+   (ScrCreateObject) etait ENTIEREMENT en commentaire, ainsi que les textures d'objets, deplacement,
+   position, rotation et objets attaches au joueur (fonctions vides). Le telephone 64 bits ne creait
+   donc AUCUN objet : aucun mapping. En 32 bits ca marchait ("sur d'autres telephones ca passe").
+   -> reactive / recopie depuis le client 32 bits. Le serveur a ete simule : 0 erreur, ~800 objets
+      envoyes par joueur pres des mappings.
+   Barre de touches SA-MP (TAB, Y, N, H, ALT, ESC...) supprimee (32 et 64 bits).

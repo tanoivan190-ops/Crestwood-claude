@@ -1,0 +1,13 @@
+Modeles prets pour le chargeur d'objets du client 32 bits (samp32/gui/SouthModelLoader.cpp, table kCwObjModels).
+Chaque dossier = model.dff + model.col + tex/ (PNG/JPG) + materials.txt (1 ligne par materiau, genere par model_tex.py).
+
+  bank_atlas  -> remplace l'objet 10040 (banque Atlas Studio, carte MTA)
+  bank_alap   -> remplace l'objet 6340  (socle / trottoirs de la banque)
+
+Le remplacement de modeles est COUPE depuis le 31/10 (PreloadBodies() retourne tout de suite) apres des plantages
+au chargement avec LSPD/JBL. Pour reessayer plus tard :
+  1. copier bank_atlas/ et bank_alap/ dans app/src/main/assets/models/
+  2. ajouter { 10040, "bank_atlas", 3000.0f }, { 6340, "bank_alap", 3000.0f } dans kCwObjModels
+  3. retirer le "return true;" en tete de SouthModelLoader::PreloadBodies()
+  4. activer server/basicgm/scriptfiles/mappings/banque_atlas.txt dans liste.txt
+Le client 64 bits ne sait pas encore remplacer des modeles : il afficherait les modeles d'origine.

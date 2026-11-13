@@ -1,0 +1,41 @@
+name: Compiler le gamemode (Pawn)
+
+# Compile server/basicgm/basicgm1.pwn et donne basicgm1.amx en artefact (onglet Actions).
+# Lance a la main (Run workflow) ou automatiquement quand le gamemode change.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'server/basicgm/**'
+      - '.github/workflows/pawn-build.yml'
+
+jobs:
+  pawn:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construire pawncc 3.10.10 (sources officielles)
+        run: |
+          git clone --depth 1 --branch v3.10.10 https://github.com/pawn-lang/compiler.git /tmp/pawn
+          cmake -S /tmp/pawn/source/compiler -B /tmp/pawn-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/pawn-build --target pawncc -j 4
+          ls -la /tmp/pawn-build
+
+      - name: Compiler basicgm1.pwn
+        working-directory: server/basicgm
+        run: |
+          set -o pipefail
+          export LD_LIBRARY_PATH=/tmp/pawn-build
+          rm -f basicgm1.amx          # l'ancien .amx du depot ne doit pas passer pour un succes
+          /tmp/pawn-build/pawncc basicgm1.pwn -obasicgm1.amx -iinclude -i../../tools/pawn-windows/include -d0 2>&1 | tee pawn.log
+          test -s basicgm1.amx
+          ls -la basicgm1.amx
+
+      - name: Envoyer le .amx
+        uses: actions/upload-artifact@v4
+        with:
+          name: basicgm1-amx
+          path: |
+            server/basicgm/basicgm1.amx
+            server/basicgm/pawn.log

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Crestwood · Studio de style</title><link rel="stylesheet" href="clothes.css">  <link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<header class="brand"><img src="../login/assets/images/cw-logo.png" alt="Crestwood" style="height:40px;width:auto;display:block"><span>STUDIO DE STYLE</span></header>
+<nav id="categories" aria-label="Catégories"></nav>
+<div class="live">● APERÇU EN DIRECT <small id="model-label"></small></div>
+<section id="camera" aria-label="Contrôles de la caméra"><div class="eyebrow">EXPLORE TON STYLE <span>360°</span></div><label>Tourner le personnage<input id="rotation" aria-label="Tourner le personnage" type="range" min="0" max="360" value="0"></label><div class="zoom"><span>Zoom</span><button id="zoom-out" aria-label="Éloigner">−</button><button id="zoom-in" aria-label="Rapprocher">+</button><button id="reset-camera">Recentrer</button></div></section>
+<main id="panel">
+<header class="heading"><div><p>TON STYLE, TES RÈGLES</p><h1 id="category-title">Hauts</h1></div><button id="close" aria-label="Annuler et fermer">×</button></header>
+<div class="body-select"><label for="body">Personnage</label><select id="body"><option value="0">Homme</option><option value="1">Femme</option></select></div>
+<div class="tabs"><button id="catalog-mode" class="active">Collection</button><button id="original-mode">Réglages</button></div>
+<div id="status" role="status">Chargement de ta garde-robe…</div>
+<section id="selection"><div class="eyebrow">PIÈCE SÉLECTIONNÉE <span id="piece-number">ORIGINAL</span></div><h2 id="piece-name">Tenue actuelle</h2><div class="stepper"><button id="previous" aria-label="Pièce précédente">←</button><span id="piece-count"></span><button id="next" aria-label="Pièce suivante">→</button></div></section>
+<div id="collection-title" class="eyebrow">EXPLORE LA COLLECTION <button id="restore-piece">Retirer</button></div>
+<div id="items" aria-label="Pièces disponibles"></div><div id="fields"></div>
+<footer><p>Les changements s'affichent en direct sur ton personnage.</p><div><button id="cancel">Annuler</button><button id="save">Enregistrer la tenue <span>↗</span></button></div></footer>
+</main><div id="toast" role="status"></div>
+<script src="south/catalogue.js"></script><script src="clothes.js"></script></body></html>

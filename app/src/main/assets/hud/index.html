@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, viewport-fit=cover" />
+    <script src="../common/i18n.js"></script>
+  <script src="common/capital-responsive.js"></script>
+    <title>Crestwood HUD</title>
+    <link rel="stylesheet" href="hud.css" />
+    <link rel="stylesheet" href="hud-finance.css" />
+    <link rel="stylesheet" href="literal-hud.css" />
+    <link rel="stylesheet" href="hud-glass.css" />
+    <link rel="stylesheet" href="minimap.css" />
+    <link rel="stylesheet" href="objectives.css" />
+    <link rel="stylesheet" href="hud-noglow.css" />
+    <link rel="stylesheet" href="touch-controls.css" />
+    <link rel="stylesheet" href="hud-ring.css" />
+    <link rel="stylesheet" href="hud-cw9.css" />
+    <script src="gps/gps-route.js" defer></script>
+    <script src="minimap.js" defer></script>
+    <script src="objectives.js" defer></script>
+    <script src="hud.js" defer></script>
+    <script src="hud-kb.js" defer></script>
+    <!-- [Crestwood] controles tactiles personnalises desactives : boutons natifs SA / SA-MP reactives -->
+    <script src="hud-ring.js" defer></script>
+    <script src="hotbar.js" defer></script>
+    <script src="anim-mini.js" defer></script>
+    <link rel="stylesheet" href="../common/cw-perf.css">
+    <link rel="stylesheet" href="hud-v18.css" />
+    <link rel="stylesheet" href="hud-v19.css" />
+    <link rel="stylesheet" href="hud-v21.css" />
+    <link rel="stylesheet" href="hud-v22.css" />
+</head>
+  <body>
+    <main class="hud-root" aria-label="HUD Crestwood">
+      <div class="minimap-frame" role="button" tabindex="-1" aria-label="Ouvrir la carte"><canvas class="minimap-canvas"></canvas><i></i><i></i><i></i><i></i></div>
+
+      <!-- [v18] Chat : toucher = écrire, maintenir = masquer / afficher le chat -->
+      <button class="cw18-chatpin" id="cwChatPin" type="button" aria-label="Écrire dans le chat (maintenir : masquer le chat)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path class="cw-dots" d="M8 10.5h.01M12 10.5h.01M16 10.5h.01"/><path class="cw-off" d="M3 3 21 21"/></svg>
+        <span class="cw18-hold"></span>
+      </button>
+      <div class="cw18-tip" id="cw18Tip" hidden></div>
+      <!-- [v14] Barre d'objets rapides : visible des qu'un objet est place dans un emplacement rapide (hotbar.js) -->
+      <nav class="cw-hotbar" id="cwHotbar" aria-label="Objets rapides" hidden></nav>
+      <!-- Jauges en fondu autour de la minimap (hud-ring.js) : data-status = meme mise a jour que les anciennes jauges -->
+      <svg class="mm-ring" id="mmRing" aria-hidden="true">
+        <defs>
+          <filter id="mmGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g class="mm-arc health" data-status="health"><path class="trk"/><path class="val" pathLength="100"/></g>
+        <g class="mm-arc armour" data-status="armour"><path class="trk"/><path class="val" pathLength="100"/></g>
+        <g class="mm-arc thirst" data-status="thirst"><path class="trk"/><path class="val" pathLength="100"/></g>
+        <g class="mm-arc hunger" data-status="hunger"><path class="trk"/><path class="val" pathLength="100"/></g>
+        <g class="mm-arc energy" data-status="energy"><path class="trk"/><path class="val" pathLength="100"/></g>
+      </svg>
+      <div class="mm-ring-icons" id="mmRingIcons" aria-hidden="true">
+        <img data-ring-icon="health" src="original-speedometer/assets/images/heart.svg" alt="" />
+        <img data-ring-icon="armour" src="original-speedometer/assets/images/shield.svg" alt="" />
+        <img data-ring-icon="thirst" src="original-speedometer/assets/images/water.svg" alt="" />
+        <img data-ring-icon="hunger" src="original-speedometer/assets/images/food.svg" alt="" />
+        <img data-ring-icon="energy" src="original-speedometer/assets/images/stress.svg" alt="" />
+      </div>
+
+      <!-- Objectifs de mission (metiers, missions...) : pilote par le serveur ("@obj", dialogue 9650) -->
+      <section class="obj-tracker" id="objTracker" aria-live="polite" aria-label="Objectifs" hidden>
+        <header class="obj-head"><strong id="objTitle">MISSION</strong><small id="objSub"></small></header>
+        <ol class="obj-list" id="objList"></ol>
+      </section>
+
+      <img class="project-logo hud-movable" data-hud-key="logo" src="assets/project-logo.png" alt="Crestwood" />
+
+      <section class="literal-status-bars hud-movable" data-hud-key="status" aria-label="Statut du personnage">
+        <div class="literal-life-box health" data-status="health" style="--status-fill: 100%" aria-label="Santé"><div class="literal-image-box"><img src="original-speedometer/assets/images/heart.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+        <div class="literal-life-box hunger" data-status="hunger" style="--status-fill: 100%" aria-label="Faim"><div class="literal-image-box"><img src="original-speedometer/assets/images/food.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+        <div class="literal-life-box thirst" data-status="thirst" style="--status-fill: 100%" aria-label="Soif"><div class="literal-image-box"><img src="original-speedometer/assets/images/water.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+        <div class="literal-life-box energy" data-status="energy" style="--status-fill: 100%" aria-label="Énergie"><div class="literal-image-box"><img src="original-speedometer/assets/images/stress.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+        <div class="literal-life-box armour" data-status="armour" style="--status-fill: 0%" aria-label="Gilet"><div class="literal-image-box"><img src="original-speedometer/assets/images/shield.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+      </section>
+
+      <section class="vehicle-speedometer hud-movable" data-hud-key="speedometer" aria-label="Compteur du véhicule" hidden>
+        <iframe class="literal-speedometer-frame" src="original-speedometer/index.html" title="Compteur" scrolling="no" tabindex="-1" allowtransparency="true"></iframe>
+      </section>
+
+      <section class="hud-info-panel hud-movable" data-hud-key="info" aria-label="Informations du joueur">
+        <div class="wanted-row" aria-label="Niveau de recherche">
+          <span class="wanted-star" data-star="1"></span>
+          <span class="wanted-star" data-star="2"></span>
+          <span class="wanted-star" data-star="3"></span>
+          <span class="wanted-star" data-star="4"></span>
+          <span class="wanted-star" data-star="5"></span>
+          <span class="wanted-star" data-star="6"></span>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-pill time">
+            <span class="capital-pill-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><circle cx="15.5" cy="15.5" r="10.8"/><path d="M15.5 8.8v7.1l5.2 4.5"/><path class="cyan-stroke" d="M25 17.8a10.7 10.7 0 0 1-5.4 7.2"/><circle class="cyan-fill" cx="18.8" cy="25.5" r="1.25"/></svg>
+            </span>
+            <strong data-info="time">00:00</strong>
+          </div>
+          <div class="info-pill account">
+            <span class="capital-pill-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><rect x="5.5" y="8" width="21" height="17" rx="1.7"/><path d="M13 8V5.8h6V8"/><circle cx="11.2" cy="15.1" r="2.4"/><path d="M7.9 21.2c.7-2.3 2-3.5 3.4-3.5 1.5 0 2.8 1.2 3.4 3.5M18.2 14h5.2M18.2 18h5.2"/><circle class="cyan-fill" cx="24.4" cy="24.4" r="1.45"/></svg>
+            </span>
+            <strong data-info="account">0</strong>
+          </div>
+          <div class="info-pill coin">
+            <span class="capital-pill-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.3"/><circle cx="16" cy="16" r="8.5"/><path d="M20.4 12.2a5.6 5.6 0 1 0 0 7.6"/><path class="cyan-stroke" d="M6.7 22.3a11.3 11.3 0 0 0 4.3 3.8"/></svg>
+            </span>
+            <strong data-info="coin">0</strong>
+          </div>
+          <div class="info-pill location">
+            <span class="capital-pill-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><path d="M16 27.1s8-8.6 8-15.2a8 8 0 1 0-16 0c0 6.6 8 15.2 8 15.2z"/><circle cx="16" cy="11.9" r="3"/><path class="cyan-stroke" d="M11.7 28.5h8.6"/></svg>
+            </span>
+            <strong data-info="location">Los Santos</strong>
+          </div>
+          <div class="info-pill money">
+            <span class="capital-pill-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32"><rect x="5" y="9" width="22" height="14" rx="1.4"/><circle cx="16" cy="16" r="3.2"/><path d="M5.5 13c2.1 0 3.5-1.4 3.5-3.5M23 9.5c0 2.1 1.4 3.5 3.5 3.5M5.5 19c2.1 0 3.5 1.4 3.5 3.5M23 22.5c0-2.1 1.4-3.5 3.5-3.5"/><circle class="cyan-fill" cx="26.1" cy="22.8" r="1.5"/></svg>
+            </span>
+            <strong data-info="money">0 $</strong>
+          </div>
+          <!-- Arme en main : silhouette + munitions (chargeur / reserve), juste sous l'argent. Affichee seulement
+               avec une arme a feu. Toucher = arme suivante, maintenir = arme precedente (hud-ring.js). -->
+          <button class="info-pill weapon-ammo mm-weapon no-ammo" id="mmWeapon" type="button" aria-label="Arme (toucher : suivante, maintenir : précédente)">
+            <img class="mm-weapon-icon" alt="" hidden />
+            <span class="mm-weapon-ammo"><b data-mm-clip>0</b><i>/</i><span data-mm-reserve>0</span></span>
+          </button>
+        </div>
+
+        <div class="weapon-panel" aria-label="Arme actuelle">
+          <button class="weapon-arrow prev" type="button" data-weapon-action="prev" aria-label="Arme précédente"></button>
+          <div class="weapon-card">
+            <img class="weapon-icon" src="assets/weapons/GTASA_Weapon0.png" alt="" />
+          </div>
+          <button class="weapon-arrow next" type="button" data-weapon-action="next" aria-label="Arme suivante"></button>
+        </div>
+
+        <div class="ammo-row" aria-label="Munitions">
+          <img class="ammo-icon" src="assets/ammo-icon.png" alt="" />
+          <strong data-info="ammoClip">0</strong>
+          <span data-info="ammoReserve">0</span>
+        </div>
+      </section>
+
+      <div class="quick-actions hud-movable" data-hud-key="quick" aria-label="Actions rapides">
+        <button class="corner-action" type="button" aria-label="Ouvrir le menu rapide">
+          <svg class="menu-icon cw18-wheelicon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.4"/><path d="M12 3.4v3.2M12 17.4v3.2M3.4 12h3.2M17.4 12h3.2"/></svg>
+          <span class="close-icon"></span>
+          <small class="cw19-qa-label">Menu</small>
+        </button>
+        <!-- [v18] Paramètres + Téléphone (le chat a son petit bouton en haut, près de la carte) -->
+        <button class="clothes-test-action cw18-qa" id="cwQaSettings" type="button" aria-label="Paramètres" title="Paramètres">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>
+          <small class="cw19-qa-label">Réglages</small>
+        </button>
+        <button class="clothes-test-action cw18-qa" id="cwQaPhone" type="button" aria-label="Téléphone" title="Téléphone">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 5h3M11 18.5h2"/><i class="cw18-dot" hidden></i></svg>
+          <small class="cw19-qa-label">Téléphone</small>
+        </button>
+        <!-- Au volant : direction au joystick ou aux fleches (touch-controls.js) -->
+        <button class="clothes-test-action tc-steer-mode" id="tcSteerMode" type="button" aria-label="Direction : joystick ou flèches" title="Direction">
+          <svg class="tc-ico-stick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle class="fill" cx="12" cy="12" r="3.6"/></svg>
+          <svg class="tc-ico-arrows" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6 4 12l5.5 6M14.5 6 20 12l-5.5 6"/></svg>
+          <small data-steer-label>DIRECTION</small>
+        </button>
+      </div>
+
+      <button class="radio-talk-button hud-movable" type="button" aria-label="Radio" data-hud-key="radio" hidden>
+        <img src="assets/radio-icon.png" alt="" />
+        <span data-radio-frequency>OFF</span>
+      </button>
+
+      <button class="voice-talk-button hud-movable" type="button" aria-label="Maintenir pour parler" data-hud-key="voice">
+        <span class="voice-ring" aria-hidden="true"></span>
+        <svg class="voice-mic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
+        <span class="voice-label">VOCAL</span>
+        <span class="voice-lock" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+      </button>
+
+      <button class="engine-toggle-button hud-movable" type="button" aria-label="Moteur" data-hud-key="engine" hidden>
+        <img src="assets/engine-icon.png" alt="" />
+        <span class="engine-bolt" aria-hidden="true"></span>
+      </button>
+
+      <button class="vehicle-lock-button hud-movable" type="button" aria-label="Verrouiller le véhicule" data-hud-key="vehicleLock" hidden>
+        <img src="assets/vehicle-unlocked.png" alt="" />
+      </button>
+
+      <!-- ================================================================
+           Controles tactiles Crestwood v2 (remplacent les boutons natifs de SA)
+           touch-controls.js -> AndroidHUD.padStick / vehicle:control -> game/pad.cpp
+           ================================================================ -->
+
+      <!-- Joystick flottant : marche a pied, direction au volant -->
+      <div class="tc-touch-zone tc-stick-zone" id="tcStickZone" aria-label="Joystick de déplacement">
+        <div class="tc-stick" id="tcStick" aria-hidden="true">
+          <span class="tc-stick-sprint"><b>SPRINT</b></span>
+          <span class="tc-stick-base">
+            <i class="tc-tick t-up"></i><i class="tc-tick t-right"></i><i class="tc-tick t-down"></i><i class="tc-tick t-left"></i>
+          </span>
+          <span class="tc-stick-dir"></span>
+          <span class="tc-stick-knob"></span>
+        </div>
+      </div>
+
+      <!-- Flèches de direction (mode "flèches" au volant) -->
+      <div class="tc-group tc-steer hud-movable" data-hud-key="tcSteer" aria-label="Direction">
+        <button class="tc-btn tc-square" type="button" data-tc-key="left" aria-label="Gauche">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="tc-btn tc-square" type="button" data-tc-key="right" aria-label="Droite">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <div class="tc-group tc-extra hud-movable" data-hud-key="tcExtra" aria-label="Actions véhicule">
+        <button class="tc-btn tc-round tc-round-sm tc-glyph" type="button" data-tc-key="horn" aria-label="Klaxon">
+          <svg viewBox="0 0 24 24"><circle class="fill" cx="4.5" cy="12" r="2.6"/><path class="fill" d="M8 9.6h4.2L19.5 5v14l-7.300-4.600H8z"/></svg>
+        </button>
+        <button class="tc-btn tc-round tc-round-sm tc-glyph" type="button" data-tc-action="engine" aria-label="Moteur">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M3 14.500l1.800-5.200A3 3 0 0 1 7.600 7.300h8.800a3 3 0 0 1 2.800 2L21 14.500V19a1 1 0 0 1-1 1h-2.200a1 1 0 0 1-1-1v-1.300H7.200V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM7 10.200l-1.100 3.300h12.200L17 10.200z" fill-rule="evenodd"/></svg>
+        </button>
+        <button class="tc-btn tc-round tc-round-sm tc-glyph" type="button" data-tc-key="handbrake" aria-label="Frein à main">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M2 17.500h20V21H2z"/><path class="fill" d="M19.800 3.600l1.900 1.800-11.600 9.500-2.600.5.200-2.600z"/></svg>
+        </button>
+      </div>
+
+      <div class="tc-group tc-pedals hud-movable" data-hud-key="tcPedals" aria-label="Pédales">
+        <button class="tc-btn tc-pedal tc-brake" type="button" data-tc-key="brake" aria-label="Frein"><span class="tc-pedal-grip"></span><span class="tc-pedal-label">FREIN</span></button>
+        <button class="tc-btn tc-pedal tc-accel" type="button" data-tc-key="accelerate" aria-label="Accélérateur"><span class="tc-pedal-grip"></span><span class="tc-pedal-label">GAZ</span></button>
+      </div>
+
+      <!-- Au volant : descendre + tirer (drive-by) -->
+      <div class="tc-group tc-veh-actions hud-movable" data-hud-key="tcVehActions" aria-label="Sortir / tirer">
+        <button class="tc-btn tc-round tc-round-sm" type="button" data-tc-key="enter" aria-label="Descendre du véhicule">
+          <svg viewBox="0 0 24 24"><path d="M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"/><path d="M11 12h10M17.500 8.500L21 12l-3.500 3.500"/></svg>
+        </button>
+        <button class="tc-btn tc-round tc-round-sm tc-danger" type="button" data-tc-key="fire" aria-label="Tirer">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/><circle class="fill" cx="12" cy="12" r="1.600"/></svg>
+        </button>
+      </div>
+
+      <!-- A pied : tir / visee / saut / accroupi / sprint / armes / vehicule -->
+      <div class="tc-group tc-combat hud-movable" data-hud-key="tcCombat" aria-label="Actions à pied">
+        <button class="tc-btn tc-round tc-fire" type="button" data-tc-key="fire" aria-label="Tirer / frapper">
+          <span class="tc-fire-ring" aria-hidden="true"></span>
+          <img class="tc-fire-weapon" alt="" hidden />
+          <svg class="tc-fire-fist" viewBox="0 0 24 24"><g class="fill"><rect x="5.2" y="4.6" width="10.6" height="3.5" rx="1.75"/><rect x="4.4" y="8.5" width="12.2" height="3.5" rx="1.75"/><rect x="4.4" y="12.4" width="12.2" height="3.5" rx="1.75"/><rect x="5.2" y="16.3" width="10.2" height="3.4" rx="1.7"/><path d="M15.2 5.4h1.6a3.2 3.2 0 0 1 3.2 3.2v7.1a5.6 5.6 0 0 1-5.6 5.6h-1.2l1.4-3.1h.2a2.3 2.3 0 0 0 2.3-2.3V8.6a1.6 1.6 0 0 0-1.6-1.6h-.3z"/><path d="M3 13.4c0-1 .8-1.8 1.8-1.8h5.4a1.9 1.9 0 0 1 0 3.8H6.6v2.2H4.8A1.8 1.8 0 0 1 3 15.8z"/></g></svg>
+          <svg class="tc-fire-cross" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.500"/><path d="M12 2.500v4.500M12 17v4.500M2.500 12H7M17 12h4.500"/><circle class="fill" cx="12" cy="12" r="1.400"/></svg>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-aim" type="button" data-tc-toggle="aim" aria-label="Viser" aria-pressed="false">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.200"/><path d="M12 1.500v4M12 18.500v4M1.500 12h4M18.500 12h4"/></svg>
+          <span class="tc-cap">VISER</span>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-jump" type="button" data-tc-key="jump" aria-label="Sauter">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M12 3.2 20.4 12h-5.1v8.8H8.7V12H3.6z"/></svg>
+          <span class="tc-cap">SAUT</span>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-crouch" type="button" data-tc-key="crouch" aria-label="S'accroupir">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M12 20.8 3.6 12h5.1V3.2h6.6V12h5.1z"/></svg>
+          <span class="tc-cap">ACCROUPI</span>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-swap" type="button" data-tc-swap aria-label="Changer d'arme (appui long : arme précédente)">
+          <svg viewBox="0 0 24 24"><path d="M4 9h13.500l-3.500-3.500M20 15H6.500l3.500 3.500"/></svg>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-sprint" type="button" data-tc-key="sprint" aria-label="Sprinter">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M1.6 17.2c0-1.3.9-2.3 2.2-2.5l4.6-.7 2.9-5.2c.4-.8 1.4-1 2.1-.6l1.3.8-.7 1.5 1.5.8.7-1.4 1.6 1c.6.4 1 1 1.1 1.7l.4 2.4c2.4.4 3.5 1.3 3.5 2.6v.7H1.6z"/><path class="fill" d="M1.6 19.4h20.8v.4c0 .8-.6 1.4-1.4 1.4H3a1.4 1.4 0 0 1-1.4-1.4z" opacity=".75"/></svg>
+          <span class="tc-cap">SPRINT</span>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-enter" type="button" data-tc-key="enter" aria-label="Monter dans le véhicule (conducteur)">
+          <svg viewBox="0 0 24 24"><path class="fill" fill-rule="evenodd" d="M4.2 10.6 6 6.4a2.2 2.2 0 0 1 2-1.3h8a2.2 2.2 0 0 1 2 1.3l1.8 4.2c1.3.3 2.2 1.4 2.2 2.7v4.4a1 1 0 0 1-1 1h-1.7a1 1 0 0 1-1-1v-1.1H5.7v1.1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-4.4c0-1.3.9-2.4 2.2-2.7zM8.1 7.1 6.7 10.4h10.6l-1.4-3.3zM5 12.6a1.3 1.3 0 1 0 0 2.6h1.6a1.3 1.3 0 1 0 0-2.6zm12.4 0a1.3 1.3 0 1 0 0 2.6H19a1.3 1.3 0 1 0 0-2.6zm-7.3 1v1.2h3.8v-1.2z"/></svg>
+          <span class="tc-cap">MONTER</span>
+        </button>
+        <button class="tc-btn tc-round tc-sat tc-passenger" type="button" data-tc-key="passenger" aria-label="Monter en passager">
+          <svg viewBox="0 0 24 24"><path class="fill" d="M7.6 3.5a2 2 0 0 1 2.4 1.5l1.9 8.3h5.4a2.2 2.2 0 0 1 2.1 1.6l1.3 4.9a1.5 1.5 0 0 1-2.9.8l-1.1-4.2h-6a2.4 2.4 0 0 1-2.3-1.8L6.1 5.9a2 2 0 0 1 1.5-2.4z"/><path class="fill" d="M4.6 17.5h8.4a1.4 1.4 0 0 1 0 2.8H4.6a1.4 1.4 0 0 1 0-2.8z"/></svg>
+          <span class="tc-cap">PASSAGER</span>
+        </button>
+      </div>
+
+      <button class="animations-toggle-button hud-movable" type="button" aria-label="Animations" data-hud-key="animations">
+        <img src="assets/animations-icon.png" alt="" />
+      </button>
+
+      <button class="interact-tap-button" id="interactTap" type="button" aria-label="Interagir" hidden>
+        <span class="interact-tap-ring" aria-hidden="true"></span>
+        <span class="interact-tap-icon" aria-hidden="true">
+          <svg data-icon="hand" viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v5.5A5.5 5.5 0 0 1 12.5 22h-1.2a5.5 5.5 0 0 1-4.3-2.1L3.8 15.8a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg>
+          <svg data-icon="bank" viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5M5 10v8m4-8v8m6-8v8m4-8v8M3 21h18M3 18h18"/></svg>
+          <svg data-icon="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <svg data-icon="unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.7-1.5"/></svg>
+          <svg data-icon="shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>
+          <svg data-icon="house" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>
+          <svg data-icon="fish" viewBox="0 0 24 24"><path d="M2 12c2.5-4 6-6 10-6 3.6 0 6.4 1.7 8 4l2-3v10l-2-3c-1.6 2.3-4.4 4-8 4-4 0-7.5-2-10-6Z"/><circle cx="15" cy="11.5" r=".8"/></svg>
+          <svg data-icon="gang" viewBox="0 0 24 24"><path d="M4 17.5 3 7l5 4 4-6 4 6 5-4-1 10.5Z"/><path d="M5 20.5h14"/></svg>
+          <svg data-icon="garage" viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20H3z"/><path d="M7 20v-5.5h10V20M7 17.2h10"/></svg>
+          <svg data-icon="clothes" viewBox="0 0 24 24"><path d="M8.5 3.5 3 6.2l1.7 4 2.3-.9V20h10V9.3l2.3.9 1.7-4-5.5-2.7c-.4 1.3-1.8 2.2-3.5 2.2S8.9 4.8 8.5 3.5z"/></svg>
+        </span>
+        <span class="interact-tap-label" id="interactTapLabel">Interagir</span>
+      </button>
+
+      <section class="radio-frequency-layer" aria-label="Fréquence de la radio" hidden>
+        <div class="radio-frequency-modal">
+          <strong>Fréquence</strong>
+          <input data-radio-input type="number" min="1" max="300" inputmode="numeric" placeholder="1 - 300" />
+          <div class="radio-keypad" data-radio-keypad>
+            <button type="button" data-key="1">1</button>
+            <button type="button" data-key="2">2</button>
+            <button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button>
+            <button type="button" data-key="5">5</button>
+            <button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button>
+            <button type="button" data-key="8">8</button>
+            <button type="button" data-key="9">9</button>
+            <button type="button" data-key="clear">C</button>
+            <button type="button" data-key="0">0</button>
+            <button type="button" data-key="back">⌫</button>
+          </div>
+          <div class="radio-frequency-actions">
+            <button type="button" data-radio-cancel>Annuler</button>
+            <button type="button" data-radio-confirm>Rejoindre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="hud-editor-layer" aria-label="Modifier le HUD" hidden>
+        <div class="hud-editor-bar">
+          <strong>Modifier le HUD</strong>
+          <label class="hud-scale-control">
+            <span>Taille</span>
+            <input type="range" min="70" max="130" value="100" data-hud-scale />
+          </label>
+          <button type="button" data-hud-reset>Réinitialiser</button>
+          <button type="button" data-hud-save>Enregistrer</button>
+        </div>
+      </section>
+
+      <section class="cw-chat" id="cwChat" aria-live="polite" aria-label="Chat"></section>
+      <form class="floating-chat-composer hud-movable" data-hud-key="chat" aria-label="Message local">
+        <input
+          type="text"
+          maxlength="120"
+          placeholder="Écris ton message... (Entrée pour envoyer)"
+          aria-label="Message"
+          inputmode="text"
+          enterkeyhint="send"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="sentences"
+          spellcheck="false"
+        />
+        <button class="chat-send" type="submit">Envoyer</button>
+      </form>
+
+      <section class="game-notification-stack hud-movable" data-hud-key="notifications" aria-live="polite" aria-label="Notifications du jeu"></section>
+      <section class="first-steps-panel" id="firstStepsPanel" aria-label="Premiers Pas" aria-expanded="false" hidden>
+        <button class="first-steps-toggle" id="firstStepsToggle" type="button" aria-controls="firstStepsBody" aria-expanded="false">
+          <span class="first-steps-logo" aria-hidden="true"><b>P</b></span>
+          <span class="first-steps-title">
+            <strong>Premiers pas</strong>
+            <small>Tes premiers objectifs</small>
+          </span>
+          <span class="first-steps-count">
+            <strong id="firstStepsProgress">0/5</strong>
+            <small>Terminé</small>
+          </span>
+          <span class="first-steps-chevron" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
+        <div class="first-steps-body" id="firstStepsBody">
+          <div class="first-steps-track" aria-hidden="true">
+            <span class="first-steps-track-fill" id="firstStepsTrackFill"></span>
+            <i data-step-node="1"></i><i data-step-node="2"></i><i data-step-node="4"></i><i data-step-node="8"></i><i data-step-node="16"></i>
+          </div>
+
+          <div class="first-steps-list" role="listbox" aria-label="Objectifs disponibles">
+            <button class="first-step-card" type="button" data-first-step="1" role="option">
+              <span class="first-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="17" r="4"/><circle cx="18" cy="17" r="4"/><path d="m6 17 4-8h4l4 8M9 12h7M11 7h3"/></svg></span>
+              <span class="first-step-copy"><strong>Loue un deux-roues</strong><em><span>✦</span> Recommandé</em></span>
+              <span class="first-step-dot" aria-hidden="true"></span>
+              <span class="first-step-radio" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span>
+            </button>
+            <button class="first-step-card" type="button" data-first-step="2" role="option">
+              <span class="first-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM15 3v4h4"/><circle cx="10" cy="11" r="1.7"/><path d="M8 16c.5-1.7 1.3-2.5 2.3-2.5s1.8.8 2.3 2.5M14 11h2"/></svg></span>
+              <span class="first-step-copy"><strong>Fais tes papiers</strong><em><span>✦</span> Recommandé</em></span>
+              <span class="first-step-dot" aria-hidden="true"></span>
+              <span class="first-step-radio" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span>
+            </button>
+            <button class="first-step-card" type="button" data-first-step="4" role="option">
+              <span class="first-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5M5 10h14M6 19h12M7 10v9M17 10v9M10 10v9M14 10v9"/><path d="M12 12v5M14 13.5c-.5-.4-1.1-.6-1.8-.6-1 0-1.7.5-1.7 1.2 0 1.5 3.2.7 3.2 2.2 0 .7-.7 1.2-1.8 1.2-.8 0-1.4-.2-1.9-.6"/></svg></span>
+              <span class="first-step-copy"><strong>Ouvre un compte en banque</strong><em><span>✦</span> Recommandé</em></span>
+              <span class="first-step-dot" aria-hidden="true"></span>
+              <span class="first-step-radio" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span>
+            </button>
+            <button class="first-step-card" type="button" data-first-step="8" role="option">
+              <span class="first-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 5h4M11 18.5h2"/></svg></span>
+              <span class="first-step-copy"><strong>Fais tes achats à la boutique</strong><em><span>✦</span> Recommandé</em></span>
+              <span class="first-step-dot" aria-hidden="true"></span>
+              <span class="first-step-radio" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span>
+            </button>
+            <button class="first-step-card" type="button" data-first-step="16" role="option">
+              <span class="first-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"/></svg></span>
+              <span class="first-step-copy"><strong>Trouve un emploi</strong><em><span>✦</span> Recommandé</em></span>
+              <span class="first-step-dot" aria-hidden="true"></span>
+              <span class="first-step-radio" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg></span>
+            </button>
+          </div>
+
+          <footer class="first-steps-footer">
+            <span class="first-steps-pin" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg></span>
+            <small id="firstStepsHint">Sélectionne une étape pour marquer la prochaine destination.</small>
+            <button class="first-steps-start" id="firstStepsStart" type="button" disabled><span aria-hidden="true">▶</span><b>LANCER L'OBJECTIF</b></button>
+          </footer>
+        </div>
+      </section>
+      <section class="speed-fine-banner" aria-live="assertive" aria-label="Amende de vitesse" hidden>
+        <span class="speed-fine-accent"></span>
+        <img class="speed-fine-icon" src="assets/speedometer-fine.png" alt="" />
+        <span class="speed-fine-text">
+          <strong>AMENDE - EXCÈS DE VITESSE</strong>
+          <small>| Vitesse : <b data-speed-fine-speed>0</b> km/h</small>
+        </span>
+      </section>
+      <section class="radarbot-alert hud-movable" data-hud-key="radarbot" aria-live="polite" aria-label="Alerte radar" hidden>
+        <div class="radarbot-limit"><strong data-radarbot-limit>80</strong><small>km/h</small></div>
+        <div class="radarbot-copy">
+          <strong>RADAR DEVANT</strong>
+          <small><b data-radarbot-distance>100</b> mètres</small>
+        </div>
+      </section>
+      <section class="phone-notification-layer hud-movable" data-hud-key="phoneNotifications" aria-live="polite" aria-label="Notifications WhatsApp"></section>
+      <audio id="phoneNotificationSound" src="assets/somnotificacao.mp3" preload="auto"></audio>
+
+      <section class="id-layer" aria-label="Carte d'identité" hidden>
+        <div class="id-backdrop" data-id-close></div>
+        <article class="id-card" role="dialog" aria-modal="true" aria-label="Carte d'identité Crestwood">
+          <div class="id-pattern"></div>
+          <header class="id-header">
+            <img class="id-crest" src="assets/project-logo.png" alt="Crestwood" />
+            <span>
+              <strong>CRESTWOOD</strong>
+              <small>GOUVERNEMENT</small>
+              <em>Service d'identification civile</em>
+            </span>
+            <button class="id-close" type="button" data-id-close aria-label="Fermer">×</button>
+          </header>
+
+          <div class="id-title">
+            <b>CARTE D'IDENTITÉ</b>
+            <span>Document officiel de roleplay</span>
+          </div>
+
+          <button class="id-photo" type="button" id="idPhotoButton" aria-label="Ajouter une photo">
+            <img id="idPhoto" src="assets/rg/boneco.png" alt="" />
+            <span id="idPhotoHint">Touche pour ajouter une photo</span>
+          </button>
+
+          <dl class="id-fields">
+            <div class="wide"><dt>Nom / Name</dt><dd id="idName">Joueur</dd></div>
+            <div><dt>Numéro d'identité</dt><dd id="idRg">000</dd></div>
+            <div><dt>Sexe / Sex</dt><dd id="idSex">M</dd></div>
+            <div><dt>Date de naissance</dt><dd id="idBirth">Aujourd'hui</dd></div>
+            <div><dt>Nationalité</dt><dd>CRESTWOODIENNE</dd></div>
+            <div><dt>Lieu de naissance</dt><dd>Crestwood</dd></div>
+            <div><dt>Validité</dt><dd id="idExpiry">31/12/2099</dd></div>
+          </dl>
+
+          <div class="id-signature">
+            <button type="button" id="idSignButton">
+              <img id="idSignatureImage" alt="" hidden />
+              <span id="idSignatureHint">Signer la carte d'identité</span>
+            </button>
+            <small>Signature du titulaire / Cardholder signature</small>
+          </div>
+
+          <footer class="id-footer">
+            <span>CRESTWOOD ROLEPLAY</span>
+            <b id="idIssued">Délivrée aujourd'hui</b>
+          </footer>
+        </article>
+      </section>
+
+      <section class="id-camera-layer" aria-label="Caméra" hidden>
+        <div class="id-camera-frame" id="idCameraFrame">
+          <span></span>
+          <small id="idCameraStatus">Glisse vers le bas pour cadrer le visage</small>
+        </div>
+        <div class="id-camera-actions">
+          <button type="button" id="idCameraCancel">Annuler</button>
+          <button type="button" id="idCameraShot">Prendre la photo</button>
+        </div>
+      </section>
+
+      <section class="phone-cam cw21-cam" id="phoneCam" aria-label="Caméra du téléphone" hidden>
+        <!-- [v21] appareil photo DANS le telephone (a droite) : le viseur est un trou dans l'ecran du telephone -->
+        <i class="pc-island" aria-hidden="true"></i>
+        <div class="pc-status"><span id="pcClock">00:00</span><span class="pc-sys"><b>5G</b><svg viewBox="0 0 24 24"><path d="M3 17h2v4H3zm4-4h2v8H7zm4-4h2v12h-2zm4-4h2v16h-2z"/></svg><svg viewBox="0 0 24 24"><path d="M3 8h15a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zm17 3h2v2h-2z"/></svg></span></div>
+        <div class="pc-top" id="pcTop">
+          <button type="button" class="pc-round" id="pcBack" aria-label="Retour"><svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg></button>
+          <button type="button" class="pc-tool" id="pcGrid" aria-label="Grille"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v4h4V5zm6 0v4h2V5zm4 0v4h4V5zM5 11v2h4v-2zm6 0v2h2v-2zm4 0v2h4v-2zM5 15v4h4v-4zm6 0v4h2v-4zm4 0v4h4v-4z"/></svg></button>
+          <button type="button" class="pc-tool" id="pcTimer" aria-label="Minuteur"><svg viewBox="0 0 24 24"><path d="M9 2h6v2H9zm3 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm-.9 1.5V14l3.6 2 1-1.7-2.7-1.5V9.5z"/></svg><i id="pcTimerLbl"></i></button>
+          <button type="button" class="pc-tool pc-ratio" id="pcRatio" aria-label="Format">Max</button>
+        </div>
+        <div class="pc-stage" id="pcStage">
+          <div class="pc-view" id="pcView">
+            <i class="pc-grid" id="pcGridLines" hidden></i>
+            <span class="pc-reticle"></span>
+            <svg class="pc-hand" id="pcHand" viewBox="0 0 24 24"><path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V10h.5V8.5a1.5 1.5 0 0 1 3 0V10h.5V9.5a1.5 1.5 0 0 1 3 0V15c0 3.3-2.2 6-5.5 6h-1.2c-1.7 0-3-.8-4-2l-3.3-4.2a1.4 1.4 0 0 1 2-2L9 14z"/></svg>
+            <b class="pc-count" id="pcCount" hidden></b>
+            <i class="pc-flash" id="pcFlash"></i>
+            <em class="pc-pill" id="pcPill">Ambiance</em>
+          </div>
+          <div class="pc-pad" id="pcSelfie" hidden>
+            <button type="button" data-cam="left" aria-label="Gauche"><svg viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7 1.5-1.5L10.5 12 16 6.5z"/></svg></button>
+            <button type="button" data-cam="in" aria-label="Avancer"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg></button>
+            <button type="button" data-cam="out" aria-label="Reculer"><svg viewBox="0 0 24 24"><path d="M5 11h14v2H5z"/></svg></button>
+            <button type="button" data-cam="right" aria-label="Droite"><svg viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7L8 17.5l5.5-5.5L8 6.5z"/></svg></button>
+            <button type="button" class="pc-drone-only" data-cam="up" aria-label="Monter"><svg viewBox="0 0 24 24"><path d="m12 6 7 7-1.5 1.5L12 9l-5.5 5.5L5 13z"/></svg></button>
+            <button type="button" class="pc-drone-only" data-cam="down" aria-label="Descendre"><svg viewBox="0 0 24 24"><path d="m12 18-7-7 1.5-1.5L12 15l5.5-5.5L19 11z"/></svg></button>
+            <button type="button" class="pc-drone-only pc-land" data-cam="land" aria-label="Me poser ici">Me poser</button>
+          </div>
+        </div>
+        <div class="pc-modes" id="pcModes">
+          <button type="button" data-mode="drone">Drone</button>
+          <button type="button" data-mode="photo" class="on">Photo</button>
+          <button type="button" data-mode="selfie">Selfie</button>
+        </div>
+        <div class="pc-bottom" id="pcBottom">
+          <button type="button" class="pc-thumb" id="pcGallery" aria-label="Photos"><img id="pcThumb" alt="" hidden><svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 2v8.6l3.5-3.6 2.5 2.5 3.5-4.1L19 15V7z"/></svg></button>
+          <button type="button" class="pc-shutter" id="pcShutter" aria-label="Prendre la photo"><span></span></button>
+          <button type="button" class="pc-round" id="pcFlip" aria-label="Selfie"><svg viewBox="0 0 24 24"><path d="M9 4 7.2 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.2L15 4H9zm3 4a5 5 0 0 1 4.6 3H19l-3 3.2-3-3.2h1.6A3 3 0 0 0 9.2 11.6L7.8 10.2A5 5 0 0 1 12 8zm-4.6 5H5l3-3.2 3 3.2H9.4a3 3 0 0 0 5.4 1.4l1.4 1.4A5 5 0 0 1 7.4 13z"/></svg></button>
+        </div>
+        <i class="pc-homebar" aria-hidden="true"></i>
+      </section>
+
+      <section class="id-sign-layer" aria-label="Signer la carte d'identité" hidden>
+        <div class="id-sign-backdrop"></div>
+        <div class="id-sign-modal">
+          <strong>Signe ta carte d'identité</strong>
+          <canvas id="idSignCanvas" width="520" height="180"></canvas>
+          <div>
+            <button type="button" id="idSignClear">Effacer</button>
+            <button type="button" id="idSignCancel">Annuler</button>
+            <button type="button" id="idSignSave">OK</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="capital-flow-layer" id="capitalFlowLayer" aria-label="Service Crestwood" hidden>
+        <div class="capital-flow-backdrop" data-capital-flow-close></div>
+        <article class="capital-flow-card" role="dialog" aria-modal="true">
+          <button class="capital-flow-close" type="button" data-capital-flow-close aria-label="Fermer">×</button>
+          <div id="capitalFlowContent"></div>
+        </article>
+      </section>
+
+      <!-- [v19b] roue compacte : 6 familles, toucher une famille ouvre ses sous-menus (hud.js "CW19 ROUE") -->
+      <section class="radial-menu cw19-menu" aria-label="Menu rapide">
+        <div class="radial-wheel cw19-wheel" id="cw19Wheel">
+          <div class="cw19-dial">
+            <button class="cw19-fam" type="button" data-fam="moi" aria-label="Moi" style="left:50%;top:13%"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.6"/><path d="M4.5 20.5c.8-4 3.7-6.2 7.5-6.2s6.7 2.2 7.5 6.2"/></svg><span>Moi</span></button>
+            <button class="cw19-fam" type="button" data-fam="tel" aria-label="Téléphone" style="left:82%;top:31.5%"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 5h3M11 18.5h2"/></svg><span>Téléphone</span></button>
+            <button class="cw19-fam" type="button" data-fam="ville" aria-label="Ville" style="left:82%;top:68.5%"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.1-6.5-11.2A6.5 6.5 0 0 1 12 3.3a6.5 6.5 0 0 1 6.5 6.5C18.5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.8" r="2.4"/></svg><span>Ville</span></button>
+            <button class="cw19-fam" type="button" data-fam="veh" aria-label="Véhicules" style="left:50%;top:87%"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5V12l2-5.2A1.8 1.8 0 0 1 7.7 5.5h8.6a1.8 1.8 0 0 1 1.7 1.3L20 12v4.5"/><path d="M3 12.5h18v4H3z"/><circle cx="7.5" cy="18.5" r="1.6"/><circle cx="16.5" cy="18.5" r="1.6"/></svg><span>Véhicules</span></button>
+            <button class="cw19-fam" type="button" data-fam="job" aria-label="Travail" style="left:18%;top:68.5%"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="1.5"/><path d="M9 7V5.2A1.2 1.2 0 0 1 10.2 4h3.6A1.2 1.2 0 0 1 15 5.2V7M3.5 12.5h17"/></svg><span>Travail</span></button>
+            <button class="cw19-fam" type="button" data-fam="reg" aria-label="Réglages" style="left:18%;top:31.5%"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg><span>Réglages</span></button>
+            <button class="cw19-hub" type="button" id="cw19Hub" aria-label="Fermer le menu"><b id="cw18Label">Menu</b><small>Fermer</small></button>
+          </div>
+          <div class="cw19-panel" id="cw19Panel" hidden>
+            <div class="cw19-group" data-fam="moi" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="3.6"/><path d="M4.5 20.5c.8-4 3.7-6.2 7.5-6.2s6.7 2.2 7.5 6.2"/></svg></i><div><b>Moi</b><small>Mon personnage</small></div></header>
+              <button class="cw19-item" type="button" data-slot="papers" data-label="Papiers d'identité"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="1.5"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.5c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h5M14 13.5h3.5"/></svg><span>Papiers d'identité</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="inventory" data-label="Sac"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V5.5a4 4 0 0 1 8 0V7"/><path d="M5 9.2A2.2 2.2 0 0 1 7.2 7h9.6A2.2 2.2 0 0 1 19 9.2V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2Z"/><path d="M9 13h6"/></svg><span>Sac</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="clothes" data-label="Tenue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3.5 3 6.2l1.7 4 2.3-.9V20h10V9.3l2.3.9 1.7-4-5.5-2.7c-.4 1.3-1.8 2.2-3.5 2.2s-3.1-.9-3.5-2.2Z"/></svg><span>Tenue</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="anims" data-label="Animations"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.6" r="1.9"/><path d="M12 7.5v5.5l-3.2 7.5M12 13l3.2 7.5M6.5 10.5 12 9l5.5-2"/></svg><span>Animations</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/besoins" data-label="Faim et soif"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v4.5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M16.5 21V3c-2 1.5-3 4.2-3 7.5V14h3"/></svg><span>Faim et soif</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/niveau" data-label="Niveau et XP"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.1l5.8-.8Z"/></svg><span>Niveau et XP</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="cw19-group" data-fam="tel" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 5h3M11 18.5h2"/></svg></i><div><b>Téléphone</b><small>Contacts et aide</small></div></header>
+              <button class="cw19-item" type="button" data-slot="phone" data-label="Téléphone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 5h3M11 18.5h2"/></svg><span>Téléphone</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="rp" data-label="Tablette RP"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8.5 7h2.5v2.5H8.5ZM13 7h2.5v2.5H13ZM8.5 11.5h2.5V14H8.5ZM13 11.5h2.5V14H13Z"/></svg><span>Tablette RP</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="report" data-label="Contacter le staff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v5H5a1 1 0 0 1-1-1ZM20 14h-3v5h2a1 1 0 0 0 1-1Z"/><path d="M17 19c0 1.5-2 2.5-5 2.5"/></svg><span>Contacter le staff</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/aide" data-label="Aide et commandes"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.8M12 17.2h.01"/></svg><span>Aide et commandes</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="cw19-group" data-fam="ville" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.1-6.5-11.2A6.5 6.5 0 0 1 12 3.3a6.5 6.5 0 0 1 6.5 6.5C18.5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.8" r="2.4"/></svg></i><div><b>Ville</b><small>Se déplacer, acheter</small></div></header>
+              <button class="cw19-item" type="button" data-slot="map" data-label="Carte de la ville"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5V20l6-2.5 6 2.5 6-2.5V4l-6 2.5Z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span>Carte de la ville</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="store" data-label="Boutique"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16l-1.2 11a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Boutique</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="quests" data-label="Quêtes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11.5l-2.2 4 2.2 4H5"/></svg><span>Quêtes</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/loto" data-label="Loto de Crestwood"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12" rx="1.5"/><path d="M8.5 6v12" stroke-dasharray="1.6 1.6"/><circle cx="14.5" cy="12" r="2.4"/></svg><span>Loto de Crestwood</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/mairie" data-label="GPS mairie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5h18M5 20.5V10M19 20.5V10M9 20.5V10M15 20.5V10M2.5 10 12 4l9.5 6Z"/></svg><span>GPS mairie</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="cw19-group" data-fam="veh" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5V12l2-5.2A1.8 1.8 0 0 1 7.7 5.5h8.6a1.8 1.8 0 0 1 1.7 1.3L20 12v4.5"/><path d="M3 12.5h18v4H3z"/><circle cx="7.5" cy="18.5" r="1.6"/><circle cx="16.5" cy="18.5" r="1.6"/></svg></i><div><b>Véhicules</b><small>Garage et conduite</small></div></header>
+              <button class="cw19-item" type="button" data-slot="cmd:/vmenu" data-label="Commandes du véhicule" data-i18n="wheel.vmenu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M7.2 6.2a7.5 7.5 0 1 0 9.6 0"/></svg><span>Commandes du véhicule</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="garage" data-label="Mon garage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3Z"/><path d="M7 20v-6h10v6M7 17h10"/></svg><span>Mon garage</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/ceinture" data-label="Ceinture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3l10 18M5 12h4.5M14.5 12H19"/><rect x="9.5" y="10" width="5" height="4" rx=".8"/></svg><span>Ceinture</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/rendrelocation" data-label="Rendre la location"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="16.5" r="3.5"/><circle cx="18" cy="16.5" r="3.5"/><path d="M6 16.5 9.5 9h5l3.5 7.5M11 9 9 5.5H7M14.5 9l1-3h2"/></svg><span>Rendre la location</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/course" data-label="Course de rue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h13l-2.5 4L18 12H5"/><path d="M9 4v8M13 4v8M5 8h13"/></svg><span>Course de rue</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="cw19-group" data-fam="job" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="1.5"/><path d="M9 7V5.2A1.2 1.2 0 0 1 10.2 4h3.6A1.2 1.2 0 0 1 15 5.2V7M3.5 12.5h17"/></svg></i><div><b>Travail</b><small>Emplois et factions</small></div></header>
+              <button class="cw19-item" type="button" data-slot="jobs" data-label="Tablette job"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M9.5 10V8.4h5V10"/><rect x="7" y="10" width="10" height="6" rx="1"/></svg><span>Tablette job</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="cmd:/emploi" data-label="Mon emploi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20.5c.7-3.6 3.3-5.6 6.5-5.6s5.8 2 6.5 5.6M15.5 4.5l3-1.5M18.5 8h2"/></svg><span>Mon emploi</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item" type="button" data-slot="records" data-label="Blazer (factions)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3.5h10l4 4V20.5H4Z"/><path d="M14 3.5v4h4M7.5 12h7M7.5 15.5h7"/></svg><span>Blazer (factions)</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="cw19-group" data-fam="reg" hidden>
+              <header class="cw19-head"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></i><div><b>Réglages</b><small>Affichage du jeu</small></div></header>
+              <button class="cw19-item" type="button" data-slot="settings" data-label="Paramètres"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg><span>Paramètres</span><svg class="cw19-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button class="cw19-item cw19-toggle" type="button" data-slot="minimap" data-label="Minimap"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 12l5.2-3.2"/><circle cx="12" cy="12" r="1.3"/></svg><span>Minimap</span><em class="cw19-state"></em></button>
+              <button class="cw19-item cw19-toggle" type="button" data-slot="chat" data-label="Fil du chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg><span>Fil du chat</span><em class="cw19-state"></em></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  <script>try{window.CwI18n&&CwI18n.apply(document.querySelector(".hud-root")||document.body);}catch(e){}</script>
+</body>
+</html>

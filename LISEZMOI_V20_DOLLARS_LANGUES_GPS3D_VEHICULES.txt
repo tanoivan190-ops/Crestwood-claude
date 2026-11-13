@@ -1,0 +1,69 @@
+=====================================================================
+ CRESTWOOD RP - V20 (10/11/2026)
+=====================================================================
+!! Recompiler le gamemode (workflow GitHub "Compiler le gamemode") : le basicgm1.amx du zip est l'ancien.
+!! Recompiler l'APK : le code natif (samp + samp32) a change (roue vehicule, GPS 3D).
+
+1. DEVISE : DOLLARS
+   - Tous les "FCFA" sont devenus "$" (serveur, pages HTML, Java natif, docs), ecrit a la francaise : 5 000 $.
+   - Les montants ne changent pas (500 000 FCFA -> 500 000 $). Icone de l'inventaire : "$".
+
+2. PAGES PLUS RAPIDES (Java game + game32)
+   - Avant : chaque ouverture d'un panneau = chargement complet de la page, puis about:blank a la fermeture.
+   - Maintenant la derniere page de panneau reste chargee (cachee, sons en pause) : rouvrir le meme panneau
+     (sac, telephone, boutique, banque, garage...) est instantane, on lui renvoie juste ses donnees.
+     Desactive automatiquement sur les telephones a petite memoire (memoryClass < 160 Mo) et libere si
+     Android manque de memoire (onTrimMemory).
+   - L'inventaire est prechauffe 4 s apres la connexion.
+   - Telephone : la page faisait 2,6 Mo (62 images collees dans le HTML). Les images sont sorties dans
+     phone/media/ : la page fait 150 Ko et s'ouvre beaucoup plus vite.
+
+3. CLAVIER
+   - Panneau admin (et tous les panneaux) : toucher une case de saisie ouvre le clavier Android
+     (script injecte a chaque page : focus d'un champ -> AndroidHUD.showAndroidKeyboard ; HudWebView relance
+     la connexion clavier avec restartInput + showSoftInput). La couche des panneaux redevient focusable.
+   - Clavier du chat (hud-kb.js) : la lettre s'ecrit au TOUCHER (et plus au relachement), un seul ecouteur
+     pour tout le clavier, pas d'animation, bulle d'apercu au-dessus de la touche. Appui long = accent.
+
+4. LANGUES : FRANCAIS / ENGLISH / PORTUGUES + REGLEMENT AU DEBUT
+   - Premier lancement (ecran de chargement, sinon ecran de connexion) : choix de la langue puis reglement
+     de la ville (10 regles) a accepter. Garde sur le telephone (localStorage cw.lang / cw.rules).
+   - Traduits : chargement / telechargement, connexion / inscription, roue du HUD, boutons, clavier,
+     appareil photo, premiers pas. Les messages du serveur (chat, notifications, dialogues) restent en francais.
+   - Changer de langue : Reglages > Commandes & HUD > Langue (applique au prochain lancement).
+   - Fichiers : assets/common/i18n.js (dictionnaire) et assets/common/cw-welcome.js (accueil).
+
+5. LOGO CRESTWOOD ROLEPLAY (image PNG transparente)
+   - Refait : lettres nettes (plus de halo gris), relief 3D bleu nuit, contour sombre lisible sur fond clair,
+     "ROLEPLAY" dans une plaque bleue Crestwood. Remplace hud/crestwood-roleplay.png, hud/assets/project-logo.png
+     et login/assets/images/cw-logo.png (meme taille, rien a changer dans les pages).
+
+6. TELECHARGEMENT (ecran de chargement)
+   - Tableau en trois cases pendant le telechargement : quantite telechargee / vitesse (avec courbe des
+     60 dernieres mesures) / temps restant. Barre "route" conservee. Unites Ko/Mo/Go (KB/MB/GB en anglais).
+
+7. MINIMAP + GPS 3D
+   - Minimap : itineraire bleu Crestwood (bord sombre + filet clair au centre facon ligne de route), fleche
+     du joueur vectorielle nette, epingle de destination, "N" dans une pastille, distance dans une plaque,
+     leger assombrissement du bord.
+   - GPS 3D (natif, WorldMarkers.cpp) : la minimap envoie l'itineraire au moteur (AndroidHUD.setGpsRoute ->
+     JNI setGpsWorld). En jeu : chevrons bleus poses AU SOL sur ~85 m devant toi (hauteur du sol calculee par
+     le moteur), et une BALISE D'ARRIVEE visible de loin : colonne de lumiere bleue, epingle avec drapeau et
+     distance ("250 m", "1.2 km"), anneaux au sol quand tu arrives.
+
+8. VEHICULES
+   - Les vehicules apparaissent MOTEUR COUPE (ManualVehicleEngineAndLights) : /v, garage, emplois, location,
+     quetes. Demarrage : bouton moteur du HUD, /moteur, ou la roue du vehicule.
+   - Toucher un vehicule (a pied) ouvre sa ROUE D'INTERACTION autour de lui (natif, PlayerTap.cpp) :
+     Demarrer / Couper (a distance pour le proprietaire), Phares, Monter, Verrouiller, Coffre, Capot, Portes,
+     Plaque, Controle (police). Le centre de la roue = Fermer. Couleurs passees de l'or au bleu Crestwood.
+   - Au volant : roue du HUD > Vehicules > "Commandes du vehicule" (/vmenu) : moteur, phares, portieres...
+
+9. TELEPHONE, APPAREIL PHOTO, PUCE
+   - Telephone : cadre titane graphite + filet bleu (plus d'or), nouveaux fonds d'ecran Crestwood.
+   - Appareil photo refait : plein ecran (le jeu est le viseur), deux rails de commandes (retour, grille,
+     minuteur, format / galerie avec vignette de la derniere photo, declencheur, selfie), coins de visee,
+     zone hors cadre assombrie selon le format.
+   - Puce SIM : achetee au 24/7, elle s'active A LA CAISSE (numero donne tout de suite, notification).
+     Un iPhone neuf achete sans puce ni numero est livre avec une puce deja activee.
+     Sans puce : carte "Aucune carte SIM" dans le telephone avec un bouton "GPS vers le 24/7".

@@ -1,0 +1,39 @@
+/* ==========================================================================
+   Crestwood RP v21 - ecran de connexion : formes adoucies, verre, onglets en pilule.
+   Charge APRES style.css (ne change pas la mise en page, seulement l'habillage).
+   ========================================================================== */
+:root{ --r: 14px; }
+.cw-card{
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(59,130,255,.08), rgba(255,255,255,0) 26%), linear-gradient(180deg, rgba(22,26,33,.9), rgba(12,14,19,.92));
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(0,0,0,.4), 0 30px 80px rgba(0,0,0,.55);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+/* onglets : pilule segmentee */
+.cw-tabs{ padding: 4px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.07) !important; border-bottom-width: 1px !important; }
+.cw-tab{ position: relative; z-index: 1; border-radius: 999px; transition: color .2s; }
+.cw-tab-bar{ top: 4px; bottom: 4px; left: 4px; height: auto; width: calc((100% - 8px) / 3); border-radius: 999px;
+  background: linear-gradient(180deg, #4b8fff, #2f74f0); box-shadow: 0 4px 14px rgba(59,130,255,.35); }
+.cw-tabs[data-active="register"] .cw-tab-bar{ transform: translateX(100%); }
+.cw-tabs[data-active="recover"] .cw-tab-bar{ transform: translateX(200%); }
+/* champs */
+.cw-field{ border-radius: 12px; background: rgba(255,255,255,.04); }
+.cw-field:focus-within{ box-shadow: 0 0 0 3px rgba(59,130,255,.2); }
+.cw-check .cw-box, .cw-check > span:first-of-type{ border-radius: 6px; }
+/* boutons */
+.cw-primary{ border-radius: 12px !important; background: linear-gradient(180deg, #4b8fff, #2f74f0) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 8px 22px rgba(59,130,255,.32) !important; }
+.cw-primary:active{ transform: translateY(1px); }
+.cw-secondary, .cw-gender-btn, .cw-x{ border-radius: 12px !important; }
+.cw-selects select, .cw-promo, .cw-reward{ border-radius: 12px !important; }
+/* colonne de gauche */
+.cw-features{ border-radius: 16px; overflow: hidden; background: rgba(13,15,20,.6);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.cw-features li{ border-bottom-color: rgba(255,255,255,.06); }
+.cw-features li{ transition: background .2s; }
+.cw-server{ border-radius: 999px !important; }
+.cw-player{ border-radius: 16px !important; }
+.cw-pbtn{ border-radius: 50% !important; }
+.cw-strength, .cw-strength *{ border-radius: 999px; }
+.sa-stack > *{ border-radius: 14px; }

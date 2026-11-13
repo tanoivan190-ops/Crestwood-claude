@@ -1,0 +1,90 @@
+BOUTIQUES UTGAWA : VETEMENTS / ACCESSOIRES / BARBIER / TATOUAGE  (Crestwood RP)
+=================================================================================
+
+Systeme de creation de personnage + boutiques, integre a l'editeur "@clothes" deja present
+dans l'APK (CharacterCreator / ClothesCustomization, dialogues 9550-9554). Aucun plugin.
+
+1) CREATION DU PERSONNAGE
+   Tant qu'un compte n'a pas d'apparence sauvegardee : /vetements ouvre l'editeur complet,
+   tout est GRATUIT (comme avant). Le genre / modele ne se choisit qu'ici.
+   Ensuite /vetements est reserve au staff : la tenue change dans les boutiques.
+   (UTGS_EDITOR_LIBRE 1 = remettre l'ancien comportement.)
+
+2) BOUTIQUES
+   Creation par un admin (niveau UTGS_ADMIN_LVL = 4 mini, echelle 0-10 du panneau), a pied, a l'endroit voulu :
+     /criarroupa       boutique de vetements  (haut, bas, chaussures)
+     /criaracessorio   boutique d'accessoires (chapeau, lunettes, masque, boucles, collier, montre, sac)
+     /criarbarbearia   barbier                (cheveux + couleur, sourcils, barbe, maquillage)
+     /criartatuagem    salon de tatouage      (bras G/D, jambes G/D, dos, torse)
+     /deletarloja      supprime la boutique la plus proche (4 m)
+     /lojas            liste    |   /irloja <id>  teleporte
+   Chaque boutique = pickup vetements SA-MP (1275) + texte 3D + icone sur la carte
+   (icones 40..99 : 45 vetements/accessoires, 7 barbier, 39 tatouage). Sauvegardees (table utg_shops).
+
+   Le joueur marche sur le pickup -> l'editeur s'ouvre avec "shop":1..4 dans le JSON.
+   A l'enregistrement le SERVEUR :
+     - remet comme avant tout ce que la boutique ne vend pas (et renvoie l'apparence au client) ;
+     - fait payer chaque piece NOUVELLE (UTGS_PRIX_* , 1000 par defaut) en argent liquide ;
+     - une piece deja achetee se remet gratuitement (table utg_owned) ; retirer une piece = gratuit ;
+     - refuse si pas assez d'argent (le client revient a la tenue enregistree).
+   Un policier en uniforme doit d'abord remettre sa tenue civile au vestiaire.
+
+3) CORRECTIONS
+   - Accessoires (chapeau, lunettes, masque, boucles, collier, montre, sac) : le client envoie 39 valeurs
+     mais la GM n'en gardait que 25 -> ils n'etaient ni sauvegardes ni vus par les autres. Maintenant 39
+     (sauvegarde, chargement, vestiaire, diffusion). Les anciennes sauvegardes (25 valeurs) restent valides.
+   - Les corps 289 (Homme 2), 12 (Femme 2) et 7 (Homme 3) de SkinBodies.h etaient refuses a
+     l'enregistrement ("modele invalide") : acceptes maintenant.
+
+4) FICHIERS MODIFIES
+   server/basicgm/basicgm1.pwn             module UTGAWA_LOJAS (avant FACTIONS + VESTIAIRES),
+                                           Cloth_* (39 valeurs, hook UtgShop_OnSave), callbacks
+   app/src/main/cpp/samp/gui/ClothesCustomization.h/.cpp   filtre boutique (SetShopFilter / ShopOfKey) :
+   app/src/main/cpp/samp/gui/CharacterCreator.cpp          la page n'affiche que les champs de la boutique
+   (+ les memes dans samp32/)                              et cache le choix du genre en boutique.
+
+5) A FAIRE
+   Recompiler basicgm1.amx avec votre commande (AGENTS.md). L'.amx fourni a ete compile avec
+   pawncc 3.10.10 + includes SA-MP 0.3.7 : 0 erreur, memes 5 avertissements que l'original.
+   Reconstruire l'APK (C++ modifie). Sans le nouvel APK tout marche quand meme : la page montre
+   tous les onglets mais le serveur n'enregistre que ce que la boutique vend.
+
+6) INTEGRATION DANS LE PROJET ACTUEL (30/10/2026)
+   - Le module UTGAWA_LOJAS est dans server/basicgm/basicgm1.pwn (applique avec UTGAWA_INTEGRACAO/patch_gm.py),
+     basicgm1.amx recompile (0 erreur). Les points vetements "t-shirt 3D" (cshopadd du panneau admin, touche
+     d'interaction 100) ouvrent maintenant la BOUTIQUE DE VETEMENTS (payante) ; tant que le personnage n'est pas
+     cree, ils ouvrent l'editeur complet gratuit.
+   - Filtre boutique cote APK (ClothesCustomization / CharacterCreator) : 64 bits (cpp/samp) ET 32 bits (cpp/samp32).
+   - NE PAS charger le filterscript UTGAWA_CUSTOM.amx du pack : tout est deja dans la GM (sinon doublons de
+     commandes /criarroupa et deux systemes de sauvegarde).
+
+7) MODELES DFF / TXD DANS LE MODPACK
+   Les corps du pack UTGAWA (male.dff / female.dff) ont les memes materiaux que ceux que l'APK habille deja
+   (fantasy_m_* / fantasy_f_* / body.*), et le catalogue de l'APK (ClothesAvz.h) a les memes pieces.
+     male.dff + male.txd     -> skin 7   (male01)  dans l'img du modpack   = "Homme 3" de la creation
+     female.dff + female.txd -> skin 12  (bfyri)   dans l'img du modpack   = "Femme 2" de la creation
+   Les vetements sont des TEXTURES posees sur ces corps. L'APK les cherche dans la texdb du jeu sous les noms
+     brl_m7_clothes_<materiau>_<NN>  (homme)   brl_f9_clothes_<materiau>_<NN>  (femme)
+   (ex. brl_m7_clothes_fantasy_m_torso2_08 = haut style 2, variante 8 ; texture absente = piece masquee).
+   Les TXD cs7_* / cs9_* du pack ont a priori les memes images (memes nombres de variantes par piece) sous d'autres
+   noms (ex. cs7_tshirts : 2_8). Si ta texdb a deja les brl_..., rien a faire ; sinon
+   pour ajouter / remplacer un vetement, il faut l'ajouter a la texdb sous le nom brl_... attendu.
+   Les interieurs (bshop01, intra_odejda, intra_akses + .col) sont optionnels : il faut leur donner un id
+   d'objet libre (IDE + img du modpack) pour les poser avec CreateObject.
+
+8) APRES CHAQUE NOUVEAU MODPACK
+   Change STATIC_DOWNLOAD_URL et STATIC_VERSION dans DataInstaller.java : tous les telephones dont la data
+   n'a pas cette version la retelechargent automatiquement (REQUIRE_CURRENT_DATA_VERSION = true).
+
+9) NETTOYAGE (30/10/2026) : ANCIEN SYSTEME SUPPRIME + JOYSTICK
+   - Bouton HUD "TENUE" (panneau de vetements de TEST, local, sans serveur ni paiement) SUPPRIME :
+     assets/hud/index.html, hud.js, SAMP.java (game + game32, menuAction "clothes").
+     Les vetements ne passent plus que par le systeme Utgawa (creation /vetements, puis boutiques).
+   - Joystick : plus de comportement "lien" (selection, surbrillance, appui long, vibration Android),
+     le doigt n'est plus perdu hors de la zone (HudWebView garde le geste jusqu'au relachement),
+     rendu groupe par image (plus fluide). Fichiers : hud/touch-controls.css/.js, HudWebView.java.
+   -> Reconstruire l'APK.
+
+10) MAIN 3D + LASOUTH RETIRE (30/10/2026, soir)
+   Voir LISEZMOI_VETEMENTS_FUSION_ET_CONTROLES.txt : Lasouth retire (doublon exact d Utgawa), plus de
+   pickup (main d'interaction 3D a la place), plus de changement de tenue gratuit hors creation.

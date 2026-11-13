@@ -1,0 +1,164 @@
+--- apk_patch/cpp_orig/samp/gui/ClothesCustomization.h	2026-10-30 11:49:08.511953930 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp/gui/ClothesCustomization.h"	2026-10-30 11:49:08.564418809 -0300
+@@ -96,6 +96,12 @@
+     // A appeler depuis le thread du jeu.
+     static std::string BuildOptionsJson();
+ 
++    // [UTGAWA] boutique ouverte par le serveur ("shop" du dialogue 9551) : 0 = editeur complet,
++    // 1 vetements, 2 accessoires, 3 barbier, 4 tatouage -> BuildOptionsJson ne garde que ces champs.
++    static void SetShopFilter(int shop);
++    static int ShopFilter();
++    static int ShopOfKey(const char* key);
++
+     // Change une option par sa cle (ex. "topStyle", "topColor"), borne la valeur, remet la couleur a 1
+     // quand le style change, puis applique sur le ped local. Retourne false si la cle est inconnue.
+     static bool SetOption(const std::string& key, int value);
+--- apk_patch/cpp_orig/samp/gui/ClothesCustomization.cpp	2026-10-30 11:49:08.511920891 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp/gui/ClothesCustomization.cpp"	2026-10-30 11:49:08.567374030 -0300
+@@ -5,6 +5,7 @@
+ #include "SkinBodies.h"
+ 
+ #include <algorithm>
++#include <atomic>
+ #include <array>
+ #include <cstdio>
+ #include <cstring>
+@@ -1717,17 +1718,40 @@
+ 	}
+ }
+ 
++static std::atomic<int> g_utgShopFilter{0};
++
++void ClothesCustomization::SetShopFilter(int shop) { g_utgShopFilter.store((shop >= 1 && shop <= 4) ? shop : 0); }
++int ClothesCustomization::ShopFilter() { return g_utgShopFilter.load(); }
++
++int ClothesCustomization::ShopOfKey(const char* key)
++{
++	if (!key) return 0;
++	auto starts = [key](const char* p) { return std::strncmp(key, p, std::strlen(p)) == 0; };
++	if (starts("top") || starts("bottom") || starts("shoes")) return 1;
++	if (starts("hat") || starts("glasse") || starts("mask") || starts("ear") || starts("necklace") ||
++	    starts("clock") || starts("backpack")) return 2;
++	if (starts("hair") || starts("eyebrow") || starts("beard") || starts("makeup")) return 3;
++	if (starts("tattoo")) return 4;
++	return 0;
++}
++
+ std::string ClothesCustomization::BuildOptionsJson()
+ {
+ 	std::vector<OptField> fields;
+ 	CollectOptionFields(fields);
++	const int shop = g_utgShopFilter.load();
++	if (shop != 0) {
++		fields.erase(std::remove_if(fields.begin(), fields.end(),
++			[shop](const OptField& o) { return ShopOfKey(o.key) != shop; }), fields.end());
++	}
+ 
+ 	const uint16_t modelId = CurrentLocalModelId();
+ 	const uint16_t realModelId = RealLocalModelId();
+ 	std::string json = "{\"model\":" + std::to_string(static_cast<int>(realModelId));
+ 	// genre : 0 Homme, 1 Femme, 2 Homme 2 (289), 3 Femme 2 (12), 4 Homme 3 (7) - voir SkinBodies.h
+ 	json += ",\"gender\":" + std::to_string(realModelId == 246 ? 1 : SkinBodies::GenderOfModel(realModelId));
+-	json += ",\"canSwitchGender\":" + std::string(SkinBodies::IsCivilBody(realModelId) ? "true" : "false");
++	json += ",\"canSwitchGender\":" + std::string((shop == 0 && SkinBodies::IsCivilBody(realModelId)) ? "true" : "false");
++	json += ",\"shop\":" + std::to_string(shop);
+ 	json += ",\"supported\":" + std::string(IsSupportedSkin(modelId) ? "true" : "false");
+ 	json += ",\"fields\":[";
+ 	for (size_t i = 0; i < fields.size(); ++i) {
+--- apk_patch/cpp_orig/samp/gui/CharacterCreator.cpp	2026-10-30 11:49:08.511850639 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp/gui/CharacterCreator.cpp"	2026-10-30 11:49:08.570460691 -0300
+@@ -1160,9 +1160,12 @@
+ 		return;
+ 	}
+ 	if (dialogId == 9552) {
++		ClothesCustomization::SetShopFilter(0);
+ 		g_serverCloseRequested.store(true);
+ 		return;
+ 	}
++	// [UTGAWA] 9551 : boutique (1..4) ou editeur complet (0)
++	if (dialogId == 9551) ClothesCustomization::SetShopFilter(JsonInt(json, "shop", 0));
+ 	// 9550 (appliquer) ou 9551 (appliquer puis ouvrir l'editeur) : thread reseau/Java,
+ 	// on memorise seulement ; Render() applique sur le thread du jeu.
+ 	{
+--- apk_patch/cpp_orig/samp32/gui/ClothesCustomization.h	2026-10-30 11:49:08.532497841 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp32/gui/ClothesCustomization.h"	2026-10-30 11:49:08.571993522 -0300
+@@ -96,6 +96,12 @@
+     // A appeler depuis le thread du jeu.
+     static std::string BuildOptionsJson();
+ 
++    // [UTGAWA] boutique ouverte par le serveur ("shop" du dialogue 9551) : 0 = editeur complet,
++    // 1 vetements, 2 accessoires, 3 barbier, 4 tatouage -> BuildOptionsJson ne garde que ces champs.
++    static void SetShopFilter(int shop);
++    static int ShopFilter();
++    static int ShopOfKey(const char* key);
++
+     // Change une option par sa cle (ex. "topStyle", "topColor"), borne la valeur, remet la couleur a 1
+     // quand le style change, puis applique sur le ped local. Retourne false si la cle est inconnue.
+     static bool SetOption(const std::string& key, int value);
+--- apk_patch/cpp_orig/samp32/gui/ClothesCustomization.cpp	2026-10-30 11:49:08.532442889 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp32/gui/ClothesCustomization.cpp"	2026-10-30 11:49:08.573822088 -0300
+@@ -5,6 +5,7 @@
+ #include "SkinBodies.h"
+ 
+ #include <algorithm>
++#include <atomic>
+ #include <array>
+ #include <cstdio>
+ #include <cstring>
+@@ -1717,17 +1718,40 @@
+ 	}
+ }
+ 
++static std::atomic<int> g_utgShopFilter{0};
++
++void ClothesCustomization::SetShopFilter(int shop) { g_utgShopFilter.store((shop >= 1 && shop <= 4) ? shop : 0); }
++int ClothesCustomization::ShopFilter() { return g_utgShopFilter.load(); }
++
++int ClothesCustomization::ShopOfKey(const char* key)
++{
++	if (!key) return 0;
++	auto starts = [key](const char* p) { return std::strncmp(key, p, std::strlen(p)) == 0; };
++	if (starts("top") || starts("bottom") || starts("shoes")) return 1;
++	if (starts("hat") || starts("glasse") || starts("mask") || starts("ear") || starts("necklace") ||
++	    starts("clock") || starts("backpack")) return 2;
++	if (starts("hair") || starts("eyebrow") || starts("beard") || starts("makeup")) return 3;
++	if (starts("tattoo")) return 4;
++	return 0;
++}
++
+ std::string ClothesCustomization::BuildOptionsJson()
+ {
+ 	std::vector<OptField> fields;
+ 	CollectOptionFields(fields);
++	const int shop = g_utgShopFilter.load();
++	if (shop != 0) {
++		fields.erase(std::remove_if(fields.begin(), fields.end(),
++			[shop](const OptField& o) { return ShopOfKey(o.key) != shop; }), fields.end());
++	}
+ 
+ 	const uint16_t modelId = CurrentLocalModelId();
+ 	const uint16_t realModelId = RealLocalModelId();
+ 	std::string json = "{\"model\":" + std::to_string(static_cast<int>(realModelId));
+ 	// genre : 0 Homme, 1 Femme, 2 Homme 2 (289), 3 Femme 2 (12), 4 Homme 3 (7) - voir SkinBodies.h
+ 	json += ",\"gender\":" + std::to_string(realModelId == 246 ? 1 : SkinBodies::GenderOfModel(realModelId));
+-	json += ",\"canSwitchGender\":" + std::string(SkinBodies::IsCivilBody(realModelId) ? "true" : "false");
++	json += ",\"canSwitchGender\":" + std::string((shop == 0 && SkinBodies::IsCivilBody(realModelId)) ? "true" : "false");
++	json += ",\"shop\":" + std::to_string(shop);
+ 	json += ",\"supported\":" + std::string(IsSupportedSkin(modelId) ? "true" : "false");
+ 	json += ",\"fields\":[";
+ 	for (size_t i = 0; i < fields.size(); ++i) {
+--- apk_patch/cpp_orig/samp32/gui/CharacterCreator.cpp	2026-10-30 11:49:08.532300799 -0300
++++ "Source Cliente/Crestwoodrpsourcecodebyanzo/app/src/main/cpp/samp32/gui/CharacterCreator.cpp"	2026-10-30 11:49:08.574456374 -0300
+@@ -1160,9 +1160,12 @@
+ 		return;
+ 	}
+ 	if (dialogId == 9552) {
++		ClothesCustomization::SetShopFilter(0);
+ 		g_serverCloseRequested.store(true);
+ 		return;
+ 	}
++	// [UTGAWA] 9551 : boutique (1..4) ou editeur complet (0)
++	if (dialogId == 9551) ClothesCustomization::SetShopFilter(JsonInt(json, "shop", 0));
+ 	// 9550 (appliquer) ou 9551 (appliquer puis ouvrir l'editeur) : thread reseau/Java,
+ 	// on memorise seulement ; Render() applique sur le thread du jeu.
+ 	{

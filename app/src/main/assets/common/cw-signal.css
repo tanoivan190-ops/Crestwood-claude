@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Crestwood RP v19b - "signaletique" commune des panneaux (chargee EN DERNIER).
+   La ville comme reference : asphalte gris transparent (le jeu reste visible), texte craie,
+   filets fins. Une seule marque forte : le bleu Crestwood (#3B82FF), reserve au bouton principal
+   et aux icones de titre. [v21] coins arrondis (panneaux 16 px, boutons 11 px, champs 10 px).
+   Ne change aucune mise en page : couleurs, filets, casse et typo seulement.
+   Les cartes d'identite (.cni-*) gardent leurs capitales de document officiel.
+   ========================================================================== */
+:root{
+  --sg-asphalt: rgba(17, 20, 25, 0.84);
+  --sg-raise: rgba(255, 255, 255, 0.045);
+  --sg-chalk: #eef1f5;
+  --sg-chalk-2: #d3d8df;
+  --sg-concrete: #8c94a0;
+  --sg-plate: #3b82ff;
+  --sg-plate-down: #2a6be0;
+  --sg-line: rgba(255, 255, 255, 0.09);
+  --sg-line-2: rgba(255, 255, 255, 0.16);
+  --sg-rule: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 6px 16px rgba(59, 130, 255, 0.28);
+  --sg-rule-down: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 2px 8px rgba(59, 130, 255, 0.22);
+  --sg-r-panel: 16px;
+  --sg-r-btn: 11px;
+  --sg-r-field: 10px;
+  /* plus d'or dans la charte : les variables "or" des panneaux passent au bleu clair */
+  --gold: #9cc1ff !important;
+  --cw-gold: #9cc1ff !important;
+}
+
+/* ---------- casse : phrases normales, pas de capitales espacees ---------- */
+html[data-sg] :is(h1, h2, h3, h4, legend, dt, th, small, label, button, .tab, .chip, .cat, .nav-item, .side-item, .eyebrow, .kicker, .state, .tg, .fname, .sh-cat-tag, .sh-tag, .tag, .badge):not(.cni *):not([class*="cni-"] *){
+  text-transform: none !important;
+  letter-spacing: 0.005em !important;
+}
+html[data-sg] :is(h1, h2, .title, .ttl, .head-title, .panel-title){
+  font-family: "CwMont", Roboto, "Segoe UI", sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+html[data-sg] :is(h3, h4){ font-family: "CwMont", Roboto, sans-serif !important; font-weight: 700 !important; }
+
+/* ---------- panneaux : asphalte, filet fin, coins doux ---------- */
+html[data-sg] :is(.sh-panel, .pl-panel, .lk-panel, .inv-panel, .rp-panel, .panel, .frame){
+  border-radius: var(--sg-r-panel) !important;
+  border: 1px solid var(--sg-line) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.35), 0 22px 56px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden;
+}
+/* cartes et tuiles internes : arrondi intermediaire */
+html[data-sg] :is(.card, .tile, .item, .row-card, .sh-card, .inv-slot, .slot, .opt, .box, .stat){
+  border-radius: 12px !important;
+}
+html[data-sg] :is(.sh-head, .pl-head, .lk-head, .inv-head, .rp-head, .bk-head, .jb-ahead, .head, header.top){
+  border-bottom: 1px solid var(--sg-line) !important;
+}
+html[data-sg] :is(.sh-head, .pl-head, .lk-head, .inv-head, .rp-head, .jb-ahead)::after{ display: none !important; }
+
+/* ---------- bouton fermer : rond, discret ---------- */
+html[data-sg] :is(.sh-close, .pl-close, .lk-close, .inv-close, .rp-close, .bk-x, .jb-x, .jb-aclose, .x, .close, .round){
+  border-radius: 50% !important;
+  background: var(--sg-raise) !important;
+  border: 1px solid var(--sg-line) !important;
+  box-shadow: none !important;
+  color: var(--sg-chalk-2) !important;
+}
+html[data-sg] :is(.sh-close, .pl-close, .lk-close, .inv-close, .rp-close, .bk-x, .jb-x, .jb-aclose, .x, .close, .round):active{
+  background: rgba(255, 90, 106, 0.22) !important;
+  color: #fff !important;
+}
+
+/* ---------- bouton principal : la plaque bleue ---------- */
+html[data-sg] :is(.sh-buy, .bk-btn.main, .btn.main, .lk-btn.main, .jb-btn.main, .primary, .btn-primary, .confirm, .pl-confirm):not(:disabled){
+  background: linear-gradient(180deg, #4b8fff, #2f74f0) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: var(--sg-rule) !important;
+  text-shadow: none !important;
+}
+html[data-sg] :is(.sh-buy, .bk-btn.main, .btn.main, .lk-btn.main, .jb-btn.main, .primary, .btn-primary, .confirm, .pl-confirm):not(:disabled):active{
+  background: linear-gradient(180deg, #3a7ef5, #2563d6) !important;
+  box-shadow: var(--sg-rule-down) !important;
+  transform: translateY(1px);
+}
+html[data-sg] :is(.sh-buy, .bk-btn, .btn, .lk-btn, .jb-btn, .rp-btn, .pl-confirm, .primary, .btn-primary, .confirm){
+  border-radius: var(--sg-r-btn) !important;
+  font-family: "CwMont", Roboto, sans-serif !important;
+  font-weight: 700 !important;
+}
+/* boutons secondaires : gris beton, filet fin */
+html[data-sg] :is(.bk-btn, .btn, .lk-btn, .jb-btn, .rp-btn):not(.main):not(.primary):not(.danger):not(.red):not(:disabled){
+  background: var(--sg-raise) !important;
+  border: 1px solid var(--sg-line-2) !important;
+  color: var(--sg-chalk-2) !important;
+  box-shadow: none !important;
+}
+
+/* ---------- choix selectionnes : marquage bleu au lieu du blanc plein ---------- */
+html[data-sg] :is(.opt.on, .sh-seg-btn.on, .seg .on, .pill.on){
+  background: rgba(59, 130, 255, 0.18) !important;
+  color: #fff !important;
+  border-color: var(--sg-plate) !important;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 255, 0.55) !important;
+}
+html[data-sg] :is(.sh-seg-btn, .seg > *, .pill, .chip, .tag, .badge){ border-radius: 999px !important; }
+html[data-sg] :is(.tab, .nav-item, .side-item){ border-radius: 10px !important; }
+html[data-sg] .opt.on small{ color: var(--sg-chalk-2) !important; }
+
+/* ---------- champs ---------- */
+html[data-sg] :is(input:not([type=range]):not([type=checkbox]):not([type=radio]), textarea, select){
+  border-radius: var(--sg-r-field) !important;
+}
+html[data-sg] :is(input, textarea, select):focus{
+  border-color: var(--sg-plate) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 255, 0.22) !important;
+}
+
+/* ---------- icones de titre : pastille bleue ---------- */
+html[data-sg] :is(.bk-logo, .sh-logo, .pl-logo, .lk-logo, .head > .ico, .top > .ico){
+  border-radius: 11px !important;
+  background: linear-gradient(160deg, #5797ff, #2f74f0) !important;
+  color: #fff !important;
+  box-shadow: var(--sg-rule) !important;
+}
+html[data-sg] :is(.bk-logo, .sh-logo, .pl-logo, .lk-logo, .head > .ico, .top > .ico) svg{ fill: currentColor; }
+
+/* ---------- divers ---------- */
+html[data-sg] :is(.price, .amount, .money, .cost, .sh-price){ color: var(--sg-chalk) !important; font-weight: 700; }
+::-webkit-scrollbar-thumb{ background: rgba(59, 130, 255, 0.45) !important; border-radius: 999px !important; }
+html[data-sg] :is(button, [role="button"], a):focus-visible{ outline: 2px solid var(--sg-plate) !important; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce){ html[data-sg] *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ---------- [v21] animation d'ouverture des pages (1er affichage + retour d'une page en cache) ---------- */
+@keyframes cwEnter{ from{ opacity: 0; translate: 0 10px; scale: .985; } to{ opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes cwEnter2{ from{ opacity: 0; translate: 0 10px; scale: .985; } to{ opacity: 1; translate: 0 0; scale: 1; } }
+body > :not(script):not(style):not(template):not(link){ animation: cwEnter .26s cubic-bezier(.2, .8, .2, 1) backwards; }
+html.cw-re body > :not(script):not(style):not(template):not(link){ animation-name: cwEnter2; }
+@media (prefers-reduced-motion: reduce){ body > *{ animation: none !important; } }
+
+/* ==========================================================================
+   [v22] STYLE UNIQUE CRESTWOOD pour tous les panneaux (meme langage que le garage v21) :
+   verre graphite degrade (le jeu reste visible), filet blanc 8 %, coins 16 / 12 / 11 px,
+   onglets en pilule, boutons bleus en degrade, Montserrat pour les titres.
+   ========================================================================== */
+html[data-sg]{
+  --cw-glass: linear-gradient(180deg, rgba(59,130,255,.07), rgba(255,255,255,0) 30%), linear-gradient(180deg, rgba(20,24,31,.86), rgba(11,13,18,.88));
+  --cw-tile: rgba(255,255,255,.045);
+  --cw-tile-line: rgba(255,255,255,.08);
+}
+html[data-sg] :is(.sh-panel, .pl-panel, .lk-panel, .inv-panel, .rp-panel, .panel, .frame, .iv-detail, .bk-card, .bk-panel, .jb-panel, .sv-panel, .gv-panel){
+  background: var(--cw-glass) !important;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+html[data-sg] :is(.iv-detail){ border-radius: var(--sg-r-panel) !important; border: 1px solid var(--cw-tile-line) !important; }
+html[data-sg] :is(.card, .tile, .item, .sh-card, .cell, .qs, .slot, .stat, .box, .row-card){
+  border-radius: 12px !important;
+}
+html[data-sg] :is(.tabs, .seg, .sh-seg, .iv-tabs){ border-radius: 999px !important; }
+html[data-sg] :is(.tab, .iv-tab, .sh-seg-btn){ border-radius: 999px !important; }
+html[data-sg] :is(.tab.on, .tab.active, .iv-tab.on, .sh-seg-btn.on){
+  background: rgba(59,130,255,.22) !important; color: #fff !important; box-shadow: inset 0 0 0 1px rgba(59,130,255,.55) !important;
+}
+html[data-sg] :is(.iv-close, .iv-av){ border-radius: 50% !important; }
+html[data-sg] :is(.iv-toast, .toast, .sh-toast, .bk-toast){ border-radius: 999px !important; }
+html[data-sg] :is(.btn, .bk-btn, .sh-buy, .lk-btn, .jb-btn, .rp-btn).danger,
+html[data-sg] :is(.btn, .bk-btn, .lk-btn, .jb-btn, .rp-btn).red{ background: linear-gradient(180deg, #ec5a5e, #d03a3e) !important; color: #fff !important; border-color: transparent !important; }
+html[data-sg] :is(h1, h2, .title, .ttl, .head-title, .panel-title){ letter-spacing: -.005em !important; }

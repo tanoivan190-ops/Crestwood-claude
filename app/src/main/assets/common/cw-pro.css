@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Crestwood RP - finition "pro" des panneaux (chargee en DERNIER par chaque panneau)
+   - coins carres (4 px max), filets fins, pas de halos
+   - verre sombre transparent : le jeu floute (fond natif, voir SAMP.java "fond flou") se voit derriere
+   - animations courtes et sobres (plus de rebond)
+   Le HUD, le telephone, l'ecran de chargement et l'editeur de vetements ne chargent PAS ce fichier.
+   ========================================================================== */
+:root{
+  --pro-glass: rgba(10, 12, 16, 0.62);
+  --pro-glass-2: rgba(255, 255, 255, 0.045);
+  --pro-line: rgba(255, 255, 255, 0.11);
+  --pro-line-strong: rgba(255, 255, 255, 0.22);
+  --pro-text: #f2f3f5;
+  --pro-muted: #a3a8b1;
+  --pro-radius: 3px;
+
+  /* variables du theme commun : verre plus transparent, plus de halo */
+  --cw-glass: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(10,12,16,0.62) 40%, rgba(10,12,16,0.66));
+  --cw-glow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 18px 40px rgba(0,0,0,0.35);
+  --cw-edge: linear-gradient(var(--pro-line), var(--pro-line));
+}
+
+/* la page elle-meme reste transparente : c'est le jeu floute qu'on voit autour du panneau */
+html[data-th]:not([data-flat]){
+  background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.05), rgba(0,0,0,0.30)) !important;
+}
+
+/* conteneurs principaux du theme commun : filet fin, pas de bordure degradee lumineuse */
+html[data-th] :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.frame,.glass:not(.top):not(.round)){
+  border: 1px solid var(--pro-line) !important;
+  background: var(--cw-glass) !important;
+  box-shadow: var(--cw-glow) !important;
+  animation: proIn .18s ease-out both !important;
+}
+@keyframes cwPop  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes cwRise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes proIn  { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* typographie nette */
+html, body{ -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1, h2, h3, h4{ letter-spacing: 0.01em; }
+
+/* champs et boutons : carres, filet fin */
+input, select, textarea{ border-radius: var(--pro-radius); }
+input:focus, select:focus, textarea:focus{ outline: none; border-color: var(--pro-line-strong) !important; box-shadow: 0 0 0 1px var(--pro-line-strong) !important; }
+button{ border-radius: var(--pro-radius); }
+button:active:not(:disabled){ transform: scale(0.985) !important; }
+
+/* barres de defilement fines et carrees */
+::-webkit-scrollbar{ width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.22); border-radius: 0; }
+::-webkit-scrollbar-track{ background: transparent; }
+
+/* plus de reflet "brillant" anime sur les boutons du theme */
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm)::after{ display: none !important; }
+
+/* ==========================================================================
+   v3 PREMIUM (06/11/2026) - meme charte que les ecrans natifs (studio de style, menu 3D,
+   signature CRESTWOOD) : noir profond, filets fins, accent bleu #3B82FF, titres Montserrat.
+   Ne change aucune mise en page : seulement couleurs, filets, typo des titres.
+   ========================================================================== */
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_medium.ttf") format("truetype"); font-weight:500; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_bold.ttf") format("truetype"); font-weight:700; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_black.ttf") format("truetype"); font-weight:900; font-display:swap; }
+:root{
+  --cw-accent:#3b82ff;
+  --cw-accent-soft:rgba(59,130,255,0.16);
+  --cw-accent-line:rgba(59,130,255,0.55);
+  --pro-glass: rgba(9, 10, 13, 0.70);
+}
+
+/* conteneurs : fin liseré bleu en haut + ombre profonde */
+html[data-th] :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.frame){
+  box-shadow: inset 0 2px 0 var(--cw-accent-line), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 24px 60px rgba(0,0,0,0.45) !important;
+}
+
+/* titres : Montserrat, capitales nettes */
+html[data-th] :is(h1,h2,.title,.ttl,.head-title,.panel-title){
+  font-family:"CwMont", "Segoe UI", Roboto, sans-serif !important;
+  font-weight:900;
+  letter-spacing:0.02em;
+}
+html[data-th] :is(h3,h4,.eyebrow,.kicker,.sub-title){
+  font-family:"CwMont", "Segoe UI", Roboto, sans-serif !important;
+  font-weight:700;
+}
+
+/* onglets / puces actifs : soulignement bleu */
+html[data-th] button:is(.active,.on,.sel,.selected,[aria-pressed="true"],[aria-selected="true"]),
+html[data-th] :is(.tab,.chip,.nav-item,.side-item,.cat):is(.active,.on,.sel,.selected){
+  box-shadow: inset 0 -2px 0 var(--cw-accent), 0 0 0 1px var(--pro-line-strong) inset !important;
+}
+
+/* boutons d'action principaux : filet bleu en haut, texte net */
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm,.primary,.btn-primary,.confirm){
+  box-shadow: inset 0 1px 0 var(--cw-accent-line) !important;
+  letter-spacing:0.04em;
+}
+html[data-th] :is(.primary,.btn-primary,.confirm,.pl-confirm):not(:disabled){
+  background: linear-gradient(180deg,#5b9bff,#2563d9) !important;
+  color:#ffffff !important;
+  border-color: transparent !important;
+}
+
+/* champs : focus bleu */
+html[data-th] :is(input,select,textarea):focus{
+  border-color: var(--cw-accent-line) !important;
+  box-shadow: 0 0 0 1px var(--cw-accent-line) !important;
+}
+html[data-th] button:focus-visible{ outline:1px solid var(--cw-accent) !important; outline-offset:2px; }
+
+/* barres de defilement : pouce bleu discret */
+::-webkit-scrollbar-thumb{ background: rgba(59,130,255,0.38) !important; }
+
+/* montants / prix : bleu */
+html[data-th] :is(.price,.amount,.money,.cost,.sh-price){ color: var(--cw-accent) !important; }
+
+/* selection de texte */
+html[data-th] ::selection{ background: rgba(59,130,255,0.35) !important; color:#fff; }

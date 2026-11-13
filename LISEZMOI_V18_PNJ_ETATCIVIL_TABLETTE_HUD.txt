@@ -1,0 +1,72 @@
+CRESTWOOD RP - V18 (07/11/2026)
+================================
+
+1. MAPPINGS 64 BITS CORRIGES
+   - Les batiments enleves par RemoveBuildingForPlayer restaient visibles en 64 bits : le jeu les dessine par
+     d'autres tables (CBuilding, CDummy...). Elles sont maintenant toutes interceptees -> les mappings qui
+     remplacent un batiment marchent comme en 32 bits.
+   - Objets attaches (a un vehicule / a un objet) : ils ne faisaient rien en 64 bits, c'est code.
+   - Si des batiments disparaissent encore quelque part : le streamer limite a 720 objets par joueur. Envoie-moi
+     le log (/sdcard/.../log) et la position, je regarde.
+
+2. IMPORTER SES PROPRES MAPPINGS (sans recompiler)
+   - Mets le fichier dans server/basicgm/scriptfiles/mappings/ et ajoute son nom dans liste.txt.
+   - Formats lus : export Pawn / Texture Studio (CreateObject, CreateDynamicObject, SetObjectMaterial,
+     RemoveBuildingForPlayer...) et cartes MTA (.map : <object>, <removeWorldObject>).
+   - Les SCRIPTS MTA (Lua) ne peuvent pas tourner : le jeu tourne avec le moteur SA-MP. Les cartes, oui.
+
+3. PNJ (panneau admin > Monde > PNJ)
+   - Place-toi derriere le comptoir, regarde vers les clients, choisis le role et cree le PNJ.
+   - Roles : Ambiance, Vendeur (braquable : mains en l'air, caisse, alerte police), Banquier, Guide (balade
+     scooter), Instructeur (permis avion), Coursier (colis), Securite, ETAT CIVIL (carte d'identite).
+   - Les joueurs parlent aux PNJ avec la main du HUD.
+
+4. ETAT CIVIL - CARTE NATIONALE D'IDENTITE
+   - PNJ "Etat civil" derriere le comptoir du gouvernement : en s'approchant, petite main noire dans un disque bleu
+     au-dessus du PNJ. On touche -> formulaire officiel "REPUBLIQUE DE CRESTWOOD" (nom, prenom, sexe, age, lieu
+     de naissance) -> on signe avec le doigt -> VALIDER ET SIGNER.
+   - Premiere carte gratuite, renouvellement 500 $. Sans carte, /papiers met le GPS vers l'etat civil.
+   - Nouvelle carte : recto (blason, photo, champs bilingues, puce, hologramme, signature) et verso (autorite,
+     code-barres, bande MRZ). Toucher la carte = la retourner. La signature et la photo du HUD s'affichent sur ta
+     propre carte.
+
+5. TABLETTE JOB
+   - En vente dans les 24/7 : 2 500 $. S'ouvre depuis l'inventaire (Ouvrir), la roue (Tablette job) ou /tablette.
+   - EMPLOIS : les 5 metiers de la ville (GPS, signer, service) + les emplois crees par le staff (GPS, commencer).
+   - MON TRAVAIL : contrat, niveau, gains, prise de service, demission, service staff en cours.
+   - QUETES : quetes des PNJ, etat, record, GPS vers le PNJ.
+
+6. CREER DES EMPLOIS (panneau admin > Monde > Emplois, niveau 4)
+   - Choisis le type (Livraison, Transport, A pied, Patrouille), donne un nom, "Creer ici" = siege a ta position.
+   - Deplace-toi et touche "+ Point ici" a chaque arret (2 a 16). "Reglages" : paie par arret, vehicule, type,
+     nom, ouvrir/fermer, siege ici, effacer la tournee, supprimer.
+   - Paie : prix par arret + 10 % par niveau (1 niveau tous les 5 services, max 5) + prime de fin.
+   - Joueurs : /emploi au siege (icone mallette), /finemploi pour arreter.
+
+7. HUD
+   - Chat : petit bouton en haut, colle a la carte. Toucher = ecrire et envoyer. Maintenir = masquer / afficher le
+     chat. Le fil est plus petit, bords arrondis.
+   - Sous la carte : 3 grands boutons = Roue, Parametres, Telephone. Tenue et Tablette RP sont dans la roue.
+   - Roue : 16 entrees (sac, telephone, carte, tablette job, garage, boutique, tenue, tablette RP, support,
+     parametres, papiers, animations, quetes, blazer, minimap on/off, chat on/off). Le nom s'affiche au centre.
+   - Jauges autour de la carte : plus fines et transparentes.
+
+8. CLAVIER DE JEU + PHRASES
+   - Le chat ouvre le clavier Crestwood (AZERTY) au lieu du clavier Android. Appui long sur e a u i o c = accent.
+   - Barre PHRASES : toucher = envoyer tout de suite, maintenir = mettre la phrase dans la saisie pour la modifier,
+     + = enregistrer le texte en cours, crayon = supprimer des phrases. Une phrase qui finit par un espace
+     (ex. "/me ") se complete avant l'envoi. Gardees sur le telephone.
+   - Touche clavier (⌨) = clavier Android pour ce message (emojis, autres langues).
+
+9. FICHIERS RECUS
+   - Banque MTA (Atlas Studio) : textures et modeles convertis (tools/models/ready/), mapping pret
+     (scriptfiles/mappings/banque_atlas.txt). PAS active : elle utilise des modeles personnalises et le remplacement
+     de modeles est coupe depuis le 31/10 (plantages au chargement LSPD/JBL). Marche a suivre :
+     tools/models/ready/LISEZMOI.txt.
+   - JBL : identique a celui deja dans l'APK (meme fichier).
+   - Skin 60 (PC) : remplacement de skin de PNJ/joueur, pas encore branche (le chargeur ne gere que les corps des
+     vetements). Le script Lua MTA ne peut pas tourner.
+   - cef-samp : plugin CEF pour PC, gardé comme reference (le client Android a deja ses pages natives).
+
+10. AMX
+   - server/basicgm/basicgm1.amx recompile (Pawn 3.10.10, 0 erreur, 7 avertissements habituels).

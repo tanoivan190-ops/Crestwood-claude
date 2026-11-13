@@ -1,0 +1,102 @@
+CRESTWOOD RP - v15 (31/10/2026)
+================================
+Serveur : server/basicgm/basicgm1.amx est DÉJÀ recompilé (0 erreur). Nouveau fichier : include/Cw15.inc
+Client  : recompiler l'APK (C++ 32 + 64 bits, Java, assets).
+
+1) ENCHÈRES DES MAISONS (24 h)
+   - Toutes les maisons à vendre passent aux enchères. Mise de départ = prix de la maison, minimum 500 000 $.
+     Plafond 50 000 000 $ = achat immédiat.
+   - L'enchère démarre à la 1re offre et dure 24 h. Chaque offre doit dépasser la précédente de 5 % (min 10 000).
+     Une offre dans les 5 dernières minutes prolonge de 5 min (anti « dernière seconde »).
+   - L'argent est bloqué (prélevé sur le compte bancaire). L'ancien meilleur enchérisseur est remboursé
+     tout de suite, même hors ligne. À la fin la maison va au gagnant (même hors ligne) + annonce à tout le serveur.
+   - Joueur : devant la porte (main "Maison") -> page Immobilier -> "Faire une offre" / "Achat immédiat".
+     Commandes : /encheres  (liste)   /encherir <maison> <montant>
+   - Admin : panneau -> onglet MONDE -> "Enchères immobilières" -> Annuler (rembourse). /supprmaison rembourse aussi.
+   - Max 2 maisons par joueur, offres gagnantes comprises.
+   - Les données sont dans la table houses (colonnes auc_bid, auc_bidder, auc_end ajoutées toutes seules).
+
+2) ZONES VERTES
+   - Zones publiques protégées : armes rangées, dégâts entre joueurs annulés, bandeau "ZONE VERTE" en haut du HUD,
+     carré vert sur la carte. Police / FBI / armée gardent leurs armes.
+   - 5 zones créées au 1er démarrage : place du spawn, mairie, banque LS, hôpitaux All Saints et County.
+   - Admin (niveau 6) : panneau -> MONDE -> "Créer ici" (rayon + nom, centrée sur ta position) / Supprimer / Y aller.
+     Commandes : /zonesvertes   /creerzoneverte <rayon> <nom>   /supprzoneverte <id>
+   - Fichier : scriptfiles/crestwood_v15.db
+
+3) MODE INVISIBLE (staff)
+   - Panneau -> MONDE -> "Passer invisible" (ou /invisible). Les joueurs ne voient plus ton personnage,
+     ton pseudo ni ton point sur la carte. Les autres membres du staff te voient toujours.
+   - Le véhicule que tu conduis reste visible (limite de SA-MP).
+   - Il faut le nouvel APK (dialogue "@hide" 9517 -> setHiddenPlayers). Ancien APK : seul le pseudo/point est caché.
+
+4) STATIONS-SERVICE (admin, niveau 4)
+   - Panneau -> MONDE -> "Poser une pompe ici" (dehors, à côté de la pompe). Liste, Y aller, Supprimer.
+   - Ce sont les mêmes points que "Pompe à essence" du panneau /points.
+
+5) SYSTÈMES RP
+   - BLESSÉ / INCONSCIENT : à la mort, le joueur reste au sol à l'endroit où il est tombé (2 min 30).
+     Médecins : /blesses (liste + GPS)  /reanimer <id> (+750 $). Le joueur peut faire /hopital après 60 s.
+     Admin "Soigner" relève aussi un joueur inconscient.
+   - CEINTURE : /ceinture dans un véhicule (icône du compteur jaune). Choc violent sans ceinture = blessure.
+   - /de [faces] et /pileface : jets RP visibles par les joueurs proches.
+   - PRIME DE PRÉSENCE : +2 500 $ sur le compte bancaire toutes les 60 min de jeu (CW_PAY_AMOUNT dans Cw15.inc).
+   - HEURE RÉELLE : l'heure du jeu suit l'heure d'Abidjan (panneau MONDE ou /heurereelle pour couper).
+     Régler l'heure à la main dans l'onglet Serveur coupe l'heure réelle.
+
+6) COMPTEUR (SPEEDO)
+   - Barre rouge = vraie santé du véhicule (elle descend avec les dégâts). Avant, le client envoyait toujours 100 %.
+   - Barre blanche = régime moteur : elle monte quand tu accélères et retombe à chaque rapport.
+   - Carburant = vrai niveau du serveur (avant : toujours 100 %).
+
+7) MICRO (bouton VOCAL) - pourquoi il ne s'affichait pas
+   - Le launcher écrivait VoiceChatEnable=false dans settings.ini -> le bouton natif ne se dessinait jamais.
+     Corrigé (MainActivity) + le bouton s'affiche maintenant toujours (option "Bouton micro" dans les paramètres).
+   - Nouvelle icône "VOCAL" (cercle noir + micro), cercle rouge quand tu parles.
+
+8) BOUTONS DU JEU (styles envoyés)
+   - assets/models/buttons/ : car, fist, bullet, jump, crouch, shoe, vocal, vocal_on (PNG 128x128 détourés de ton image).
+   - Entrer dans un véhicule = voiture ; attaque = poing (mains nues / arme blanche) ou balle (arme à feu) ;
+     sprint = basket ; saut = sauteur ; accroupi = personnage accroupi. 32 et 64 bits.
+   - Pour changer une icône : remplace le PNG (même nom). Option "Icônes Crestwood des boutons" dans les paramètres.
+
+9) PARAMÈTRES EN JEU (style GTA V, noir/gris) - assets/config/index.html
+   - Qualité graphique Bas / Moyen / Élevé / Ultra, échelle de résolution, distance d'affichage,
+     effets visuels, limite FPS (30-120), COMPTEUR FPS, format d'image, bouton micro, icônes des boutons.
+   - Tout est appliqué tout de suite au moteur (game/CwSettings.cpp) et réappliqué au lancement de la partie.
+
+10) MAPPINGS DE LA MAIRIE (RemoveBuilding) - LE VRAI BUG
+   - Sur le client 64 bits, RemoveBuildingForPlayer ne faisait RIEN (fonction vide dans game/util.cpp) :
+     les mappings (mairie, LSPD, hôtel...) s'affichaient PAR-DESSUS les bâtiments d'origine.
+   - Corrigé : les bâtiments retirés par le serveur ne sont plus dessinés ni solides (32 et 64 bits).
+     Les objets du mapping, eux, restent toujours visibles. Le client 32 bits est aussi plus rapide
+     (filtre par modèle avant la recherche coûteuse).
+   - Rien à changer côté serveur : les RemoveBuilding de la mairie (MapObj_CityHallRemove) étaient déjà là.
+
+11) MAPPINGS QUI ONT BESOIN DE DFF / TXD - OÙ LES METTRE
+   Méthode APK (conseillée, comme le LSPD et la JBL, aucune data à modifier) :
+     a) Crée le dossier app/src/main/assets/models/<nom>/ et mets dedans :
+          model.dff  (le modèle)        model.col  (la collision, si elle existe)
+          tex/*.png  (les textures)      materials.txt
+        Les TXD PC ne sont pas lisibles par le moteur mobile : convertis-les avec
+          python3 tools/models/model_tex.py <dossier_du_pack>/ app/src/main/assets/models/<nom>/ <nom_du_fichier>
+        (<nom_du_fichier> = nom du .dff/.txd SANS extension ; le script crée tex/ et materials.txt),
+        puis copie le .dff en model.dff et le .col en model.col (exemple complet : assets/models/lspd).
+     b) Déclare le modèle remplacé dans la table kCwObjModels, dans LES DEUX fichiers :
+          app/src/main/cpp/samp/gui/SouthModelLoader.cpp
+          app/src/main/cpp/samp32/gui/SouthModelLoader.cpp
+        ex. { 4585, "concession_ls", 600.0f },   // id du modèle SA remplacé, nom du dossier, distance
+     c) Côté serveur, le mapping crée l'objet avec cet id (CreateDynamicObject...), comme d'habitude.
+   Méthode data (ancienne) : dossier DATA_MAPPINGS + LISEZMOI_MAPPINGS.txt (IMG + .ide + MAP_MODELES_DATA 1).
+
+12) HTML : un peu de transparence
+   - Panels (admin, maison, banque, inventaire, boutique, garage, police, rapports...) : fonds sombres ~20 % plus
+     transparents + flou derrière le panneau admin.
+
+FICHIERS MODIFIÉS
+   Serveur : basicgm1.pwn (crochets v15), include/Cw15.inc (nouveau), basicgm1.amx
+   C++ 64/32 : game/util.cpp|h, game/hooks.cpp, game/CwSettings.cpp (nouveau), game/Widgets/WidgetGta.cpp,
+               game/BrlTextureShader.cpp, gui/samp_widgets/voicebutton.h, main.cpp, playertags.cpp,
+               CDebugInfo.cpp (64) / gui/gui.cpp (32)
+   Java : game/SAMP.java, game32/SAMP.java, launcher/activity/MainActivity.java
+   Assets : config/, house/, admin/, hud/ (hud.js, hud.css, compteur), models/buttons/, transparence des panels

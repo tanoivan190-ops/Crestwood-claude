@@ -1,0 +1,4 @@
+<map edf:definitions="editor_main">
+    <object id="sol (1)" breakable="true" interior="0" collisions="true" alpha="255" model="19377" doublesided="false" scale="1" dimension="0" posX="1840" posY="-1860" posZ="12.5" rotX="0" rotY="90" rotZ="0"></object>
+    <removeWorldObject id="removeWorldObject (1)" radius="0.25" interior="0" model="1226" lodModel="0" posX="1834.11" posY="-1856.94" posZ="16.43" rotX="0" rotY="0" rotZ="0"></removeWorldObject>
+</map>

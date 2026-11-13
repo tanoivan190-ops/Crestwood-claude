@@ -1,0 +1,27 @@
+CODES PROMO + TABLETTE RP (31/10/2026)
+======================================
+
+1) TABLETTE RP : ELLE MARCHE MAINTENANT
+   Le serveur de la tablette (include/Rp.inc : factures, annonces, urgences, animations, mon perso)
+   existait mais n'etait JAMAIS inclus dans le gamemode : la tablette restait sur "Chargement...".
+   Il est maintenant inclus et branche (ouverture, connexion, deconnexion, commandes /rp et /menu).
+   (Les commandes RP du module RP PLUS gardent les memes noms ; leur aide est /rpaide.)
+
+2) CODES PROMO (tablette > "Codes promo", fichier include/Promo.inc)
+   Forfaits :
+     Economique : Tampa 3 jours   + 300 000 $    -> le createur du code gagne 20 000 par utilisation
+     Medium     : Sabre 12 jours  + 500 000 $  -> 35 000 par utilisation
+     Premium    : NRG-500 1 mois  + 300 000 $    -> 50 000 par utilisation
+   - Les ADMINS (niveau 4+, PROMO_ADMIN_LVL) creent les codes dans la tablette :
+     code (3 a 15 lettres/chiffres) + createur (Prenom_Nom du joueur qui touche la commission) + forfait.
+     Ils voient tous les codes (utilisations, argent gagne) et peuvent les supprimer.
+   - Un joueur ne peut utiliser qu'UN code promo, une seule fois, et pas le sien.
+   - Le vehicule arrive dans son GARAGE (prix de revente 0) et disparait a la fin de la location
+     (verification toutes les 5 minutes : il est retire du jeu et du garage).
+   - L'argent va sur le compte en banque (en liquide si la banque n'est pas encore chargee).
+   - Commission : versee tout de suite si le createur est connecte, sinon a sa prochaine connexion.
+   - Journal "createur -> utilisateur + forfait" : tous pour les admins, ses propres codes pour le createur.
+   - Base : crestwood_promo.db (tables promo_codes, promo_uses, promo_pending, promo_rentals).
+   - Reglages en haut de include/Promo.inc : g_PromoModel, g_PromoDays, g_PromoMoney, g_PromoCommission.
+   ATTENTION : le Premium donne 300 000 $ comme demande (moins que le Medium a 500 000).
+   Si c'etait 3 000 000, change g_PromoMoney[3].

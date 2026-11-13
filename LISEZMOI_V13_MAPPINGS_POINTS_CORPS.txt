@@ -1,0 +1,45 @@
+CRESTWOOD RP - v13 (31/10/2026)
+================================
+
+1) PANNEAU /mappings (admin niveau 4+, aussi /points et /lieux)  -  page assets/mapadmin
+   Onglet MAPPINGS : tous les mappings charges (nom, nombre d'objets).
+     - "Aller"       : teleportation. Tu restes fige jusqu'a ce que le sol du mapping soit charge (7 s max).
+     - "Arrivee ici" : ta position devient le point d'arrivee du mapping (sauvegarde).
+   Onglet ENTREES / SORTIES (portails) :
+     1. Dehors, a l'endroit de la porte : ecris un nom puis "Nouveau : entree ici".
+     2. Va dans le mapping / l'interieur (onglet Mappings -> Aller), place-toi, ferme et rouvre
+        /mappings puis "Sortie ici" sur le portail.
+     -> le portail marche des que l'entree ET la sortie sont posees (icones 3D porte + main).
+     Boutons : Entree ici / Sortie ici (deplacer), -> Entree / -> Sortie (s'y teleporter), Supprimer (2 touches).
+   Onglet POINTS : Banque, Superette 24/7, Pompe a essence, Location de vehicules, Siege d'emploi.
+     Choisis le type (et le metier pour un siege d'emploi), place-toi, "Poser ici". Aller / Supprimer.
+   Le panneau prend tout l'ecran : pour poser un point ailleurs, ferme-le, marche, rouvre-le.
+
+2) TOUS LES POINTS FIXES SONT SUPPRIMES
+   Banques, superettes, pompes, locations, sieges d'emploi, les 3 anciennes entrees et le point de
+   braquage de la mini-banque (ROB_POINT_ACTIF 0, a remettre a 1 si tu veux le braquage fixe).
+   Au premier lancement il n'y a donc AUCUN point : pose-les avec /mappings -> Points.
+   Base : scriptfiles/crestwood_points.db (points + arrivees), portails : crestwood_jobs.db (map_portals).
+   (Les garages, points vetements, vestiaires, maisons, peche et boutiques Utgawa etaient deja poses en jeu.)
+
+3) MAPPINGS : RemoveBuilding REMIS (MAP_REMOVE_BUILDINGS 1)
+   Les mappings qui remplacent des objets du jeu (City Hall, hotel, police, armee, spawn...) retirent
+   a nouveau les objets d'origine (368 RemoveBuildingForPlayer, sous la limite de 1000).
+
+4) CORPS DES VETEMENTS : EMPLACEMENTS DEDIES
+   Les corps Homme / Femme de l'APK (pack Utgawa) ne remplacent plus 163 / 9 pendant le jeu.
+   Ils sont charges UNE fois au demarrage du jeu, avant tout spawn, sur leurs propres emplacements :
+     Homme = skin 289 (ancien "zero"), Femme = skin 12.
+   Logcat : "[clothes] corps APK installe sur le skin 289 : ..." (idem 12).
+   Les anciens comptes (163 / 7 / 9) sont convertis automatiquement, la tenue est gardee.
+   Changer d'emplacement : SkinBodies.h (kMale / kFemale) + CLOTH_SKIN_MALE / CLOTH_SKIN_FEMALE (GM).
+
+5) INSCRIPTION : IDENTITE DU PERSONNAGE
+   Apres la premiere connexion (nouveau compte ET anciens comptes), la page demande :
+     genre (Homme / Femme), date de naissance (jj/mm/aaaa), origine (liste + "Autre").
+   Le genre decide du corps (289 / 12) pour toujours ; le perso apparait ensuite.
+   La tenue se change dans les boutiques (/vetements reste reserve au staff).
+   Colonnes ajoutees a accounts (crestwood_accounts.db) : birth, origin, gender.
+
+A FAIRE : recompiler l'APK (C++ + Java + pages), mettre le nouveau basicgm1.amx, redemarrer le serveur,
+puis poser les points / portails avec /mappings.

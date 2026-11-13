@@ -1,0 +1,33 @@
+GARAGES + MARQUEURS 3D + HUD (Crestwood RP)
+===========================================
+
+1) GARAGES (serveur : module "GARAGES DES JOUEURS" en fin de server/basicgm/basicgm1.pwn)
+   Staff (niveau admin) :
+     /garageadd [nom]        cree un garage a tes pieds (epingle 3D). Les vehicules sortent 6 m devant toi.
+     /garagespawn <id>       au volant : la sortie du garage devient l'endroit ou tu es.
+     /garagedel <id>         supprime un garage          /garages   liste avec les ids
+     /vetadd                 cree un point vetements (t-shirt 3D flottant) a tes pieds
+     /vetdel <id>            supprime un point vetements  /vetlist  liste
+     /donnerveh <id joueur> <modele ou nom> [prix]   donne un vehicule (range dans son garage)
+   Joueur :
+     pres d'un garage -> main "Garage" (ou /garage) -> page : Tous / Voitures / Motos / Bateaux / Camions / Aeriens
+     Sortir le vehicule / Ranger le vehicule (a moins de 35 m du garage, vehicule vide) /
+     Localiser (GPS) / Vendre (60 % du prix, apres confirmation).
+     2 vehicules sortis max. A la deconnexion ils retournent au garage. Detruit -> remorque au garage.
+   Donnees : scriptfiles/crestwood_garage.db
+
+2) MARQUEURS 3D
+   Le serveur envoie la liste (dialogue 9760 "@marks") a chaque spawn et apres chaque /garageadd /vetadd.
+   Le client les dessine dans le monde (cpp/samp*/game/WorldMarkers.cpp, 64 ET 32 bits) :
+     t-shirt blanc translucide qui flotte et tourne (vetements), epingle + anneau au sol (garage),
+     nom affiche quand on est a moins de 9 m, fondu au-dela de 30 m.
+
+3) HUD
+   - Boutons tactiles transparents (icones blanches seules).
+   - Jauges vie / gilet / soif / faim / energie en arcs lumineux autour de la minimap
+     (les anciennes jauges carrees en bas a droite sont masquees).
+   - Rond d'arme dans la minimap : arme + chargeur / reserve. Toucher = arme suivante, maintenir = precedente.
+
+4) A FAIRE APRES MISE A JOUR
+   - Remplacer basicgm1.amx sur le serveur (deja recompile dans server/basicgm/).
+   - Recompiler l'APK (GitHub Actions).

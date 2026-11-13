@@ -1,0 +1,453 @@
+/* =========================================================================
+   Controles tactiles Crestwood v2 — style TRANSPARENT : icones blanches pleines,
+   sans fond ni cadre, ombre portee pour rester lisibles sur le jeu
+   Remplacent les boutons natifs de San Andreas (masques cote moteur, voir
+   cpp/samp et cpp/samp32 : game/Widgets/WidgetGta.cpp). Pilotes par touch-controls.js.
+   - A pied    : joystick flottant (gauche) + cercle de combat (droite)
+   - Au volant : joystick de direction OU fleches, pedales, klaxon/moteur/frein a main
+   ========================================================================= */
+.hud-root {
+  --tc-size: clamp(46px, 12.6vh, 84px);         /* boutons de conduite */
+  --tc-s: clamp(40px, 11.6vh, 72px);            /* unite du cercle de combat / joystick */
+  --tc-cyan: #00f5e1;
+  --tc-cyan-soft: rgba(0, 245, 225, 0.16);
+  --tc-cyan-line: rgba(0, 245, 225, 0.8);
+  --tc-cyan-glow: rgba(0, 245, 225, 0.42);
+  --tc-red: #ff3b4a;
+  --tc-red-line: rgba(255, 92, 104, 0.85);
+  --tc-red-glow: rgba(255, 59, 74, 0.5);
+  --tc-glass: linear-gradient(160deg, rgba(34, 44, 60, 0.62) 0%, rgba(8, 11, 18, 0.66) 100%);
+  --tc-glass-press: linear-gradient(160deg, rgba(0, 245, 225, 0.3) 0%, rgba(0, 120, 112, 0.34) 100%);
+  --tc-line: rgba(255, 255, 255, 0.24);
+  --tc-hi: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -8px 14px rgba(0, 0, 0, 0.22);
+  --tc-drop: 0 4px 14px rgba(0, 0, 0, 0.38);
+  --tc-safe-l: max(14px, env(safe-area-inset-left));
+  --tc-safe-r: max(14px, env(safe-area-inset-right));
+  --tc-safe-b: max(10px, env(safe-area-inset-bottom));
+}
+
+.tc-group {
+  position: absolute;
+  z-index: 6;
+  display: none;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tc-btn {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 70ms ease, background 90ms ease, border-color 90ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+.tc-btn svg {
+  width: 50%;
+  height: 50%;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+  pointer-events: none;
+}
+.tc-btn svg .fill { fill: #fff; stroke-width: 1.2; }
+.tc-btn.tc-down { transform: scale(0.92); }
+
+/* ------------------------------------------------- boutons ronds en verre */
+/* Icones seules (comme sur la reference) : zone tactile ronde invisible, icone blanche pleine */
+.tc-round {
+  position: absolute;
+  width: calc(var(--tc-s) * 0.92);
+  height: calc(var(--tc-s) * 0.92);
+  border-radius: 50%;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.tc-round svg {
+  width: 74%;
+  height: 74%;
+  stroke-width: 2.4;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+.tc-round svg .fill, .tc-square svg .fill { fill: #fff; stroke: none; }
+.tc-round.tc-down { transform: scale(0.86); }
+.tc-round.tc-down svg { filter: drop-shadow(0 0 6px var(--tc-cyan-glow)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)); }
+.tc-round.tc-on svg { stroke: var(--tc-cyan); filter: drop-shadow(0 0 7px var(--tc-cyan-glow)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5)); }
+.tc-round.tc-on svg .fill { fill: var(--tc-cyan); }
+.tc-group:not(.tc-combat) .tc-round { position: relative; }
+
+.tc-cap {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: -1.3em;
+  translate: -50% 0;
+  font: 800 calc(var(--tc-s) * 0.14)/1 system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+@media (min-height: 560px) { .tc-cap { display: block; } }
+
+/* ---------------------------------------------------------------- joystick */
+.tc-stick-zone {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 42vw;
+  height: 60vh;
+  z-index: 0;                       /* sous tous les autres boutons du HUD */
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Le joystick ne doit JAMAIS se comporter comme un lien / un texte :
+   pas de selection, pas de surbrillance, pas de menu d'appui long, pas de glisser-deposer. */
+.tc-stick-zone,
+.tc-stick-zone * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  outline: none;
+  cursor: default;
+}
+.tc-stick-zone::selection,
+.tc-stick-zone *::selection { background: transparent; color: inherit; }
+.tc-stick-zone:focus, .tc-stick-zone:active, .tc-stick-zone:focus-visible { outline: none; background: none; }
+.tc-stick {
+  --tc-r: calc(var(--tc-s) * 1.18);           /* rayon de la base */
+  --kx: 0px;
+  --ky: 0px;
+  --ang: 0deg;
+  --mag: 0;
+  position: absolute;
+  left: calc(var(--tc-safe-l) + var(--tc-s) * 1.55);
+  bottom: calc(var(--tc-safe-b) + var(--tc-s) * 1.5);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  transition: opacity 180ms ease;
+}
+.tc-stick.tc-active { opacity: 1; transition: none; }
+.tc-stick-knob, .tc-stick-base { will-change: transform; backface-visibility: hidden; }
+.tc-stick-base { transition: transform 90ms ease-out, border-color 90ms ease-out; }
+.tc-stick.tc-active .tc-stick-base { transform: none; border-color: rgba(255, 255, 255, 0.7); }
+.tc-stick-base,
+.tc-stick-sprint,
+.tc-stick-dir,
+.tc-stick-knob {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+}
+.tc-stick-base {
+  width: calc(var(--tc-r) * 2);
+  height: calc(var(--tc-r) * 2);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02) 70%);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.tc-tick {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: calc(var(--tc-s) * 0.075) solid transparent;
+  opacity: 0.55;
+}
+.tc-tick.t-up    { left: 50%; top: 8%;    translate: -50% 0; border-bottom-color: #fff; border-top-width: 0; }
+.tc-tick.t-down  { left: 50%; bottom: 8%; translate: -50% 0; border-top-color: #fff; border-bottom-width: 0; }
+.tc-tick.t-left  { top: 50%; left: 8%;    translate: 0 -50%; border-right-color: #fff; border-left-width: 0; }
+.tc-tick.t-right { top: 50%; right: 8%;   translate: 0 -50%; border-left-color: #fff; border-right-width: 0; }
+/* arc cyan qui suit la direction poussee */
+.tc-stick-dir {
+  width: calc(var(--tc-r) * 2 + 8px);
+  height: calc(var(--tc-r) * 2 + 8px);
+  background: conic-gradient(from calc(var(--ang) - 38deg), var(--tc-cyan) 0deg, rgba(0, 245, 225, 0.25) 76deg, transparent 76deg);
+  -webkit-mask: radial-gradient(circle closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1px), transparent 100%);
+  mask: radial-gradient(circle closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1px), transparent 100%);
+  opacity: var(--mag);
+  filter: drop-shadow(0 0 5px var(--tc-cyan-glow));
+}
+.tc-stick-knob {
+  width: calc(var(--tc-s) * 0.98);
+  height: calc(var(--tc-s) * 0.98);
+  transform: translate(var(--kx), var(--ky));
+  background: rgba(255, 255, 255, 0.82);
+  border: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+.tc-stick.tc-active .tc-stick-knob { background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.14); }
+.tc-stick-sprint {
+  width: calc(var(--tc-r) * 2.9);
+  height: calc(var(--tc-r) * 2.9);
+  border: 1.5px dashed rgba(255, 255, 255, 0);
+  display: grid;
+  place-items: start center;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.tc-stick-sprint b {
+  margin-top: -1.6em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 245, 225, 0.16);
+  border: 1px solid var(--tc-cyan-line);
+  font: 800 10px/1 system-ui, sans-serif;
+  letter-spacing: 0.2em;
+  color: var(--tc-cyan);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.tc-stick.tc-near-sprint .tc-stick-sprint { border-color: rgba(255, 255, 255, 0.22); }
+.tc-stick.tc-sprinting .tc-stick-sprint {
+  border-color: var(--tc-cyan-line);
+  background: radial-gradient(circle, rgba(0, 245, 225, 0) 56%, rgba(0, 245, 225, 0.12) 72%, rgba(0, 245, 225, 0) 73%);
+}
+.tc-stick.tc-sprinting .tc-stick-sprint b { opacity: 1; }
+.tc-stick.tc-sprinting .tc-stick-knob {
+  background: var(--tc-cyan);
+  box-shadow: 0 0 20px var(--tc-cyan-glow), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.vehicle-hud-active .tc-tick.t-up,
+.vehicle-hud-active .tc-tick.t-down { opacity: 0.2; }
+
+.hud-root.tc-steer-arrows.vehicle-hud-active .tc-stick-zone { display: none; }
+.hud-editing .tc-stick-zone { pointer-events: none; }
+
+/* --------------------------------------------------- cercle de combat */
+.tc-combat {
+  display: block;
+  width: calc(var(--tc-s) * 4.1);
+  height: calc(var(--tc-s) * 4.0);
+  right: var(--tc-safe-r);
+  bottom: calc(var(--tc-safe-b) + 26px);
+  pointer-events: none;                 /* seuls les boutons captent */
+  transform-origin: bottom right;
+}
+.tc-combat .tc-btn { pointer-events: auto; }
+.vehicle-hud-active .tc-combat { display: none; }
+
+.tc-fire {
+  width: calc(var(--tc-s) * 1.55);
+  height: calc(var(--tc-s) * 1.55);
+  right: calc(var(--tc-s) * 0.2);
+  bottom: calc(var(--tc-s) * 0.62);
+}
+.tc-fire.tc-down svg, .tc-fire.tc-down .tc-fire-weapon { filter: drop-shadow(0 0 10px var(--tc-red-glow)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)); }
+.tc-fire-ring {                          /* cercle de visee, visible seulement en tirant */
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0);
+  pointer-events: none;
+}
+.tc-fire.tc-down .tc-fire-ring { animation: tc-spin 900ms linear infinite; border-color: rgba(255, 120, 130, 0.7); }
+@keyframes tc-spin { to { rotate: 360deg; } }
+.tc-fire-weapon {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+.tc-fire .tc-fire-fist { width: 76%; height: 76%; }
+.tc-fire-cross {
+  position: absolute;
+  right: 7%;
+  bottom: 7%;
+  width: 28% !important;
+  height: 28% !important;
+  stroke: #ffb3b9 !important;
+  stroke-width: 2.4;
+  opacity: 0;
+}
+.hud-root[data-tc-gun="1"] .tc-fire-cross { opacity: 0.95; }
+.tc-fire.tc-has-weapon .tc-fire-fist { display: none; }
+
+/* satellites autour du bouton de tir (positions calculees en arc) */
+.tc-sat.tc-jump      { right: calc(var(--tc-s) * 0.515); bottom: calc(var(--tc-s) * 2.415); }
+.tc-sat.tc-crouch    { right: calc(var(--tc-s) * 1.505); bottom: calc(var(--tc-s) * 2.035); }
+.tc-sat.tc-aim       { right: calc(var(--tc-s) * 1.981); bottom: calc(var(--tc-s) * 1.141); }
+.tc-sat.tc-sprint    { right: calc(var(--tc-s) * 3.055); bottom: calc(var(--tc-s) * 1.157); }
+.tc-sat.tc-passenger { right: calc(var(--tc-s) * 2.723); bottom: calc(var(--tc-s) * 2.21); }
+.tc-sat.tc-enter     { right: calc(var(--tc-s) * 1.978); bottom: calc(var(--tc-s) * 3.024); }
+.tc-sat.tc-swap {
+  width: calc(var(--tc-s) * 0.72);
+  height: calc(var(--tc-s) * 0.72);
+  right: calc(var(--tc-s) * 1.73);
+  bottom: calc(var(--tc-s) * 0.031);
+}
+.tc-sat.tc-swap svg { width: 56%; height: 56%; }
+.tc-sat.tc-swap.tc-long { border-color: var(--tc-cyan); box-shadow: 0 0 16px var(--tc-cyan-glow); }
+
+/* Viser : seulement avec une arme qui se vise */
+.tc-aim { opacity: 0; visibility: hidden; scale: 0.6; transition: opacity 140ms ease, scale 140ms ease, visibility 0s 140ms; }
+.hud-root[data-tc-gun="1"] .tc-aim { opacity: 1; visibility: visible; scale: 1; transition: opacity 140ms ease, scale 140ms ease; }
+.hud-editing .tc-aim { opacity: 1; visibility: visible; scale: 1; }
+
+/* -------------------------------------------------------------- volant */
+.vehicle-hud-active .tc-extra,
+.vehicle-hud-active .tc-pedals,
+.vehicle-hud-active .tc-veh-actions { display: flex; }
+.hud-root.tc-steer-arrows.vehicle-hud-active .tc-steer { display: flex; }
+/* Editeur : on edite les boutons de l'etat courant (a pied OU au volant) */
+
+/* Fleches : capsules de verre */
+.tc-square {
+  width: calc(var(--tc-size) * 1.02);
+  height: calc(var(--tc-size) * 1.02);
+  background: transparent;
+  border: 0;
+}
+.tc-square svg { width: 78%; height: 78%; stroke-width: 3.2; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6)); }
+.tc-square.tc-down { transform: scale(0.86); }
+.tc-square.tc-down svg { stroke: var(--tc-cyan); filter: drop-shadow(0 0 7px var(--tc-cyan-glow)); }
+.tc-steer {
+  left: calc(var(--tc-safe-l) + 4px);
+  bottom: calc(var(--tc-safe-b) + 8px);
+  gap: calc(var(--tc-size) * 0.24);
+}
+
+/* Bascule joystick / fleches : 5e bouton de la rangee d'actions rapides, au volant seulement */
+.hud-root .quick-actions .tc-steer-mode { display: none; }
+.hud-root.vehicle-hud-active .quick-actions .tc-steer-mode { display: grid; }
+.hud-root .tc-steer-mode svg { fill: none !important; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.hud-root .tc-steer-mode svg .fill { fill: var(--tc-cyan) !important; stroke: none; }
+.hud-root .tc-steer-mode .tc-ico-arrows { display: none; }
+.hud-root.tc-steer-arrows .tc-steer-mode .tc-ico-stick { display: none; }
+.hud-root.tc-steer-arrows .tc-steer-mode .tc-ico-arrows { display: block; }
+.hud-root .tc-steer-mode.tc-down {
+  transform: scale(0.94);
+  border-color: var(--glass-border-active, var(--tc-cyan-line));
+  background: var(--glass-bg-active, var(--tc-cyan-soft));
+}
+
+/* Klaxon / moteur / frein a main : rangee de ronds au-dessus des pedales */
+.tc-extra {
+  right: var(--tc-safe-r);
+  bottom: calc(var(--tc-safe-b) + 26px + var(--tc-size) * 1.75 + 12px);
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--tc-size) * 0.18);
+  transform-origin: bottom right;
+}
+.tc-round-sm { width: calc(var(--tc-size) * 0.78); height: calc(var(--tc-size) * 0.78); }
+.tc-glyph svg { width: 80%; height: 80%; }
+.tc-glyph svg .fill { fill: #fff; stroke: none; }
+
+/* Pedales : verre fume, stries antiderapantes, lisere couleur (frein rouge / gaz cyan) */
+.tc-pedals {
+  right: var(--tc-safe-r);
+  bottom: calc(var(--tc-safe-b) + 26px);
+  align-items: flex-end;
+  gap: calc(var(--tc-size) * 0.26);
+  transform-origin: bottom right;
+}
+.tc-pedal {
+  --pc: var(--tc-cyan);
+  --pg: var(--tc-cyan-glow);
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px 14px 18px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  transform-origin: 50% 100%;
+}
+.tc-brake { --pc: var(--tc-red); --pg: var(--tc-red-glow); }
+.tc-pedal::before {                     /* lisere couleur en bas */
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 7px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--pc);
+  box-shadow: 0 0 8px var(--pg);
+}
+.tc-pedal-grip {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 14%;
+  bottom: 32%;
+  border-radius: 6px;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0 3px, transparent 3px 9px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+.tc-pedal-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 15px;
+  font: 800 calc(var(--tc-size) * 0.15)/1 system-ui, sans-serif;
+  letter-spacing: 0.16em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.tc-pedal.tc-down {
+  transform: perspective(300px) rotateX(14deg) scale(0.97);
+  border-color: var(--pc);
+  box-shadow: 0 0 20px var(--pg);
+}
+.tc-pedal.tc-down::after {              /* remplissage couleur a l'appui */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, var(--pg), transparent 75%);
+  pointer-events: none;
+}
+.tc-pedal.tc-down .tc-pedal-grip { opacity: 1; }
+.tc-brake { width: calc(var(--tc-size) * 1.05); height: calc(var(--tc-size) * 1.45); }
+.tc-accel { width: calc(var(--tc-size) * 1.05); height: calc(var(--tc-size) * 1.75); }
+
+/* Sortir / tirer : a gauche des pedales */
+.tc-veh-actions {
+  right: calc(var(--tc-safe-r) + var(--tc-size) * 2.45);
+  bottom: calc(var(--tc-safe-b) + 26px);
+  flex-direction: column;
+  gap: calc(var(--tc-size) * 0.18);
+  transform-origin: bottom right;
+}
+.tc-danger.tc-down svg { stroke: #ff8a93; filter: drop-shadow(0 0 8px var(--tc-red-glow)); }
+
+/* ------------------------------------------------------------ editeur */
+.hud-editing .tc-group { opacity: 0.92; }
+.hud-editing .tc-stick { opacity: 0.8; }
+
+/* Le bouton animations se cale a droite du joystick (sauf position choisie dans l'editeur) */
+.hud-root .animations-toggle-button.hud-movable { left: calc(var(--tc-safe-l) + var(--tc-s) * 2.8 + 10px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-btn, .tc-aim, .tc-stick { transition: none; }
+  .tc-fire.tc-down .tc-fire-ring { animation: none; }
+}
+
+/* [Crestwood] Controles personnalises DESACTIVES : les boutons tactiles natifs de San Andreas
+   et la barre de touches SA-MP sont de retour (touch-controls.js n'est plus charge). */
+.tc-touch-zone, .tc-group, .tc-steer-mode { display: none !important; }

@@ -1,0 +1,70 @@
+#pragma once
+
+#include "main.h"
+#include <string>
+
+#define EXCEPTION_CHECK(env) \
+	if ((env)->ExceptionCheck()) \ 
+	{ \
+		(env)->ExceptionDescribe(); \
+		(env)->ExceptionClear(); \
+		return; \
+	}
+
+class CJavaWrapper
+{
+public:
+    CJavaWrapper(JNIEnv *env, jobject activity);
+    ~CJavaWrapper() {};
+    JNIEnv* GetEnv();
+    
+    const char* GetClipboardString();
+    void SetPauseState(bool pause);
+    void ShowLoadingScreen();
+    void HideLoadingScreen();
+    void UpdateHudMoney(int money);
+    void HudChatMessage(const std::string& nick, const std::string& text, uint32_t rgb);   // chat -> HUD HTML
+    void UpdateHudState(float health, float armour, float thirst, float hunger, float energy,
+                        bool dead, bool running, bool exhausted, bool inVehicle,
+                        float speed, float vehicleHealth, bool handbrake,
+                        float posX, float posY, float camFx, float camFy, float heading);
+
+	void exitGame();
+
+    // Panneau HTML des vetements (assets/clothes/index.html)
+    void ClothesPanelOpen(const std::string& json);
+    void ClothesPanelState(const std::string& json);
+    void ClothesPanelClose();
+
+    jbyteArray as_byte_array(unsigned char* buf, int len) {
+        JNIEnv* p;
+        javaVM->GetEnv((void**)&p, JNI_VERSION_1_6);
+		jbyteArray array = p->NewByteArray (len);
+		p->SetByteArrayRegion (array, 0, len, reinterpret_cast<jbyte*>(buf));
+		return array;
+	}
+
+    void ShowDialog(int dialogStyle, int dialogID, char* title, char* text, char* button1, char* button2);
+
+	void ShowEditObject();
+	void HideEditObject();
+
+    jobject activity;
+    jmethodID s_setPauseState;
+    jmethodID s_showLoadingScreen;
+    jmethodID s_hideLoadingScreen;
+    jmethodID s_ShowDialog;
+    jmethodID s_showInputLayout;
+    jmethodID s_hideInputLayout;
+	jmethodID s_exitGame;
+	 jmethodID s_showEditObject;
+	 jmethodID s_hideEditObject;
+    jmethodID s_updateHudState;
+    jmethodID s_updateHudMoney = nullptr;
+    jmethodID s_hudChat = nullptr;
+    jmethodID s_clothesOpen = nullptr;
+    jmethodID s_clothesState = nullptr;
+    jmethodID s_clothesClose = nullptr;
+};
+
+extern CJavaWrapper* g_pJavaWrapper;

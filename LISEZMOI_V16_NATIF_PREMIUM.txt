@@ -1,0 +1,36 @@
+CRESTWOOD RP - V16 : ECRANS NATIFS, MENU 3D, CREATION DE TENUE (06/11/2026)
+==========================================================================
+
+1) VETEMENTS
+   - Bug : a la creation, le serveur enregistrait une tenue par defaut -> au spawn le perso etait
+     deja habille et l'editeur ne s'ouvrait jamais tout seul.
+   - Maintenant : nouveau perso (ou compte sans tenue) -> spawn en sous-vetements, le STUDIO DE STYLE
+     s'ouvre tout seul 3-4 s apres le spawn (mode creation : pas de bouton Annuler). ENREGISTRER = tenue
+     sauvegardee. Ensuite bouton TENUE du HUD ou /vetements pour changer.
+   - Le studio est maintenant 100 % natif Android (plus de WebView) : rail des categories a gauche,
+     panneau a droite (corps, Collection / Reglages, miniatures, piece choisie < >, Retirer),
+     camera 360 en bas a gauche. Tout en francais, gris / noir / bleu, coins quasi carres, verre transparent.
+     Fichiers : java/com/gta/game/ui/NativeClothesPanel.java, CwUi.java (+ les 2 SAMP.java).
+
+2) SIGNATURE CRESTWOOD
+   - En jeu : "CRESTWOOD" en haut au centre, filets bleus, "ROLEPLAY · heure", reflet bleu toutes les 9 s.
+     Natif (CrestwoodTopBanner.java), ne bloque pas le tactile, cache quand un panneau est ouvert.
+   - Generique : meme signature en haut pendant le diaporama + polices Montserrat.
+
+3) INTERACTION JOUEURS DANS LE MONDE 3D
+   - Un appui COURT sur un joueur (a 8 m max) ouvre un menu dessine dans le monde, accroche au joueur :
+     carte du nom au-dessus de sa tete + boutons a cote de lui (suivent le joueur et la camera).
+     Saluer, Donner de l'argent, Montrer mes papiers, Controle de police (policiers),
+     licences (gouvernement), Fermer. Toucher ailleurs ferme le menu.
+   - Client : game/PlayerTap.cpp (32 et 64 bits). Serveur : /interaction3d + Ui_OpenPlayer3D (dialogue 9636).
+   - Points 3D (main, pastilles, anneaux au sol) : accents bleus.
+
+4) HTML
+   - common/cw-pro.css v3 charge par les 27 panneaux : liseré bleu, titres Montserrat, onglets actifs
+     soulignes bleu, boutons principaux bleus, prix en bleu. Garage recolore (il etait bleu clair).
+
+A FAIRE
+   - RECOMPILER basicgm1.amx (pas de compilateur Pawn dans cet environnement) puis redemarrer le serveur.
+   - Recompiler l'APK (GitHub Actions). Rien n'a pu etre compile/teste sur telephone ici.
+   - Les autres panneaux (banque, garage, admin...) restent en HTML pour l'instant (restyles) : a passer
+     en natif un par un.

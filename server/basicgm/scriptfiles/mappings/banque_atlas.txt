@@ -1,0 +1,21 @@
+// Banque "Atlas Studio" (carte MTA convertie) - Rodeo, 588.18, -1530.47
+// ATTENTION : cette carte utilise des MODELES PERSONNALISES (bank.dff remplace 10040, alap.dff remplace 6340).
+// Tant que le remplacement de modeles n'est pas reactive dans le client (voir LISEZMOI_V18), NE PAS l'activer :
+// le modele 10040 d'origine est un batiment de San Fierro et apparaitrait a la place de la banque.
+// Modeles prets : tools/models/ready/bank_atlas et bank_alap. Pour activer : ajoute "banque_atlas.txt" dans liste.txt.
+RemoveBuildingForPlayer(playerid, 6480, 588.1797, -1530.4688, 25.5938, 0.25);
+RemoveBuildingForPlayer(playerid, 1529, 583.4609, -1502.1094, 16.0000, 0.25);
+RemoveBuildingForPlayer(playerid, 1266, 591.7266, -1508.9297, 25.3125, 0.25);
+RemoveBuildingForPlayer(playerid, 673, 559.6719, -1569.0000, 12.1719, 0.25);
+RemoveBuildingForPlayer(playerid, 700, 558.7656, -1556.6641, 15.0703, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 557.2578, -1548.9141, 15.1719, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 557.2578, -1532.7734, 14.7188, 0.25);
+RemoveBuildingForPlayer(playerid, 6340, 588.1797, -1530.4688, 25.5938, 0.25);
+RemoveBuildingForPlayer(playerid, 6370, 570.2031, -1530.4141, 23.6641, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 557.1016, -1523.8125, 14.3828, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 556.2109, -1516.7813, 14.3438, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 556.2109, -1500.3906, 14.3438, 0.25);
+RemoveBuildingForPlayer(playerid, 625, 557.1016, -1490.0156, 14.2031, 0.25);
+RemoveBuildingForPlayer(playerid, 1260, 591.7266, -1508.9297, 25.3047, 0.25);
+CreateObject(6340, 588.1797, -1530.4688, 25.5938, 0.0, 0.0, 0.0, 300.0);
+CreateObject(10040, 588.1797, -1530.4688, 25.5938, 0.0, 0.0, 0.0, 300.0);

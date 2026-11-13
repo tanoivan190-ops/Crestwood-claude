@@ -1,0 +1,36 @@
+CRESTWOOD RP v11 (31/10/2026) - INVENTAIRE, CENTRALE POLICE/FBI/ARMEE, TELEPHONE
+================================================================================
+
+1) INVENTAIRE (style de ta capture) - assets/inventory + module INVENTAIRE de basicgm1.pwn
+   - A gauche : ton personnage (nom, #id, argent, poids total) + 5 RACCOURCIS.
+     Selectionne un objet puis touche un raccourci (ou les boutons 1-5 a droite) pour l'y placer ;
+     toucher un raccourci rempli = utiliser l'objet.
+   - Au centre : onglets "Sac" et "Sol" + poids (max 50 kg, barre rouge au-dela de 90 %).
+     Le centre est transparent : on voit son personnage derriere.
+   - A droite : fiche de l'objet, quantite, Utiliser (Manger / Boire / Activer...), Donner
+     (liste des joueurs a cote), Jeter au sol.
+   - Jeter = l'objet est pose au sol en 3D (ramassable par tout le monde a 3 m, onglet "Sol",
+     disparait apres 10 min). Donner = direct dans le sac de l'autre (poids verifie).
+   - Nouveaux objets : Hamburger (+25 PV, donne aussi par /servir des burgers) et Bandage (+35 PV).
+   Reglages : INV_MAX_WEIGHT, INV_GROUND_TTL, g_InvWeight (poids de chaque objet).
+
+2) CENTRALE POLICE / FBI / ARMEE (tablette RP > "Centrale", ou /mdt)
+   Le titre change selon la faction (Police, FBI, Armee).
+   - Agents en service (unite, grade, distance, GPS), demandes de renfort (GPS),
+     avis de recherche (lancer avec ID + etoiles + raison, retirer),
+     barrages (4 par agent), dossiers d'enquete (FBI + police), alerte militaire (armee).
+   Commandes : /mdt /centrale, /renfort [msg], /m texte (megaphone 60 m), /recherche id 1-6 raison,
+     /effacer id, /badge, /barrage, /retirerbarrage, /dossier Prenom_Nom note (FBI/police),
+     /alerte texte (armee, a tout le serveur).
+   FBI et armee ont aussi les outils de police (main sur un joueur : menotter, fouiller, amende...)
+   et leur vestiaire (uniforme FBI / armee).
+   Fichier : server/basicgm/include/Law.inc
+
+3) VESTIAIRE DE LA POLICE : page HTML (tenues, ceinture, gilet, casquette) + icone 3D casier.
+   Panneau admin > Factions > ajouter un vestiaire.
+
+4) TELEPHONE / WHATSAPP (deja relies au serveur : appels, SMS, WhatsApp, contacts, Wave, 17/15/18)
+   - Le numero arrive tout seul quand on ouvre le telephone avec une carte SIM dans le sac
+     (le kit de depart donne iPhone + carte SIM).
+   - Nouveau : /numero (ton numero), /donnernumero id (ton numero s'ajoute aux contacts de la
+     personne a cote). WhatsApp utilise directement ton numero.

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#050506">
+  <title>Crestwood Roleplay — Chargement</title>
+  <link rel="stylesheet" href="loading.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+  <link rel="stylesheet" href="v21.css">
+  <script src="../common/i18n.js"></script>
+</head>
+<body>
+  <!--
+    Ecran de chargement Crestwood (v19) : launcher (mise a jour de la data) ET jeu (connexion au serveur).
+    API inchangee : window.LoadingBridge.setProgress / ready / error / storageAccessRequired /
+    storageAccessGranted / connecting / stopMusic  ;  natif : AndroidLoading.start / retry / skip
+  -->
+  <main class="screen" aria-live="polite">
+    <!-- diaporama (loading.js : classe "on" tournante) -->
+    <div class="slides" id="slides" aria-hidden="true">
+      <div class="slide on" style="background-image:url('scenes/cw19-b.jpg')"></div>
+      <div class="slide" style="background-image:url('scenes/cw19-c.jpg')"></div>
+      <div class="slide" style="background-image:url('scenes/cw19-d.jpg')"></div>
+    </div>
+    <div class="shade" aria-hidden="true"></div>
+
+    <header class="top">
+      <img class="logo" src="../login/assets/images/cw-logo.png" alt="Crestwood Roleplay">
+    </header>
+
+    <!-- astuce RP tournante -->
+    <aside class="tip" id="tip" aria-live="off">
+      <span class="tip-tag">Astuce</span>
+      <p id="tipText">Utilise /me et /do pour décrire tes actions : c'est la base du roleplay.</p>
+    </aside>
+
+    <section id="card" class="card" data-state="idle" aria-label="Chargement de Crestwood Roleplay">
+      <div class="head">
+        <p id="stage" class="chip">Préparation</p>
+        <h1 id="title">Préparation du jeu</h1>
+        <p id="message" class="message">Connexion au serveur de mise à jour…</p>
+      </div>
+
+      <div class="progress-row">
+        <ol id="steps" class="steps">
+          <li><i>1</i><span>Préparation</span></li>
+          <li><i>2</i><span>Téléchargement</span></li>
+          <li><i>3</i><span>Installation</span></li>
+          <li><i>4</i><span>Connexion</span></li>
+        </ol>
+        <strong id="percent" class="percent">0 %</strong>
+      </div>
+
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="bar" class="bar"><span class="shine"></span></div>
+      </div>
+
+      <!-- [v20] tableau de telechargement : quantite, vitesse (courbe), temps restant -->
+      <div class="dl" id="dl" hidden>
+        <div class="dl-cell"><small>Téléchargé</small><b id="dlDone">0 Mo</b><em id="dlTotal">&nbsp;</em></div>
+        <div class="dl-cell"><small>Vitesse</small><b id="dlSpeed">—</b><canvas id="dlSpark" width="240" height="44" aria-hidden="true"></canvas></div>
+        <div class="dl-cell"><small>Temps restant</small><b id="dlEta">—</b><em>Pack de données du jeu</em></div>
+      </div>
+
+      <div class="foot">
+        <div class="status">
+          <span class="status-dot"></span>
+          <p><b id="status">En attente</b><span id="detail">Le jeu sera débloqué dès que l’installation est complète.</span></p>
+        </div>
+        <div class="meta">
+          <span id="bytes">En attente des données…</span>
+          <span id="speed"></span>
+          <span id="eta"></span>
+        </div>
+        <div class="actions">
+          <button id="skip" class="btn" type="button" hidden>Entrer en jeu</button>
+          <button id="retry" class="btn" type="button" hidden>Réessayer</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- lecteur de musique -->
+  <div id="player" class="player" aria-label="Lecteur de musique">
+    <div class="player-info"><small>Radio Crestwood</small><div id="trackTitle" class="track-title">&nbsp;</div></div>
+    <div class="player-controls">
+      <button id="prev" class="pbtn" type="button" aria-label="Piste précédente"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
+      <button id="play" class="pbtn play" type="button" aria-label="Pause"><svg id="playIcon" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <button id="next" class="pbtn" type="button" aria-label="Piste suivante"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l10.5 7L4 19z"/></svg></button>
+      <input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume">
+    </div>
+  </div>
+  <script src="loading.js"></script>
+  <script src="../common/cw-welcome.js"></script>
+</body>
+</html>

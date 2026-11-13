@@ -1,0 +1,106 @@
+CRESTWOOD RP - v12 (31/10/2026)
+================================
+
+1) Nouveaux systemes (tout en points 3D + main, AUCUN pickup natif)
+   - Station-service (include/Svc.inc) : 14 pompes (LS, SF, LV, campagne).
+     Gare-toi a cote, descends, touche la main -> page "Station-service" :
+     jauge du reservoir, 25 % / 50 % / 75 % / le plein, paiement liquide ou carte.
+     Prix : SVC_FUEL_PRICE = 6 $ par % (plein complet = 600 $).
+     Le carburant baisse en roulant (plus vite a grande vitesse) ; a 0 le moteur se coupe.
+     Les velos ne consomment rien. Le niveau est sauvegarde avec le vehicule du garage.
+     Commande : /essence (niveau du vehicule).
+   - Location de vehicules : 4 points (gare Unity LS, aeroport LS, gare SF, aeroport LV).
+     Faggio 150, BMX 50, VTT 80, Blista 600, PCJ-600 900 $ pour 30 minutes.
+     Rendu automatique a la fin, ou /rendrelocation, ou bouton "Rendre".
+   - Marqueurs 3D : type 16 = pompe, type 17 = cle de location (WorldMarkers.cpp 32 + 64 bits).
+   - Page : assets/svc/index.html (dialogues "@svc" 9810 ouvrir / 9811 maj / 9812 fermer,
+     actions /svcact fill PCT cash|bank, rent MODELE cash|bank, rentend, close).
+
+2) Bulles de chat desactivees
+   - Serveur : plus aucun SetPlayerChatBubble.
+   - Client 32 + 64 bits : CW_CHAT_BUBBLES 0 (chat.cpp, netrpc.cpp, RPC ChatBubble ignore).
+     Les messages restent dans le chat HTML seulement.
+
+3) Logo Crestwood en haut du HUD retire (hud-cw9.css, .project-logo display:none).
+
+4) Banque refaite en francais (assets/bank) : carte bancaire, solde, liquide,
+   Retirer / Deposer / Virement avec montants rapides (1k, 5k, 20k, Tout), code secret
+   a 4 chiffres (validation automatique a l'ouverture), historique.
+   Meme protocole qu'avant : rien a changer cote serveur.
+
+5) Correctif vetements (v12b)
+   - Cause : les comptes enregistres avec l'ancien skin 289 ("zero", vetements Clothes.zip
+     hors APK) ouvraient l'ancien panneau a reglages (Modele du bas 2/2...) avec un corps
+     transparent : aucune piece de l'APK n'existe pour ce corps.
+   - Serveur : 289 n'est plus un skin de vetements valide ; au chargement du compte il est
+     converti en Homme 1 (163) avec la tenue par defaut, sauvegarde au spawn, et la creation
+     /vetements redevient gratuite une fois.
+   - Page clothes : si le modele 289 est encore porte, message clair au lieu du panneau vide.
+   - Il faut redemarrer le serveur avec le nouveau basicgm1.amx puis se reconnecter.
+
+6) Perso invisible au spawn (v12c)
+   - Cause : quand le corps 163/7/9/12 de l'APK remplace celui du jeu, les peds deja crees
+     avec ce modele etaient recrees avec un simple CreateRwObject : le squelette (os,
+     animation) restait vide -> perso invisible. Ca n'arrivait pas avant car ton compte
+     etait sur le 289 (jamais remplace).
+   - Correctif (32 + 64 bits, gui/SouthModelLoader.cpp) : recreation via SetModelIndex du jeu
+     (clump + squelette + animation), textures du perso local remises a zero avant.
+   - Si le corps de l'APK ne se charge pas, le logcat affiche "[clothes] corps APK ... non charge : <raison>".
+
+7) Perso toujours invisible (v12d)
+   - Les captures montrent que TOUS les persos sont invisibles (le sien et ceux des autres) :
+     c'est le remplacement a chaud du modele 3D (DFF du corps embarque dans l'APK) qui casse le modele.
+   - Correctif : CW_APK_BODY_REPLACE 0 (gui/ClothesCustomization.cpp, 32 + 64 bits).
+     Le corps 3D reste celui de la data du jeu (deja le corps AVZ : body_torso*, fantasy_*),
+     les TEXTURES des vetements / peau / visage viennent toujours de l'APK uniquement.
+
+8) Crash en se teleportant sur un mapping (v12e, serveur)
+   - Cause : a la teleportation, Streamer_UpdateEx creait TOUT le mapping d'un coup
+     (jusqu'a 850 objets + leurs textures dans le meme instant) pendant que l'ancien
+     etait detruit : le telephone saturait et plantait.
+   - Correctif (streamer integre de basicgm1.pwn) :
+     * teleportation detectee (> 120 m entre deux passages) : l'ancien mapping est retire
+       tout de suite, puis 2 passages (0,5 s) sans creation pour laisser le client respirer ;
+     * chargement progressif : MS_PER_TICK 60 "points" toutes les 250 ms
+       (1 objet = 1 point, +1 par texture ou texte), cases les plus proches d'abord ;
+     * plafond par joueur 720 objets (au lieu de 850) pour la memoire des telephones.
+   - Le mapping apparait en 1 a 4 secondes apres la teleportation (le sol le plus proche en premier).
+
+9) Boutons natifs (v12f, client 32 + 64 bits)
+   - Bouton VISER perso retire (game/CombatButtons.cpp : plus de mode Aim) -> bouton de visee natif de GTA.
+     Le bouton TIRER en passager (drive-by) reste.
+   - Bouton micro du HUD HTML masque (hud-cw9.css) -> bouton micro natif SampVoice reaffiche (net/netrpc.cpp).
+
+10) v12g
+   - CRASH A LA TELEPORTATION (vraie cause, vue dans le logcat) : 64 bits, RwCameraClear
+     appelait une ancienne adresse (0x26D1E8, d'une autre version de libGame) -> SIGILL des
+     qu'un objet du mapping a un TEXTE (SetObjectMaterialText -> MaterialTextGenerator).
+     Adresse corrigee : 0x76591C (symbole _Z13RwCameraClearP8RwCameraP6RwRGBAi).
+     Audit complet des adresses 64 bits contre les symboles de libGame.so : 4 autres fausses
+     corrigees (RpSkinGeometryGetSkin 0x784D00, RpHAnimHierarchySetFreeListCreateParams 0x77DA60,
+     CModelInfo::AddDamageAtomicModel 0x531B4C, RpAnimBlendGetNextAssociation 0x376654).
+     32 bits : 262 adresses verifiees, aucune fausse.
+   - Boutique / creation de vetements : tout le milieu du panneau defile maintenant d'un bloc
+     (sur telephone la grille des pieces ne faisait que 40-80 px de haut). Retour en haut
+     quand on change de categorie. Note de boutique cachee sur les petits ecrans.
+   - Serveur : un joueur encore sur l'ancien corps 289 est converti en 163 des qu'il ouvre
+     les vetements ou une boutique (plus besoin de se reconnecter).
+
+11) Studio de style en boutique (v12h)
+   - La boutique de vetements (points t-shirt 3D + /criarroupa) ouvre maintenant le STUDIO DE STYLE
+     complet, comme l'editeur de creation : Hauts, Bas, Chaussures, Sacs, Tete, Bijoux, Cheveux, Visage
+     (onglets Collection South + Utgawa et Personnage). Pas de teint/visage de base, tatouages ni uniforme.
+   - Serveur : UTGS_STUDIO_COMPLET 1 -> la boutique 1 vend aussi les pieces des boutiques 2 (accessoires)
+     et 3 (barbier) ; chaque piece nouvelle est payee au prix de SA boutique (UTGS_PRIX_*).
+     Mettre UTGS_STUDIO_COMPLET a 0 pour revenir aux 3 categories.
+   - Les icones 3D (t-shirt, main...) sont masquees pendant l'essayage (elles passaient devant le perso).
+   - Barre des categories compacte sur les petits ecrans (les 8 tiennent / defilent).
+
+12) Verification des corps (v12i)
+   - Les corps male.dff / female.dff de l'APK sont exactement ceux du pack Utgawa (meme empreinte MD5).
+   - Depuis la v12d le corps 3D vient de la data du jeu ; les vetements sont poses par NOM de materiau
+     ('.' == '_', sans casse), donc ils marchent si le corps de la data a les memes pieces.
+   - Nouveau diagnostic logcat (une fois par corps) :
+       [clothes] corps 163 (data du jeu) : X/Y pieces du catalogue presentes ; manquantes : ...
+     X = Y -> tout le catalogue peut s'afficher. Sinon, les pieces listees ne s'afficheront pas
+     sur ce corps (il faudra alors remettre le corps de l'APK pour ce skin).

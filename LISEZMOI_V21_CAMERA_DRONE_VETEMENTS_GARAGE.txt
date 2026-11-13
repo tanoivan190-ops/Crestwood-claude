@@ -1,0 +1,91 @@
+=====================================================================
+ CRESTWOOD RP - V21 (12/11/2026)
+=====================================================================
+!! Recompiler le gamemode (workflow GitHub "Compiler le gamemode") : le basicgm1.amx du zip est l'ancien.
+!! Recompiler l'APK : Java (game + game32), code natif (samp + samp32) et pages HTML ont change.
+
+1. TELEPHONE
+   - Appareil photo DANS le telephone (plus en plein ecran) : modes Photo / Selfie / Drone.
+     Selfie : le serveur place la camera devant le perso (tourner, zoom). Drone : camera volante,
+     120 m autour du joueur (immobile pendant le vol). Staff : portee illimitee + bouton "Me poser"
+     = le staff apparait la ou est le drone.
+   - Le telephone memorise tout (fond d'ecran, reglages, WhatsApp, Instagram, likes, musique, appels
+     recents, notes...) : phone/store.js -> localStorage + copie Android (SharedPreferences).
+   - Vraie appli Notes (liste + editeur). Nouveaux bords : graphite uni, liseret de lumiere fin.
+   - Message WhatsApp / virement Wave : le haut du telephone sort un peu du bas de l'ecran
+     (touche = ouvre l'appli).
+
+2. NOTIFICATIONS
+   - Rond avec un "i" et le texte en dessous, centrees en bas, barre de temps.
+   - Plus intelligentes : meme message = compteur x2, x3 (plus de doublons) ; badge "+N" = notifs
+     en attente ; refus / staff / redemarrage passent devant ; duree selon la longueur du texte ;
+     toucher la notif = passer a la suivante.
+
+3. VETEMENTS
+   - Le studio ne propose plus que Homme et Femme (les corps Homme II, Femme II, Homme original sont
+     supprimes). Un joueur encore sur un ancien corps est passe automatiquement sur le corps complet du
+     meme genre : les pieces s'appliquent de nouveau ("je peux pas changer" corrige). Serveur : les
+     anciens skins 7 / 12 / 289 sont convertis en 163 / 9 au chargement et a la sauvegarde.
+   - Logo Crestwood en IMAGE en haut a gauche du studio (plus le texte coupe).
+   - MAGASINS DE VETEMENTS de retour : panneau admin > Factions > "Magasins de vetements" >
+     "Creer un magasin ici" (niveau 4). T-shirt 3D, texte 3D, icone sur la carte, main "Vetements"
+     tout pres -> studio. Y aller / Supprimer depuis la meme carte. Commandes : /adminact cshopadd 0 |
+     cshopdel <id> | cshopgoto <id>. Un premier magasin est cree devant la mairie s'il n'y en a aucun.
+
+4. EN JEU
+   - Logo CRESTWOOD en haut de l'ecran = la vraie image (plus le texte dessine qui etait coupe).
+   - Roue d'interaction du vehicule CENTREE a l'ecran, nouveau style : anneau en secteurs, moyeu avec
+     le nom du vehicule (toucher le moyeu = fermer).
+   - Nouvelle main 3D d'interaction : disque graphite, main blanche aux doigts arrondis, arc bleu.
+
+5. GARAGE REFAIT
+   - Nouvelle page (assets/garage) : liste a gauche (filtres Tous / Au garage / Sortis / Favoris,
+     couleurs du vehicule, etat), fiche a droite : jauges Etat / Essence / Usure / km, Sortir-Ranger,
+     GPS, Verrouiller, Favori, onglets Atelier (reparer, entretien, plein, fourriere), Assurance (7/30 j),
+     Style (surnom, plaque, peinture 32 couleurs), Cles & vente (preter les cles, vendre a un joueur,
+     revendre au garage). Le panneau natif reste en secours (USE_NATIVE_GARAGE dans SAMP.java).
+   - Depanneuse automatique : un vehicule de garage laisse 30 min sans personne dedans est ramene
+     au garage (etat, essence, km sauvegardes) et le proprietaire est prevenu.
+
+6. ENTREE DU JEU
+   - Langue et reglement demandes UNE seule fois : l'ecran de chargement avait le stockage web coupe
+     (setDomStorageEnabled(false)) -> reglement a chaque lancement. Corrige + copie Android
+     (AndroidLoading.getPref / setPref, SharedPreferences "crestwood_welcome").
+   - Connexion et chargement adoucis (login/v21.css, loading/v21.css) : cartes en verre arrondies,
+     onglets en pilule, champs et boutons arrondis, barre de progression lumineuse.
+   - Toutes les pages : animation d'ouverture (et au retour d'une page en cache), coins doux partout
+     (common/cw-signal.css, dialog/dialog.css, panneaux natifs CwUi 12 dp).
+   - Clavier plus rapide : la fenetre du jeu ne se decale plus quand le clavier sort (adjustNothing) ;
+     la page remonte seulement si le champ serait cache (HeightProvider -> KB_LIFT_JS). Clavier du chat :
+     bulle d'apercu sans recalcul de mise en page a chaque lettre.
+   - WebView : rendu prepare hors ecran (setOffscreenPreRaster) sur les telephones qui ont la memoire.
+
+7. NOUVEAUX SYSTEMES (server/basicgm/include/Cw21.inc)
+   /cadeau (/daily)        cadeau quotidien, serie de 7 jours : 500 $ -> 10 000 $ (un jour rate = jour 1)
+   /parrain Prenom_Nom     une fois, niveau 2 max : 2 500 $ pour toi, 5 000 $ sur le compte du parrain
+   /sondage <question>     (staff) sondage oui / non a tout le serveur, resultat apres 60 s ; /voter oui|non
+   /meteo                  meteo vivante (change toute seule toutes les 25 min) + prevision.
+                           Staff : /meteo auto | /meteo 0-45 (la meteo du panneau admin fige aussi le cycle)
+   /afk                    etiquette [AFK] au-dessus du personnage
+   /mapdata on|off         (staff 7) mappings a modeles personnalises actives au redemarrage, sans recompiler
+
+8. MAPPINGS
+   - Actifs : Hotel, Armee LS, Station-service, Parc, Banque LS, Place du spawn, Samsung Shop, Paquebot,
+     Bureau Glenpark, Mini-banque, Cyber cafe + scriptfiles/mappings/liste.txt.
+   - Banque Atlas, Mecano MTA et Concession SF ont des modeles 3D personnalises : ils ne peuvent
+     s'afficher que si la DATA du jeu contient les fichiers du dossier DATA_MAPPINGS (voir
+     LISEZMOI_MAPPINGS.txt). Une fois la data a jour : /mapdata on puis redemarrer le serveur
+     (plus besoin de recompiler). Sans la data, ils restent coupes (sinon : mauvais batiments).
+   - Police LS (Unity Station) reste retire : son emplacement est pris par la Station-service.
+
+9. FICHIERS
+   server/basicgm/include/Cw21.inc (nouveau), basicgm1.pwn (hooks, interaction 190, marqueurs, blips,
+   admin, vetements, meteo), COMMANDES_CRESTWOOD_RP.txt
+   Java game + game32 : SAMP.java (garage HTML + SampGarage.cmd, clavier, WebView), HudWebView,
+   ui/NativeClothesPanel, ui/CrestwoodTopBanner, ui/CwUi, ui/LoadingScreen, launcher MainActivity,
+   AndroidManifest.xml (adjustNothing)
+   Natif samp + samp32 : game/PlayerTap.cpp (roue centree), game/WorldMarkers.cpp (main 3D)
+   Pages : hud (hud.js, hud-v21.css, hud-kb.js, index.html), phone (store.js, index.html), garage (tout),
+   admin/admin.js, login + loading (v21.css), common (cw-signal.css, i18n.js, cw-welcome.js),
+   dialog/dialog.css, clothes/index.html
+   Apercu : apercu_v21.jpg

@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Crestwood RP - thème commun des panels (bleu nuit / verre)
+   Chargé EN DERNIER dans chaque panel : html[data-th="grey"] recolore les panels
+   qui utilisaient les gris --frame/--side/--main/--card, sans toucher à leur mise en page.
+   ========================================================================== */
+:root{
+  --cw-ink:rgba(0,0,0,0.624); --cw-night:rgba(0,0,0,0.624); --cw-deep:rgba(255,255,255,0.051);
+  --cw-royal:#676767; --cw-blue:#858585; --cw-sky:#bababa;
+  --cw-text:#f1f1f1; --cw-soft:#d0d0d0; --cw-muted:#aeaeae;
+  --cw-line:rgba(186,186,186,0.16); --cw-line-strong:rgba(186,186,186,0.38);
+  --cw-ok:#3ddc97; --cw-warn:#ffb454; --cw-danger:#ff6b72;
+}
+
+/* ---- panels "gris" (faction, gov, rp, npc, anim, clothes) -> bleu nuit ---- */
+html[data-th="grey"]{
+  --frame:rgba(0,0,0,0.624); --side:rgba(0,0,0,0.624); --main:rgba(255,255,255,0.052); --card:rgba(255,255,255,0.073); --card2:rgba(255,255,255,0.093);
+  --right1:rgba(255,255,255,0.099); --right2:rgba(255,255,255,0.066);
+  --bg:rgba(0,0,0,0.624); --panel:rgba(0,0,0,0.624); --panel2:rgba(255,255,255,0.064);
+  --line:rgba(186,186,186,0.14); --text:#f1f1f1; --soft:#d0d0d0; --muted:#aeaeae;
+  --blue:#858585; --accent:#858585; --cyan:#b5b5b5; --green:#3ddc97; --amber:#ffb454; --red:#ff6b72;
+}
+html[data-th="grey"] .panel,
+html[data-th="grey"] .frame{ box-shadow:0 0 0 1px var(--cw-line-strong) inset, 0 30px 80px rgba(0,0,0,0.48); }
+html[data-th="grey"] .av{ background:linear-gradient(160deg,#5c5c5c,rgba(255,255,255,0.08)) !important; }
+html[data-th="grey"] .av i{ background:#6a6a6a; }
+html[data-th="grey"] .av.on i{ background:var(--green); }
+html[data-th="grey"] .chip,
+html[data-th="grey"] .ib,
+html[data-th="grey"] .fi,
+html[data-th="grey"] .mrow,
+html[data-th="grey"] .day{ background:rgba(186,186,186,0.07); }
+html[data-th="grey"] .chip.on{ background:rgba(133,133,133,0.34); box-shadow:0 0 0 1px var(--cw-line-strong) inset; }
+html[data-th="grey"] .search{ background:rgba(186,186,186,0.07); border-color:var(--cw-line); }
+html[data-th="grey"] .search:focus{ border-color:var(--cw-blue); box-shadow:0 0 0 3px rgba(133,133,133,0.25); }
+html[data-th="grey"] .card{ border:1px solid var(--cw-line); box-shadow:0 10px 24px rgba(0,0,0,.28); }
+
+/* ---- comportement commun a tous les panels ---- */
+html[data-th]{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+html[data-th] ::selection{ background:rgba(133,133,133,0.45); color:#fff; }
+html[data-th] ::-webkit-scrollbar{ width:6px; height:6px; }
+html[data-th] ::-webkit-scrollbar-thumb{ background:rgba(186,186,186,0.32); border-radius:4px; }
+html[data-th] ::-webkit-scrollbar-track{ background:transparent; }
+html[data-th] button{ transition:transform .12s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .15s ease; }
+html[data-th] button:active:not(:disabled){ transform:scale(.97); }
+html[data-th] button:focus-visible,
+html[data-th] input:focus-visible,
+html[data-th] select:focus-visible,
+html[data-th] textarea:focus-visible{ outline:2px solid var(--cw-sky); outline-offset:2px; }
+html[data-th] button:disabled{ opacity:.45; }
+
+/* ==========================================================================
+   V2 - finition "premium" : verre profond, filets lumineux, boutons en relief,
+   cartes interactives, entrées animées. Toujours piloté par html[data-th].
+   ========================================================================== */
+:root{
+  --cw-glass:linear-gradient(160deg,rgba(255,255,255,0.068),rgba(0,0,0,0.599) 55%,rgba(0,0,0,0.611));
+  --cw-glass-soft:linear-gradient(160deg,rgba(186,186,186,0.12),rgba(186,186,186,0.04));
+  --cw-edge:linear-gradient(135deg,rgba(207,207,207,0.7),rgba(103,103,103,0.14) 38%,rgba(186,186,186,0.12) 62%,rgba(207,207,207,0.5));
+  --cw-btn:linear-gradient(145deg,#959595 0%,#727272 48%,#565656 100%);
+  --cw-glow:0 0 0 1px rgba(186,186,186,0.18) inset,0 30px 90px rgba(0,0,0,0.52),0 0 70px rgba(103,103,103,0.2);
+}
+
+/* fond atmosphérique (pages plein écran uniquement) */
+html[data-th]:not([data-flat]){
+  background:
+    radial-gradient(900px 520px at 12% -10%,rgba(103,103,103,0.34),transparent 60%),
+    radial-gradient(800px 480px at 105% 110%,rgba(181,181,181,0.2),transparent 60%),
+    radial-gradient(ellipse at 50% 50%,rgba(3,7,18,.55),rgba(2,4,12,0.72));
+}
+
+/* ---- conteneurs principaux : cadre à filet dégradé + halo ---- */
+html[data-th] :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.glass:not(.top):not(.round)){
+  border:1px solid transparent !important;
+  background:var(--cw-glass) padding-box, var(--cw-edge) border-box !important;
+  box-shadow:var(--cw-glow) !important;
+  backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  animation:cwPop .32s cubic-bezier(.2,.9,.25,1.12) both;
+}
+@keyframes cwPop{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:none}}
+@keyframes cwRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes cwShine{from{transform:translateX(-120%) skewX(-18deg)}to{transform:translateX(260%) skewX(-18deg)}}
+
+/* ---- en-têtes : filet lumineux + titre en dégradé ---- */
+html[data-th] :is(.sh-head,.pl-head,.lk-head,.inv-head,.rp-head,.dg-head,.dg-header,.jb-ahead,.top){
+  position:relative; border-bottom:0 !important;
+}
+html[data-th] :is(.sh-head,.pl-head,.lk-head,.inv-head,.rp-head,.dg-head,.dg-header,.jb-ahead)::after{
+  content:""; position:absolute; left:14px; right:14px; bottom:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(186,186,186,0.65) 20%,rgba(181,181,181,0.65) 50%,rgba(186,186,186,0.65) 80%,transparent);
+}
+html[data-th] :is(.sh-title,.pl-title,.lk-title,.inv-title,.rp-title){
+  text-shadow:0 0 18px rgba(181,181,181,0.45); letter-spacing:.06em;
+}
+html[data-th] .title h1{
+  background:linear-gradient(180deg,#fff,#d1d1d1); -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; letter-spacing:.06em;
+}
+
+/* ---- boutons de fermeture : pastille verre, rouge au toucher ---- */
+html[data-th] :is(.sh-close,.pl-close,.lk-close,.inv-close,.rp-close,.dg-x,.jb-x,.jb-aclose,.x,.round){
+  border:1px solid var(--cw-line-strong) !important; background:rgba(0,0,0,0.546) !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+}
+html[data-th] :is(.sh-close,.pl-close,.lk-close,.inv-close,.rp-close,.dg-x,.jb-x,.jb-aclose,.x,.round):active{
+  background:rgba(255,107,114,.28) !important; border-color:rgba(255,107,114,.7) !important;
+}
+
+/* ---- boutons principaux : relief bleu + reflet qui balaye ---- */
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm){
+  position:relative; overflow:hidden; border:1px solid rgba(213,213,213,0.55) !important;
+  background:var(--cw-btn) !important; color:#fff !important; font-weight:800; letter-spacing:.08em;
+  text-shadow:0 1px 2px rgba(0,0,0,0.429);
+  box-shadow:0 8px 22px rgba(103,103,103,0.45), 0 1px 0 rgba(255,255,255,.35) inset !important;
+}
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm)::after{
+  content:""; position:absolute; top:0; bottom:0; width:40%; left:0; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:translateX(-120%) skewX(-18deg);
+}
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm):active::after{animation:cwShine .55s ease}
+html[data-th] :is(.sh-buy,.lk-btn,.jb-btn,.btn-use,.rp-btn,.dg-btn,.btn,.pl-confirm):disabled{filter:grayscale(.6) brightness(.8); box-shadow:none !important}
+/* boutons secondaires / danger gardent un verre discret */
+html[data-th] :is(.btn-drop){
+  border:1px solid rgba(255,107,114,.55) !important; background:rgba(255,107,114,.12) !important; color:#ffb3b8 !important;
+}
+
+/* ---- cartes et lignes cliquables : verre, relief, survol ---- */
+html[data-th] :is(.sh-card,.slot,.lk-card,.rp-card,.jb-card,.dg-card,.pl-row,.pl-idcard,.card,.card-gang,.mrow,.fi){
+  border:1px solid var(--cw-line) !important;
+  background:var(--cw-glass-soft), rgba(0,0,0,0.429) !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.06) inset;
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+html[data-th] :is(.sh-card,.slot,.lk-card,.rp-card,.jb-card,.dg-card,.pl-row,.card,.card-gang):active{
+  transform:translateY(1px) scale(.985);
+}
+@media (hover:hover){
+  html[data-th] :is(.sh-card,.slot,.lk-card,.rp-card,.jb-card,.dg-card,.pl-row,.card,.card-gang):hover{
+    transform:translateY(-2px); border-color:var(--cw-line-strong) !important;
+    box-shadow:0 14px 30px rgba(0,0,0,.4), 0 0 24px rgba(133,133,133,0.22);
+  }
+}
+/* élément sélectionné : anneau bleu lumineux */
+html[data-th] :is(.sh-card.on,.sh-card.sel,.sh-card.active,.slot.on,.slot.sel,.slot.active,.lk-card.on,.lk-card.sel,.dg-row.on,.dg-row.sel,.dg-row.active){
+  border-color:var(--cw-blue) !important;
+  box-shadow:0 0 0 1px var(--cw-blue) inset, 0 0 26px rgba(133,133,133,0.38) !important;
+}
+
+/* ---- puces / étiquettes / segments ---- */
+html[data-th] :is(.sh-tag,.pl-tag,.jb-tag,.inv-tag,.sh-badge,.rp-badge,.badge,.pl-chip,.lk-chip,.sh-chip){
+  border:1px solid var(--cw-line-strong) !important; background:rgba(133,133,133,0.16) !important;
+  color:#dfdfdf !important; border-radius:3px; letter-spacing:.08em; font-weight:800;
+}
+html[data-th] :is(.sh-seg,.lk-seg){
+  background:rgba(0,0,0,0.468) !important; border:1px solid var(--cw-line) !important; border-radius:3px; padding:3px;
+}
+html[data-th] :is(.sh-seg-btn,.lk-seg-btn){border-radius:3px}
+html[data-th] :is(.sh-seg-btn,.lk-seg-btn):is(.on,.active,[aria-selected="true"]){
+  background:var(--cw-btn) !important; color:#fff !important; box-shadow:0 3px 12px rgba(103,103,103,0.5);
+}
+html[data-th] :is(.sh-cat,.ix-tab,.rp-cat):is(.on,.active,[aria-selected="true"]){
+  background:var(--cw-btn) !important; color:#fff !important; border-color:rgba(213,213,213,0.5) !important;
+  box-shadow:0 4px 16px rgba(103,103,103,0.45);
+}
+
+/* ---- champs de saisie ---- */
+html[data-th] :is(input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select,.dg-input,.dg-search,.rp-input,.rp-field){
+  background:rgba(0,0,0,0.484) !important; border:1px solid var(--cw-line) !important; border-radius:4px; color:var(--cw-text) !important;
+  transition:border-color .15s, box-shadow .15s;
+}
+html[data-th] :is(input,textarea,select):focus{
+  border-color:var(--cw-blue) !important; box-shadow:0 0 0 3px rgba(133,133,133,0.28) !important; outline:none;
+}
+html[data-th] input[type=range]{accent-color:var(--cw-blue)}
+
+/* ---- toasts : pastille verre lumineuse ---- */
+html[data-th] :is(.sh-toast,.pl-toast,.lk-toast,.inv-toast,.rp-toast,.jb-toast,.toast){
+  background:rgba(0,0,0,0.586) !important; border:1px solid var(--cw-line-strong) !important; color:#fff !important;
+  border-radius:3px !important; box-shadow:0 10px 30px rgba(0,0,0,.5), 0 0 24px rgba(133,133,133,0.3) !important; font-weight:700;
+}
+
+/* ---- listes : apparition en cascade ---- */
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *{
+  animation:cwRise .34s cubic-bezier(.2,.8,.3,1) both;
+}
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *:nth-child(2){animation-delay:.04s}
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *:nth-child(3){animation-delay:.08s}
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *:nth-child(4){animation-delay:.12s}
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *:nth-child(5){animation-delay:.16s}
+html[data-th] :is(.sh-grid,.inv-grid,.lk-options,.rp-cats,.dg-rows,.dg-list,.ix-list,.list,.grid,.rows,.board) > *:nth-child(n+6){animation-delay:.2s}
+
+/* ---- panels "gris" : navigation latérale et accents ---- */
+html[data-th="grey"] .nav button{border-radius:4px; transition:background .15s,color .15s,box-shadow .15s}
+html[data-th="grey"] .nav button:is(.on,.active,[aria-selected="true"]){
+  background:linear-gradient(145deg,rgba(133,133,133,0.42),rgba(103,103,103,0.22)) !important; color:#fff !important;
+  box-shadow:0 0 0 1px var(--cw-line-strong) inset, 0 6px 18px rgba(103,103,103,0.3);
+}
+html[data-th="grey"] .side{background:linear-gradient(180deg,rgba(0,0,0,0.562),rgba(0,0,0,0.562)) !important}
+html[data-th="grey"] .ov{backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
+html[data-th="grey"] .card::before{background:linear-gradient(180deg,var(--c,var(--blue)),transparent);box-shadow:0 0 12px var(--c,var(--blue))}
+
+/* ---- panels "vert" (devenus bleus) : onglets, pastilles, boutons en pilule ---- */
+html[data-th="green"] .tabs{background:rgba(0,0,0,0.507) !important; border-color:var(--cw-line) !important}
+html[data-th="green"] .tabs button[aria-selected="true"]{background:var(--cw-btn) !important; color:#fff !important; box-shadow:0 4px 14px rgba(103,103,103,0.5)}
+html[data-th="green"] .chip-btn{
+  background:var(--cw-btn) !important; border-color:rgba(213,213,213,0.55) !important; color:#fff !important;
+  box-shadow:0 8px 22px rgba(103,103,103,0.45), 0 1px 0 rgba(255,255,255,.3) inset !important;
+}
+html[data-th="green"] .chip-btn .ico{background:rgba(255,255,255,.2) !important}
+html[data-th="green"] .chip-btn .ico svg{stroke:#fff !important}
+html[data-th="green"] .pill{background:rgba(0,0,0,0.507) !important; border-color:var(--cw-line) !important}
+
+/* ---- accessibilité : respecter la réduction des animations ---- */
+@media (prefers-reduced-motion:reduce){
+  html[data-th] *{animation-duration:.01ms !important; animation-delay:0s !important; transition-duration:.01ms !important}
+}
+
+/* bandeau d'en-tête : voile bleu au lieu du gris d'origine */
+html[data-th] :is(.sh-head,.pl-head,.lk-head,.inv-head,.rp-head){
+  background:linear-gradient(180deg,rgba(133,133,133,0.16),rgba(133,133,133,0)) !important;
+}

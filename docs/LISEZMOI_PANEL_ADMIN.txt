@@ -1,0 +1,32 @@
+PANNEAU ADMIN : TOUT EST BRANCHE (Crestwood RP)
+===============================================
+
+1) NIVEAUX STAFF 0 A 10 (comme dans le panneau)
+   1 Assistant  2 Moderateur  3 Moderateur+  4 Administrateur  5 Administrateur+
+   6 Chef administrateur  7 Gestionnaire  8 Responsable  9 Developpeur  10 Fondateur
+   Anzo_Smith = 10 en permanence. Au 1er demarrage, les anciens niveaux sont convertis
+   automatiquement : ancien Admin -> 4, ancien Rcon -> 6, ancien Developpeur -> 9.
+   /makeadmin <id> <0-10> : niveau 7 mini, et seulement en dessous de son propre niveau.
+   Le serveur verifie le niveau de CHAQUE action (meme valeur que dans le panneau).
+
+2) ACTIONS DU PANNEAU QUI N'EXISTAIENT PAS ET QUI MARCHENT MAINTENANT
+   Joueurs : tuer, effacer les avertissements, monde virtuel, interieur, invincible,
+             jetpack, definir le gang + grade de gang, bannir AVEC duree (jours, 0 = definitif)
+   Serveur : gros texte a l'ecran, geler / degeler tout le monde (le staff n'est pas touche),
+             teleportation X Y Z, bannissements en cours + debannir, ban hors ligne (Prenom_Nom jours raison)
+   Factions : liste des factions, gangs (points, fin de saison), magasins de vetements
+             (= t-shirts 3D flottants : creer ici / y aller / supprimer)
+   Staff : journal des actions du staff (16 dernieres)
+
+3) COMMANDES DE L'ONGLET "COMMANDES" QUI N'EXISTAIENT PAS
+   /wanted  /leveravis <id>  /setgang <id> <gang 0-4> [grade 1-4]  /vocal  /debloquer
+   Peche    : /creerpeche (ponton a ta position)  /supprpeche <id>  /pontons   joueur : main "Pecher" ou /peche
+   Maisons  : /creermaison <type 1-5> <prix>  /allermaison <id>  /supprmaison <id>  /maisons
+              joueur : main "Maison" devant la porte (ou /maison), main "Sortir" a l'interieur
+
+4) DONNEES
+   crestwood_admins.db : bans, adminlog, gang_members, gang_state, meta
+   crestwood_garage.db : fishspots, fishers, houses (+ garages, vetpoints, vehicles)
+
+5) A FAIRE
+   Remplacer basicgm1.amx sur le serveur (deja recompile). Aucun changement cote APK pour cette partie.

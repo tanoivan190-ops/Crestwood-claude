@@ -1,0 +1,5 @@
+# Un fichier par ligne (dans ce dossier scriptfiles/mappings/). Les lignes avec # sont ignorees.
+# Formats : export Pawn / Texture Studio (.txt, .pwn) ou carte MTA (.map).
+# exemple_pawn.txt
+# exemple_mta.map
+# banque_atlas.txt      (banque Atlas Studio : modeles personnalises requis, voir LISEZMOI_V18)

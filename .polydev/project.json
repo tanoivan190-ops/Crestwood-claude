@@ -1,0 +1,10 @@
+{
+  "templateId": "empty",
+  "agent": {
+    "profile": "heavy"
+  },
+  "devServerCommand": "npm run dev",
+  "scripts": {
+    "dev": "npm run dev"
+  }
+}

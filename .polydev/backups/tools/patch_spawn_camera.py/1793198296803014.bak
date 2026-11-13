@@ -1,0 +1,52 @@
+import io
+
+path = '/workspace/server/basicgm/basicgm1.pwn'
+with io.open(path, 'rb') as f:
+    data = f.read()
+
+# 1) Camera degenerée dans OnPlayerRequestClass (position == point regarde)
+old_class = (
+    b"public OnPlayerRequestClass(playerid, classid)\n"
+    b"{\n"
+    b"\tAuth_OnRequestClass(playerid);\n"
+    b"\tSetPlayerPos(playerid, 1958.3783, 1343.1572, 15.3746);\n"
+    b"\tSetPlayerCameraPos(playerid, 1958.3783, 1343.1572, 15.3746);\n"
+    b"\tSetPlayerCameraLookAt(playerid, 1958.3783, 1343.1572, 15.3746);\n"
+    b"\treturn 1;\n"
+    b"}"
+)
+new_class = (
+    b"public OnPlayerRequestClass(playerid, classid)\n"
+    b"{\n"
+    b"\tAuth_OnRequestClass(playerid);\n"
+    b"\tSetPlayerPos(playerid, 1958.3783, 1343.1572, 15.3746);\n"
+    b"\t// Camera en hauteur et en face : jamais sur le joueur lui-meme,\n"
+    b"\t// sinon le vecteur de regard est nul et la vue reste figee apres le spawn.\n"
+    b"\tSetPlayerCameraPos(playerid, 1958.3783, 1343.1572 + 2.2, 15.3746 + 1.4);\n"
+    b"\tSetPlayerCameraLookAt(playerid, 1958.3783, 1343.1572, 15.3746 + 0.8);\n"
+    b"\treturn 1;\n"
+    b"}"
+)
+assert data.count(old_class) == 1, 'OnPlayerRequestClass introuvable'
+data = data.replace(old_class, new_class)
+
+# 2) Remettre la camera derriere le joueur au spawn
+old_spawn = (
+    b"public OnPlayerSpawn(playerid)\n"
+    b"{\n"
+    b"\tBank_OnSpawn(playerid);"
+)
+new_spawn = (
+    b"public OnPlayerSpawn(playerid)\n"
+    b"{\n"
+    b"\t// La camera posee pendant la selection de classe reste bloquee apres le\n"
+    b"\t// spawn (vue figee dans le personnage) : on la remet derriere le joueur.\n"
+    b"\tSetCameraBehindPlayer(playerid);\n"
+    b"\tBank_OnSpawn(playerid);"
+)
+assert data.count(old_spawn) == 1, 'OnPlayerSpawn introuvable'
+data = data.replace(old_spawn, new_spawn)
+
+with io.open(path, 'wb') as f:
+    f.write(data)
+print('OK - patch applique')

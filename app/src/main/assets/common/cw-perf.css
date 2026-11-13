@@ -1,0 +1,19 @@
+/* [Crestwood] WebView fluide : feuille chargee en DERNIER par chaque page.
+   Le flou d'arriere-plan (backdrop-filter) est recalcule a chaque image au-dessus du jeu : c'est ce qui
+   faisait ramer le HUD et les panneaux sur mobile. On le coupe partout et on garde la transparence. */
+*, *::before, *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html, body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+/* les listes defilent avec l'inertie native */
+* { -webkit-overflow-scrolling: touch; }
+
+
+/* Crestwood: no backdrop blur on Android WebView */
+*, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr" data-th="green" data-sg>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pêche</title>
+<!--
+  Peche Crestwood : lancer, attendre la touche, ferrer au bon moment, glaciere, revente.
+  Serveur -> page : FishApp.openFromNative(json) / FishApp.onUpdateFromNative(json)   ("@fish" 9740-9742)
+  Page -> serveur : SampFish.action(type, {"arg":"..."}) -> /fishact <type> <arg>     (liste blanche cote Java)
+  Le serveur verifie le temps d'attente : ferrer avant la touche fait fuir le poisson.
+-->
+<link rel="stylesheet" href="crestwood-ui.css">
+<style>
+  .view { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 1.4vw; }
+  .lake { display: flex; flex-direction: column; overflow: hidden; }
+  .water { position: relative; flex: 1; min-height: 0; border-radius: 4px 4px 0 0; overflow: hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,0.056) 0%, rgba(255,255,255,0.074) 45%, rgba(255,255,255,0.051) 100%); }
+  .water::before { content: ""; position: absolute; inset: 0; opacity: .5;
+    background: repeating-linear-gradient(170deg, rgba(255,255,255,.05) 0 2px, transparent 2px 22px); animation: waves 6s linear infinite; }
+  @keyframes waves { to { background-position: 0 44px; } }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: 18%; background: linear-gradient(180deg, rgba(245, 196, 81, .18), transparent); }
+  .line { position: absolute; left: 50%; top: 0; width: 2px; height: 46%; background: linear-gradient(rgba(255,255,255,.65), rgba(255,255,255,.25)); transform: translateX(-50%); transform-origin: top; }
+  .bobber { position: absolute; left: 50%; top: 46%; width: 22px; height: 30px; transform: translate(-50%, -50%); }
+  .bobber i { position: absolute; left: 0; right: 0; top: 0; height: 50%; border-radius: 4px 4px 0 0; background: #ff4d4d; }
+  .bobber b { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; border-radius: 0 0 4px 4px; background: #f5fbff; }
+  .lake.cast .bobber { animation: bob 1.8s ease-in-out infinite; }
+  .lake.bite .bobber { animation: bite 0.22s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translate(-50%, -38%); } }
+  @keyframes bite { 50% { transform: translate(-50%, -10%) rotate(14deg); } }
+  .ripple { position: absolute; left: 50%; top: 52%; width: 70px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); transform: translate(-50%, -50%) scale(.4); opacity: 0; }
+  .lake.cast .ripple, .lake.bite .ripple { animation: ripple 1.8s ease-out infinite; }
+  .lake.bite .ripple { animation-duration: .5s; border-color: rgba(133,133,133,0.8); }
+  @keyframes ripple { from { opacity: .9; transform: translate(-50%, -50%) scale(.4); } to { opacity: 0; transform: translate(-50%, -50%) scale(2.2); } }
+  .lake.idle .line, .lake.idle .bobber { opacity: .25; }
+  .status { position: absolute; left: 0; right: 0; bottom: 14%; text-align: center; padding: 0 12px; }
+  .status h2 { font-size: clamp(16px, 4.4vh, 24px); font-weight: 900; letter-spacing: .04em; text-shadow: 0 2px 8px rgba(0,0,0,0.48); }
+  .status p { margin-top: 4px; font-size: 12.5px; color: #e0e0e0; text-shadow: 0 1px 4px rgba(0,0,0,0.56); }
+  .lake.bite .status h2 { color: var(--green); }
+  .gauge { position: relative; height: 20px; margin: 1.4vh 14px 0; border-radius: 3px; background: rgba(255,255,255,.08); border: 1px solid var(--line); overflow: hidden; }
+  .gauge .zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(133,133,133,0.25), rgba(133,133,133,0.75), rgba(133,133,133,0.25)); }
+  .gauge .cursor { position: absolute; top: -2px; bottom: -2px; width: 5px; margin-left: -2px; border-radius: 3px; background: #fff; box-shadow: 0 0 8px #fff; }
+  .controls { flex: none; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 1.4vh 12px 1.6vh; }
+  .big { height: 48px; padding: 0 22px 0 6px; font-size: 14px; }
+  .big .ico { width: 36px; height: 36px; }
+  .side { display: flex; flex-direction: column; padding: 1.8vh 1.2vw; gap: 1vh; }
+  .cooler { flex: 1; min-height: 0; display: grid; gap: 6px; align-content: start; }
+  .fish { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: .9vh 10px; border-radius: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06); }
+  .fish .fi { width: 34px; height: 34px; border-radius: 4px; display: grid; place-items: center; background: rgba(163,163,163,0.16); }
+  .fish .fi svg { width: 20px; height: 20px; fill: var(--c); }
+  .fish b { display: block; font-size: 13px; font-weight: 800; }
+  .fish small { display: block; font-size: 11px; color: var(--muted); }
+  .fish .v { font-size: 13px; font-weight: 900; color: var(--gold); }
+  .r0 { --c: #c8c8c8; } .r1 { --c: #858585; } .r2 { --c: #f5c451; } .r3 { --c: #ff6bd5; }
+  .total { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 1vh; border-top: 1px solid var(--line); }
+  .total div small { display: block; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .total div b { font-size: clamp(16px, 4vh, 20px); font-weight: 900; color: var(--gold); }
+  .stats { display: flex; gap: 8px; }
+  .stats div { flex: 1; padding: .8vh 10px; border-radius: 4px; background: rgba(255,255,255,.04); }
+  .stats small { display: block; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .stats b { display: block; margin-top: 2px; font-size: 13px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .catch { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); padding: 14px 22px; border-radius: 4px; text-align: center;
+    background: rgba(5,9,16,0.58); border: 1px solid var(--c); box-shadow: 0 0 30px -6px var(--c); animation: pop .35s cubic-bezier(.2,.9,.3,1.3) both; }
+  .catch svg { width: 54px; height: 54px; margin: 0 auto 6px; fill: var(--c); }
+  .catch b { display: block; font-size: 18px; font-weight: 900; }
+  .catch small { display: block; margin-top: 3px; font-size: 12px; color: var(--muted); }
+  @keyframes pop { from { opacity: 0; transform: translate(-50%, -40%) scale(.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+</style>
+<link rel="stylesheet" href="../common/crestwood-theme.css" />
+  <link rel="stylesheet" href="../common/cw-pro.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+<link rel="stylesheet" href="../common/cw-signal.css">
+</head>
+<body>
+<main class="app" id="app" hidden>
+  <header class="top">
+    <button class="round" id="close" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <img class="brand" src="../hud/crestwood-roleplay.png" alt="Crestwood RP">
+    <div class="title"><h1>Pêche</h1><small>Ponton de Crestwood</small></div>
+    <div class="pill"><small>Liquide</small><b id="cash">0 $</b></div>
+  </header>
+  <section class="view">
+    <div class="glass lake idle" id="lake">
+      <div class="water">
+        <div class="sky"></div>
+        <div class="line"></div>
+        <div class="ripple"></div>
+        <div class="bobber"><i></i><b></b></div>
+        <div class="status"><h2 id="stTitle">Prêt à pêcher</h2><p id="stText">Lance ta ligne, attends que ça morde, puis ferre au bon moment.</p></div>
+        <div id="catchBox"></div>
+      </div>
+      <div class="gauge" id="gauge" hidden><div class="zone" id="zone"></div><div class="cursor" id="cursor"></div></div>
+      <div class="controls" id="controls"></div>
+    </div>
+    <div class="glass side">
+      <div class="ph"><span>Ma glacière</span><span id="coolerCount"></span></div>
+      <div class="stats"><div><small>Total pêché</small><b id="statKg">0 kg</b></div><div><small>Record</small><b id="statBest">—</b></div></div>
+      <div class="cooler scroll" id="cooler"></div>
+      <div class="total"><div><small>Valeur au marché</small><b id="value">0 $</b></div>
+        <button class="chip-btn gold" type="button" data-act="sell" id="sellBtn"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.4 4.5 3.2-2 3-4.5 3-4.5-1.3-4.5-3"/></svg></span>Tout vendre</button>
+      </div>
+    </div>
+  </section>
+  <div class="toast" id="toast" role="status" hidden></div>
+</main>
+<script src="fish.js"></script>
+</body>
+</html>

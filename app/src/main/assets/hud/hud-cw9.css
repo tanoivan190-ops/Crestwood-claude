@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Crestwood v9 : logo plus petit, chat HTML (masquable), main sans texte
+   ========================================================================== */
+.hud-root .project-logo,
+.project-logo[data-hud-key="logo"] {
+  display: none !important; /* v12 : plus d'image Crestwood en haut de l'ecran */
+}
+
+/* ---- chat ---- */
+.cw-chat {
+  position: absolute;
+  left: max(clamp(150px, 18vw, 200px), calc(env(safe-area-inset-left) + 150px));
+  top: max(8px, env(safe-area-inset-top));
+  width: min(29vw, 400px);
+  max-height: 33vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 30;
+  font: 600 12.5px/1.35 "Inter", "Segoe UI", system-ui, sans-serif;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22px);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 22px);
+}
+.cw-chat-line {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #f2f2f2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  animation: cwChatIn 0.18s ease-out;
+  transition: opacity 0.8s ease;
+}
+.cw-chat-line b { font-weight: 800; }
+.cw-chat-line.old { opacity: 0; }
+body.cw-chat-typing .cw-chat { max-height: 46vh; overflow-y: auto; pointer-events: auto; }
+body.cw-chat-typing .cw-chat-line.old { opacity: 0.92; }
+body.cw-chat-typing .cw-chat-line { background: rgba(0, 0, 0, 0.6); }
+body.cw-chat-off .cw-chat { display: none; }
+@keyframes cwChatIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* bouton afficher / masquer */
+.cw-chat-toggle svg { width: 20px; height: 20px; }
+.cw-chat-toggle .cw-bubble { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.cw-chat-toggle .cw-slash { stroke: currentColor; stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.cw-chat-toggle.off .cw-slash { opacity: 1; }
+.cw-chat-toggle.off { opacity: 0.55; }
+
+/* main d'interaction HTML : pas de texte */
+.interact-tap-label { display: none !important; }
+
+/* v12f : bouton micro du HUD retire, on garde le bouton micro natif (SampVoice) */
+.hud-root .voice-talk-button,
+.voice-talk-button[data-hud-key="voice"] {
+  display: none !important;
+}
+
+/* v14 : barre d'objets rapides (en bas au centre, visible des qu'un emplacement rapide est rempli)
+   v14b : plus transparente, cases bien carrees, coins legerement arrondis */
+.cw-hotbar {
+  position: absolute;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  z-index: 40;
+  pointer-events: auto;
+}
+.cw-hotbar[hidden] { display: none !important; }
+.cw-hot-slot {
+  position: relative;
+  width: clamp(42px, 9vh, 54px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.cw-hot-slot img { width: 62%; height: 62%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+.cw-hot-slot.empty { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.07); }
+.cw-hot-slot.none img { opacity: 0.35; }
+.cw-hot-slot.active { border-color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.12); }
+.cw-hot-slot.tap { transform: scale(0.92); background: rgba(255, 255, 255, 0.18); }
+.cw-hot-key { position: absolute; left: 4px; top: 2px; font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.45); }
+.cw-hot-qty { position: absolute; right: 4px; bottom: 2px; font-size: 9.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); }

@@ -1,0 +1,41 @@
+CRESTWOOD RP - V17 : GARAGE PRO (06/11/2026)
+=============================================
+Le garage est refait de zero : ecran natif Android (plus de WebView) + gros module serveur.
+Style gris / noir / bleu Crestwood, coins quasi carres, jeu visible derriere.
+
+ECRAN
+  Haut : CRESTWOOD · GARAGE PRO, lieu (sur place / a distance + prix livraison), compteur
+         "x vehicules · y / 2 sortis", liquide, banque, fermer.
+  Droite : categories avec compteurs (Tous, Voitures, Motos, Bateaux, Camions, Aeriens),
+           tri (Favoris, Etat, Carburant, Valeur), cartes : silhouette PEINTE de la vraie couleur
+           du vehicule, nom, surnom, plaque, statut (au garage / sorti / fourriere), barres etat + essence.
+  Gauche : fiche du vehicule (nom, surnom, plaque facon vraie plaque, silhouette, badges :
+           sorti/garage, verrouille, assure x jours, moteur use, favori, double des cles) + 4 onglets :
+    APERCU   : jauges etat / carburant / usure moteur, compteur km, valeur, revente,
+               Sortir / Se faire livrer, Ranger, GPS, Verrouiller a distance, Favori.
+    ATELIER  : reparation (prix selon degats), entretien (selon usure), plein d'essence,
+               sortie de fourriere. Prix affiches avant de payer.
+    STYLE    : surnom (gratuit), plaque personnalisee unique (10 000), peinture 2 couleurs
+               (32 teintes, apercu en direct sur la silhouette, 1 500).
+    PAPIERS  : assurance 7 j / 30 j, double des cles (donner a un ID / reprendre),
+               vendre a un joueur (ID + prix, il recoit la fiche et accepte), revendre au
+               concessionnaire (double confirmation).
+
+SYSTEMES SERVEUR (basicgm1.pwn, module GARAGES)
+  - Compteur kilometrique reel + usure moteur (+1 % tous les 15 km). Au-dela de 85 % : le moteur
+    peut caler en roulant ("SURCHAUFFE MOTEUR"). Entretien = usure a 0.
+  - Assurance : vehicule detruit assure -> remorque + repare gratuitement.
+    Non assure -> fourriere : 2 500 + 5 % de la valeur pour le recuperer.
+  - Atelier : au garage, ou vehicule sorti gare devant le garage ou tu te trouves.
+  - Double des cles : le joueur voit le vehicule dans SON garage, peut le sortir / ranger /
+    localiser / entretenir, mais pas le vendre ni le modifier.
+  - Telecommande : verrouiller / deverrouiller a 40 m (les feux clignotent, bip).
+  - Vente entre joueurs : acheteur a moins de 8 m, 60 s pour accepter, paiement liquide puis banque.
+  - Paiements : liquide d'abord, sinon banque (avec historique bancaire).
+  - Anciennes sauvegardes gardees : colonnes ajoutees automatiquement au demarrage.
+  Reglages : #define GAR_* en haut du bloc "[GARAGE PRO v16] reglages".
+
+A FAIRE
+  - RECOMPILER basicgm1.amx (pas de compilateur Pawn ici) et redemarrer le serveur.
+  - Recompiler l'APK. Les classes Java ont ete verifiees contre des stubs Android, pas compilees
+    avec le vrai SDK : si Gradle sort une erreur, envoie-la.

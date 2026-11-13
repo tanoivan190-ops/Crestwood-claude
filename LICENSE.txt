@@ -1,0 +1,121 @@
+CRESTWOOD RP — LICENCE LOGICIEL À CODE SOURCE DISPONIBLE
+========================================================
+
+Copyright (c) 2026 Nightcode Studio. Tous droits réservés.
+
+Titulaires des droits :
+  - Nightcode Studio
+  - Anzo Smith (N'guessan Yao Emmanuel Aimé)
+  - Superman (Tano Ivan)
+  - Asake_New (Kemeni Rayan Kaylane)
+
+Contact : [adresse e-mail ou lien Discord à renseigner]
+
+Cette licence N'EST PAS une licence MIT ni une licence libre ou open source.
+Le code source est visible, mais seuls les usages listés à l'article 3 sont
+autorisés. Tout le reste nécessite un accord écrit préalable.
+
+
+1. DÉFINITIONS
+
+  « Logiciel » : le code source, les interfaces (HTML, CSS, JavaScript), les
+  scripts, les ressources et la documentation originaux de Crestwood RP créés
+  par les Titulaires, à l'exclusion des Composants Tiers.
+
+  « Composants Tiers » : tout élément appartenant à d'autres auteurs (par
+  exemple Opus, SA-MP, BASS, Dear ImGui, ou les bibliothèques Android). Ils
+  sont listés dans THIRD_PARTY_NOTICES.txt.
+
+  « Vous » : toute personne physique ou morale qui accède au Logiciel.
+
+
+2. COMPOSANTS TIERS
+
+  Cette licence ne s'applique pas aux Composants Tiers. Chacun reste soumis à
+  sa propre licence, que Vous devez respecter. Les Titulaires ne concèdent
+  aucun droit sur des éléments dont ils ne sont pas propriétaires.
+
+
+3. DROITS ACCORDÉS (gratuitement, sans exclusivité, révocable)
+
+  Vous pouvez :
+  a) lire et étudier le code source ;
+  b) compiler et exécuter le Logiciel pour un usage personnel, non commercial,
+     à des fins d'évaluation ou d'apprentissage ;
+  c) modifier une copie privée pour ces mêmes usages, sans jamais la diffuser.
+
+
+4. USAGES SOUMIS À AUTORISATION ÉCRITE
+
+  Sans accord écrit et explicite des Titulaires, il est interdit de :
+  a) publier, redistribuer ou partager le Logiciel, en tout ou partie, sous
+     forme de source, de binaire (APK) ou de fork, modifié ou non ;
+  b) créer et diffuser des œuvres dérivées ;
+  c) utiliser le Logiciel dans un but commercial (vente, publicité, dons liés
+     à un service, abonnement, boutique en jeu, etc.) ;
+  d) exploiter le Logiciel pour faire fonctionner un serveur ou un service
+     accessible au public ;
+  e) concéder une sous-licence ou transférer Vos droits à un tiers ;
+  f) supprimer ou altérer les mentions de copyright, d'auteur ou de licence ;
+  g) présenter le Logiciel comme Votre propre création.
+
+
+5. INGÉNIERIE INVERSE
+
+  Il est interdit de décompiler, désassembler ou d'extraire le code des
+  binaires du Logiciel (APK, bibliothèques natives), sauf dans la mesure où la
+  loi applicable l'autorise de manière impérative et non contournable par
+  contrat.
+
+
+6. MENTIONS OBLIGATOIRES
+
+  Toute copie autorisée du Logiciel doit conserver l'avis de copyright, le
+  texte de cette licence et le fichier THIRD_PARTY_NOTICES.txt.
+
+
+7. CONTRIBUTIONS
+
+  Toute contribution que Vous soumettez aux Titulaires (code, correctif,
+  ressource) leur est concédée sous licence mondiale, perpétuelle,
+  irrévocable et gratuite, avec le droit de l'utiliser, la modifier et la
+  distribuer, y compris sous une autre licence. Vous déclarez avoir le droit
+  de la soumettre.
+
+
+8. MARQUES ET JEUX TIERS
+
+  Grand Theft Auto, San Andreas (Rockstar Games / Take-Two Interactive) et
+  SA-MP sont des marques de leurs propriétaires respectifs. Ce projet n'est
+  ni affilié ni approuvé par eux. Le Logiciel ne contient pas les fichiers du
+  jeu : Vous devez disposer d'une copie légitime de GTA San Andreas.
+
+
+9. DURÉE ET RÉSILIATION
+
+  Cette licence est valable tant que Vous respectez ses conditions. Elle prend
+  fin automatiquement en cas de violation. Vous devez alors cesser toute
+  utilisation et supprimer toutes les copies. Les Titulaires se réservent le
+  droit d'engager toute action légale.
+
+
+10. ABSENCE DE GARANTIE ET LIMITATION DE RESPONSABILITÉ
+
+  LE LOGICIEL EST FOURNI « TEL QUEL », SANS GARANTIE D'AUCUNE SORTE, EXPRESSE
+  OU IMPLICITE, Y COMPRIS DE QUALITÉ MARCHANDE, D'ADAPTATION À UN USAGE
+  PARTICULIER OU D'ABSENCE DE CONTREFAÇON. LES TITULAIRES NE SAURAIENT ÊTRE
+  TENUS RESPONSABLES DES DOMMAGES RÉSULTANT DE L'UTILISATION DU LOGICIEL, DANS
+  LA LIMITE PERMISE PAR LA LOI.
+
+
+11. DROIT APPLICABLE
+
+  Cette licence est régie par [droit applicable à confirmer, par exemple le
+  droit ivoirien]. Tout litige relève des tribunaux de [ville à confirmer].
+  Si une clause est invalide, les autres restent applicables.
+
+
+12. DEMANDE D'AUTORISATION
+
+  Pour obtenir un accord écrit (article 4), contactez les Titulaires via
+  l'adresse indiquée en en-tête, en précisant l'usage envisagé.

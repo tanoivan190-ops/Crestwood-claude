@@ -1,0 +1,379 @@
+// ============================================================
+//  UTGAWA_LOJAS  -  BOUTIQUES : VETEMENTS / ACCESSOIRES / BARBIER / TATOUAGE
+//  (sistema UTGAWA de criação de personagem + lojas, integrado ao editor "@clothes" do APK)
+// ------------------------------------------------------------
+//  * Creation du personnage (aucune apparence sauvegardee) : /vetements, tout est GRATUIT.
+//  * Ensuite la tenue ne change que dans une boutique. Chaque boutique ne vend que ses pieces :
+//      1 Vetements   : haut, bas, chaussures
+//      2 Accessoires : chapeau, lunettes, masque, boucles, collier, montre, sac a dos
+//      3 Barbier     : cheveux (+ couleur), sourcils, barbe, maquillage
+//      4 Tatouage    : bras G/D, jambes G/D, dos, torse
+//    Le serveur remet les autres champs comme avant et fait payer chaque piece NOUVELLE
+//    (une piece deja achetee se remet gratuitement). Retirer une piece (style 0) = gratuit.
+//  * Admin (niveau UTGS_ADMIN_LVL) : /criarroupa  /criaracessorio  /criarbarbearia  /criartatuagem
+//      (cree la boutique a ta position)  /deletarloja  /lojas  /irloja <id>
+//    Une boutique = pickup vetements SA-MP (1275) + texte 3D + icone sur la carte. Sauvegardees en base.
+//  * Le JSON "@clothes" (9551) recoit "shop":1..4 : l'APK peut n'afficher que les onglets de la boutique.
+//  Donnees : crestwood_clothes.db  (tables utg_shops, utg_owned)
+// ============================================================
+
+#define UTGS_MAX              60          // boutiques max
+#define UTGS_PICKUP_MODEL     1275        // pickup "vetements" de SA-MP
+#define UTGS_RANGE            8.0         // distance max a la boutique pour valider l'achat
+#define UTGS_COOLDOWN         5           // secondes avant de rouvrir en restant sur le pickup
+#define UTGS_ADMIN_LVL        1           // niveau staff mini pour creer / supprimer (1 Admin, 2 RCON, 3 Dev)
+#define UTGS_ICON_BASE        40          // ids d'icones de carte utilises : 40 .. 40+UTGS_MAX-1
+#define UTGS_EDITOR_LIBRE     0           // 1 = /vetements reste libre et gratuit (comme avant)
+
+#define UTGS_PRIX_VETEMENT    1000        // prix d'une piece par boutique
+#define UTGS_PRIX_ACCESSOIRE  1000
+#define UTGS_PRIX_BARBIER     1000
+#define UTGS_PRIX_TATOUAGE    1000
+
+#define UTGS_COL              0xBC002DFF
+#define UTGS_COL_OK           0x33CC33FF
+#define UTGS_COL_ERR          0xFF4444FF
+
+new const g_UtgShopName[5][] = {"", "Boutique de vetements", "Boutique d'accessoires", "Barbier", "Salon de tatouage"};
+new const g_UtgShopHint[5][] = {"", "Hauts, bas et chaussures", "Chapeaux, lunettes, masques, bijoux, montres, sacs", "Cheveux, sourcils, barbe, maquillage", "Bras, jambes, dos et torse"};
+new const g_UtgShopIcon[5] = {0, 45, 45, 7, 39};
+
+// piece vendue : champ du style, champ de la couleur (-1 = aucun), boutique
+// (index dans g_ClothKeys : 2 hairStyle ... 38 backpackColor)
+new const g_UtgPieces[][3] =
+{
+	{10, 11, 1}, {12, 13, 1}, {14, 15, 1},                                         // haut, bas, chaussures
+	{25, 26, 2}, {27, 28, 2}, {29, 30, 2}, {31, 32, 2}, {33, 34, 2}, {35, 36, 2}, {37, 38, 2},
+	{2, 3, 3}, {4, 5, 3}, {6, 7, 3}, {8, 9, 3},                                    // cheveux, sourcils, barbe, maquillage
+	{16, -1, 4}, {17, -1, 4}, {18, -1, 4}, {19, -1, 4}, {20, -1, 4}, {21, -1, 4}   // tatouages
+};
+
+enum E_UTGS { bool:us_Used, us_DbId, us_Type, Float:us_X, Float:us_Y, Float:us_Z, us_Int, us_VW, us_Pickup, Text3D:us_Label };
+new g_UtgS[UTGS_MAX][E_UTGS];
+new g_UtgShopIdx[MAX_PLAYERS] = {-1, ...};
+new g_UtgUntil[MAX_PLAYERS];
+
+stock UtgShop_Price(type)
+{
+	switch (type)
+	{
+		case 1: return UTGS_PRIX_VETEMENT;
+		case 2: return UTGS_PRIX_ACCESSOIRE;
+		case 3: return UTGS_PRIX_BARBIER;
+		case 4: return UTGS_PRIX_TATOUAGE;
+	}
+	return 0;
+}
+
+// boutique qui vend ce champ (0 = aucune : teint / visage = creation seulement, police = vestiaire)
+stock UtgShop_FieldStore(field)
+{
+	for (new p = 0; p < sizeof(g_UtgPieces); p++)
+		if (g_UtgPieces[p][0] == field || g_UtgPieces[p][1] == field) return g_UtgPieces[p][2];
+	return 0;
+}
+
+stock UtgShop_Key(skin, field, style, color)
+{
+	return skin * 1000000 + field * 10000 + style * 100 + color;
+}
+
+stock UtgShop_Owns(playerid, skin, field, style, color)
+{
+	if (g_ClothDB == DB:0) return 0;
+	new name[MAX_PLAYER_NAME + 1], q[160];
+	GetPlayerName(playerid, name, sizeof name);
+	format(q, sizeof q, "SELECT 1 FROM utg_owned WHERE name = '%s' AND k = %d", name, UtgShop_Key(skin, field, style, color));
+	new DBResult:r = db_query(g_ClothDB, q), ok = 0;
+	if (r != DBResult:0) { ok = db_num_rows(r) > 0; db_free_result(r); }
+	return ok;
+}
+
+stock UtgShop_SetOwned(playerid, skin, field, style, color)
+{
+	if (g_ClothDB == DB:0) return 0;
+	new name[MAX_PLAYER_NAME + 1], q[180];
+	GetPlayerName(playerid, name, sizeof name);
+	format(q, sizeof q, "INSERT OR IGNORE INTO utg_owned (name, k) VALUES ('%s', %d)", name, UtgShop_Key(skin, field, style, color));
+	db_free_result(db_query(g_ClothDB, q));
+	return 1;
+}
+
+// /vetements libre ? (creation, staff ou option)
+stock UtgShop_CanFreeEdit(playerid)
+{
+	if (UTGS_EDITOR_LIBRE || !g_ClothSaved[playerid] || Admin_Level(playerid) >= UTGS_ADMIN_LVL) return 1;
+	SendClientMessage(playerid, UTGS_COL, "Ton personnage est deja cree. Pour changer de tenue, va dans une boutique (icones sur la carte).");
+	return 0;
+}
+
+// Appele par Cloth_DoSave avant d'enregistrer. 0 = refuse (rien n'est enregistre).
+stock UtgShop_OnSave(playerid, &skin, vals[CLOTH_COUNT])
+{
+	new type = g_UtgShop[playerid];
+	if (type)
+	{
+		new s = g_UtgShopIdx[playerid];
+		if (s < 0 || !g_UtgS[s][us_Used] || !IsPlayerInRangeOfPoint(playerid, UTGS_RANGE, g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z])) type = 0;
+	}
+	// creation / staff / editeur libre : comme avant (gratuit, tout est permis)
+	if (!type && (UTGS_EDITOR_LIBRE || !g_ClothSaved[playerid] || Admin_Level(playerid) >= UTGS_ADMIN_LVL))
+	{
+		g_UtgShop[playerid] = 0;
+		return 1;
+	}
+	if (!type)
+	{
+		SendClientMessage(playerid, UTGS_COL_ERR, "Pour changer de tenue, va dans une boutique (icones sur la carte).");
+		Cloth_Send(playerid, CLOTH_DIALOG_APPLY);      // le client revient a la tenue enregistree
+		return 0;
+	}
+	// le genre / modele ne change qu'a la creation
+	new reverted = (skin != g_ClothSkin[playerid]);
+	skin = g_ClothSkin[playerid];
+	for (new i = 0; i < CLOTH_COUNT; i++)
+	{
+		if (UtgShop_FieldStore(i) == type) continue;
+		if (vals[i] != g_ClothV[playerid][i]) reverted = 1;
+		vals[i] = g_ClothV[playerid][i];
+	}
+	// prix : chaque piece nouvelle (style ou couleur differente, pas encore achetee)
+	new cost = 0, price = UtgShop_Price(type), n = 0;
+	for (new p = 0; p < sizeof(g_UtgPieces); p++)
+	{
+		if (g_UtgPieces[p][2] != type) continue;
+		new fs = g_UtgPieces[p][0], fc = g_UtgPieces[p][1];
+		new st = vals[fs], co = (fc >= 0 ? vals[fc] : 0);
+		new ost = g_ClothV[playerid][fs], oco = (fc >= 0 ? g_ClothV[playerid][fc] : 0);
+		if (st == 0 || (st == ost && co == oco)) continue;
+		if (UtgShop_Owns(playerid, skin, fs, st, co)) continue;
+		cost += price;
+		n++;
+	}
+	if (cost > GetPlayerMoney(playerid))
+	{
+		new m[128];
+		format(m, sizeof m, "%s : il faut $%d en liquide (%d piece(s)).", g_UtgShopName[type], cost, n);
+		SendClientMessage(playerid, UTGS_COL_ERR, m);
+		Cloth_Send(playerid, CLOTH_DIALOG_APPLY);
+		return 0;
+	}
+	if (cost > 0) GivePlayerMoney(playerid, -cost);
+	for (new p = 0; p < sizeof(g_UtgPieces); p++)
+	{
+		if (g_UtgPieces[p][2] != type) continue;
+		new fs = g_UtgPieces[p][0], fc = g_UtgPieces[p][1];
+		if (vals[fs] != 0) UtgShop_SetOwned(playerid, skin, fs, vals[fs], (fc >= 0 ? vals[fc] : 0));
+	}
+	new m[128];
+	if (cost > 0) format(m, sizeof m, "%s : achat de %d piece(s) pour $%d.", g_UtgShopName[type], n, cost);
+	else format(m, sizeof m, "%s : tenue mise a jour (pieces deja achetees).", g_UtgShopName[type]);
+	SendClientMessage(playerid, UTGS_COL_OK, m);
+	if (reverted)
+	{
+		SendClientMessage(playerid, UTGS_COL, "Les pieces que cette boutique ne vend pas sont restees comme avant.");
+		SetTimerEx("Cloth_Resend", 400, false, "i", playerid);   // remet le client sur la tenue enregistree
+	}
+	g_UtgShop[playerid] = 0;
+	return 1;
+}
+
+stock UtgShop_Open(playerid, s)
+{
+	if (!g_AuthLogged[playerid]) return 0;
+	if (!g_ClothLoaded[playerid]) Cloth_Load(playerid);
+	if (!g_ClothSaved[playerid])
+	{
+		SendClientMessage(playerid, UTGS_COL, "Cree d'abord ton personnage : /vetements (gratuit).");
+		return 0;
+	}
+	if (Locker_IsPoliceSkin(g_ClothSkin[playerid]))
+	{
+		SendClientMessage(playerid, UTGS_COL_ERR, "Remets ta tenue civile au vestiaire avant d'entrer.");
+		return 0;
+	}
+	new type = g_UtgS[s][us_Type], msg[100];
+	g_UtgShop[playerid] = type;
+	g_UtgShopIdx[playerid] = s;
+	format(msg, sizeof msg, "%s - %s - $%d la piece", g_UtgShopName[type], g_UtgShopHint[type], UtgShop_Price(type));
+	SendClientMessage(playerid, UTGS_COL, msg);
+	Cloth_Send(playerid, CLOTH_DIALOG_OPEN, msg);
+	return 1;
+}
+
+// ------------------------------------------------------------ boutiques sur la carte
+stock UtgShop_ShowIcon(playerid, s)
+{
+	if (!g_UtgS[s][us_Used] || g_UtgS[s][us_Int] != 0) return 0;
+	return SetPlayerMapIcon(playerid, UTGS_ICON_BASE + s, g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z], g_UtgShopIcon[g_UtgS[s][us_Type]], 0, MAPICON_LOCAL);
+}
+
+stock UtgShop_Spawn(s)
+{
+	new t = g_UtgS[s][us_Type], txt[128];
+	g_UtgS[s][us_Pickup] = CreatePickup(UTGS_PICKUP_MODEL, 1, g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z], g_UtgS[s][us_VW]);
+	format(txt, sizeof txt, "{BC002D}%s\n{FFFFFF}%s\n{AAAAAA}Marche sur l'icone", g_UtgShopName[t], g_UtgShopHint[t]);
+	g_UtgS[s][us_Label] = Create3DTextLabel(txt, 0xFFFFFFFF, g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z] + 0.7, 20.0, g_UtgS[s][us_VW], 1);
+	for (new i = 0, m = GetMaxPlayers(); i < m; i++) if (IsPlayerConnected(i)) UtgShop_ShowIcon(i, s);
+	return 1;
+}
+
+stock UtgShop_OnInit()
+{
+	if (g_ClothDB == DB:0) return 0;
+	db_free_result(db_query(g_ClothDB, "CREATE TABLE IF NOT EXISTS utg_shops (id INTEGER PRIMARY KEY AUTOINCREMENT, type INTEGER, x REAL, y REAL, z REAL, interior INTEGER, world INTEGER)"));
+	db_free_result(db_query(g_ClothDB, "CREATE TABLE IF NOT EXISTS utg_owned (name TEXT COLLATE NOCASE, k INTEGER, PRIMARY KEY (name, k))"));
+	new DBResult:r = db_query(g_ClothDB, "SELECT id, type, x, y, z, interior, world FROM utg_shops ORDER BY id"), n = 0, f[24];
+	if (r != DBResult:0)
+	{
+		if (db_num_rows(r) > 0) do
+		{
+			if (n >= UTGS_MAX) break;
+			db_get_field(r, 0, f, sizeof f); g_UtgS[n][us_DbId] = strval(f);
+			db_get_field(r, 1, f, sizeof f); g_UtgS[n][us_Type] = strval(f);
+			db_get_field(r, 2, f, sizeof f); g_UtgS[n][us_X] = floatstr(f);
+			db_get_field(r, 3, f, sizeof f); g_UtgS[n][us_Y] = floatstr(f);
+			db_get_field(r, 4, f, sizeof f); g_UtgS[n][us_Z] = floatstr(f);
+			db_get_field(r, 5, f, sizeof f); g_UtgS[n][us_Int] = strval(f);
+			db_get_field(r, 6, f, sizeof f); g_UtgS[n][us_VW] = strval(f);
+			if (g_UtgS[n][us_Type] < 1 || g_UtgS[n][us_Type] > 4) continue;
+			g_UtgS[n][us_Used] = true;
+			UtgShop_Spawn(n);
+			n++;
+		}
+		while (db_next_row(r));
+		db_free_result(r);
+	}
+	printf("[BOUTIQUES] %d boutique(s) chargee(s).", n);
+	return 1;
+}
+
+stock UtgShop_OnExit()
+{
+	for (new s = 0; s < UTGS_MAX; s++)
+	{
+		if (!g_UtgS[s][us_Used]) continue;
+		DestroyPickup(g_UtgS[s][us_Pickup]);
+		Delete3DTextLabel(g_UtgS[s][us_Label]);
+	}
+	return 1;
+}
+
+stock UtgShop_OnConnect(playerid)
+{
+	g_UtgShop[playerid] = 0;
+	g_UtgShopIdx[playerid] = -1;
+	g_UtgUntil[playerid] = 0;
+	return 1;
+}
+
+stock UtgShop_OnSpawn(playerid)
+{
+	for (new s = 0; s < UTGS_MAX; s++) UtgShop_ShowIcon(playerid, s);
+	return 1;
+}
+
+stock UtgShop_OnPickup(playerid, pickupid)
+{
+	if (gettime() < g_UtgUntil[playerid] || GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) return 0;
+	for (new s = 0; s < UTGS_MAX; s++)
+	{
+		if (!g_UtgS[s][us_Used] || g_UtgS[s][us_Pickup] != pickupid) continue;
+		g_UtgUntil[playerid] = gettime() + UTGS_COOLDOWN;
+		UtgShop_Open(playerid, s);
+		return 1;
+	}
+	return 0;
+}
+
+stock UtgShop_Create(playerid, type)
+{
+	new s = -1;
+	for (new i = 0; i < UTGS_MAX; i++) if (!g_UtgS[i][us_Used]) { s = i; break; }
+	if (s < 0) return SendClientMessage(playerid, UTGS_COL_ERR, "Limite de boutiques atteinte.");
+	new Float:x, Float:y, Float:z, q[220];
+	GetPlayerPos(playerid, x, y, z);
+	g_UtgS[s][us_Type] = type;
+	g_UtgS[s][us_X] = x; g_UtgS[s][us_Y] = y; g_UtgS[s][us_Z] = z;
+	g_UtgS[s][us_Int] = GetPlayerInterior(playerid);
+	g_UtgS[s][us_VW] = GetPlayerVirtualWorld(playerid);
+	format(q, sizeof q, "INSERT INTO utg_shops (type, x, y, z, interior, world) VALUES (%d, %f, %f, %f, %d, %d)", type, x, y, z, g_UtgS[s][us_Int], g_UtgS[s][us_VW]);
+	db_free_result(db_query(g_ClothDB, q));
+	new DBResult:r = db_query(g_ClothDB, "SELECT last_insert_rowid()"), f[16];
+	if (r != DBResult:0) { db_get_field(r, 0, f, sizeof f); g_UtgS[s][us_DbId] = strval(f); db_free_result(r); }
+	g_UtgS[s][us_Used] = true;
+	UtgShop_Spawn(s);
+	g_UtgUntil[playerid] = gettime() + UTGS_COOLDOWN + 3;
+	new m[128];
+	format(m, sizeof m, "%s creee (id %d). Sors du pickup puis reviens pour tester.", g_UtgShopName[type], s);
+	return SendClientMessage(playerid, UTGS_COL_OK, m);
+}
+
+stock UtgShop_Delete(s)
+{
+	new q[80];
+	format(q, sizeof q, "DELETE FROM utg_shops WHERE id = %d", g_UtgS[s][us_DbId]);
+	db_free_result(db_query(g_ClothDB, q));
+	DestroyPickup(g_UtgS[s][us_Pickup]);
+	Delete3DTextLabel(g_UtgS[s][us_Label]);
+	for (new i = 0, m = GetMaxPlayers(); i < m; i++) if (IsPlayerConnected(i)) RemovePlayerMapIcon(i, UTGS_ICON_BASE + s);
+	g_UtgS[s][us_Used] = false;
+	return 1;
+}
+
+stock UtgShop_OnCommand(playerid, const cmdtext[])
+{
+	new type = 0;
+	if (!strcmp(cmdtext, "/criarroupa", true) || !strcmp(cmdtext, "/criarroupas", true)) type = 1;
+	else if (!strcmp(cmdtext, "/criaracessorio", true) || !strcmp(cmdtext, "/criaracessorios", true)) type = 2;
+	else if (!strcmp(cmdtext, "/criarbarbearia", true)) type = 3;
+	else if (!strcmp(cmdtext, "/criartatuagem", true)) type = 4;
+	if (type)
+	{
+		if (Admin_Level(playerid) < UTGS_ADMIN_LVL) return SendClientMessage(playerid, UTGS_COL_ERR, "Commande reservee au staff."), 1;
+		if (GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) return SendClientMessage(playerid, UTGS_COL_ERR, "Descends du vehicule."), 1;
+		UtgShop_Create(playerid, type);
+		return 1;
+	}
+	if (!strcmp(cmdtext, "/deletarloja", true))
+	{
+		if (Admin_Level(playerid) < UTGS_ADMIN_LVL) return SendClientMessage(playerid, UTGS_COL_ERR, "Commande reservee au staff."), 1;
+		new best = -1, Float:bd = 4.0;
+		for (new s = 0; s < UTGS_MAX; s++)
+		{
+			if (!g_UtgS[s][us_Used]) continue;
+			new Float:d = GetPlayerDistanceFromPoint(playerid, g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z]);
+			if (d < bd) { bd = d; best = s; }
+		}
+		if (best < 0) return SendClientMessage(playerid, UTGS_COL_ERR, "Aucune boutique a moins de 4 m."), 1;
+		UtgShop_Delete(best);
+		SendClientMessage(playerid, UTGS_COL_OK, "Boutique supprimee.");
+		return 1;
+	}
+	if (!strcmp(cmdtext, "/lojas", true))
+	{
+		if (Admin_Level(playerid) < UTGS_ADMIN_LVL) return SendClientMessage(playerid, UTGS_COL_ERR, "Commande reservee au staff."), 1;
+		new m[128], n = 0;
+		for (new s = 0; s < UTGS_MAX; s++)
+		{
+			if (!g_UtgS[s][us_Used]) continue;
+			format(m, sizeof m, "#%d  %s  (%.0f, %.0f, %.0f)", s, g_UtgShopName[g_UtgS[s][us_Type]], g_UtgS[s][us_X], g_UtgS[s][us_Y], g_UtgS[s][us_Z]);
+			SendClientMessage(playerid, 0xFFFFFFFF, m);
+			n++;
+		}
+		if (!n) SendClientMessage(playerid, UTGS_COL, "Aucune boutique. /criarroupa  /criaracessorio  /criarbarbearia  /criartatuagem");
+		return 1;
+	}
+	if (!strcmp(cmdtext, "/irloja", true, 7) && (cmdtext[7] == ' ' || cmdtext[7] == 0))
+	{
+		if (Admin_Level(playerid) < UTGS_ADMIN_LVL) return SendClientMessage(playerid, UTGS_COL_ERR, "Commande reservee au staff."), 1;
+		new s = (cmdtext[7] ? strval(cmdtext[8]) : -1);
+		if (s < 0 || s >= UTGS_MAX || !g_UtgS[s][us_Used]) return SendClientMessage(playerid, UTGS_COL_ERR, "Utilise : /irloja <id>  (voir /lojas)"), 1;
+		g_UtgUntil[playerid] = gettime() + UTGS_COOLDOWN + 3;
+		SetPlayerInterior(playerid, g_UtgS[s][us_Int]);
+		SetPlayerVirtualWorld(playerid, g_UtgS[s][us_VW]);
+		SetPlayerPos(playerid, g_UtgS[s][us_X] + 2.0, g_UtgS[s][us_Y], g_UtgS[s][us_Z] + 0.5);
+		return 1;
+	}
+	return 0;
+}

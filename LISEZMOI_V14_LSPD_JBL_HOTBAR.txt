@@ -1,0 +1,35 @@
+CRESTWOOD RP - v14 (31/10/2026)
+================================
+
+1) NOUVEAU LSPD (Atlas Studio, MTA) a la place de l'ancien
+   - L'ancien mapping "Police LS" (Pershing Square) et ses 34 RemoveBuilding sont retires :
+     le batiment d'origine du LSPD revient a sa place.
+   - Le nouveau LSPD est a Unity Station (1757..1813, -1796..-1736) : 316 objets
+     + retrait du batiment newbuildsm01 (4019 + LOD 4025, rayon 77 m).
+     Les 11 poubelles egarees de l'editeur (a 156,150,513) ne sont pas reprises.
+   - Le mapping "Station-service" (meme endroit) est retire, sinon les deux se superposent.
+   - Le batiment principal = modele 1862 remplace par le modele du pack. Pas besoin de toucher a la data :
+     l'APK le charge au demarrage (assets/models/lspd : model.dff, model.col, textures en PNG/JPG
+     + materials.txt). Logcat : "[models] objet 1862 <- APK 'lspd' : textures x/y, dff ok, col ok".
+     Le TXD du pack (format PC) n'est pas lisible par le moteur mobile : ses textures ont ete
+     converties (outil : tools/models/model_tex.py).
+   - Dans /mappings il s'appelle "LSPD (Unity Station)".
+
+2) ENCEINTE JBL (systeme "Crs JBL" refait pour SA-MP)
+   - S'achete dans les superettes 24/7 (objet "enceinte_jbl", 300).
+   - Utiliser (inventaire, barre rapide ou /jbl) : la JBL va dans la main + panneau :
+       lien http(s) d'une radio / d'un mp3 -> "Jouer" : les joueurs a 30 m l'entendent
+       (en main : son normal ; posee au sol : son 3D a sa position) ;
+       Stop / Poser au sol / Prendre / Ranger dans le sac. Derniers liens memorises.
+   - Commandes : /jbl  /musique <lien>  /posejbl  /prendrejbl  /rangerjbl
+     (+ celles du script d'origine : /musica /soltarjbl /pegarjbl /guardarjbl).
+   - Modele 2226 remplace par la JBL du pack (assets/models/jbl), comme le LSPD.
+   - La JBL ne se consomme pas. Si tu la jettes / la donnes, elle est rangee automatiquement.
+
+3) BARRE D'OBJETS RAPIDES (HUD)
+   - Des qu'un objet est mis dans un emplacement rapide de l'inventaire, une barre de 5 cases
+     apparait en bas au centre du HUD (icone + quantite). Toucher = utiliser l'objet (/hotbar <n>),
+     sans ouvrir l'inventaire. La case de la JBL s'allume quand elle est en main.
+   - Mise a jour automatique a chaque changement du sac (achat, utilisation...).
+
+A FAIRE : recompiler l'APK (C++ + Java + assets), mettre le nouveau basicgm1.amx, redemarrer.

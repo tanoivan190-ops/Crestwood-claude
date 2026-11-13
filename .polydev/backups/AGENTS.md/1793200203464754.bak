@@ -1,0 +1,15 @@
+# Notes projet CrestwoodRP
+
+## Serveur SA-MP
+- Le vrai gamemode est `server/basicgm/basicgm1.pwn` (12748 lignes) — PAS `server/GmLurion/gamemodes/GM.pwn` (ancien, plus petit).
+- `basicgm1.pwn` est encodé Latin-1/CP1252 : `read_file`/`search_grep` échouent avec « Failed to decode utf-8 ». Lire/patcher via `python3` en décodant en `latin-1`.
+- Après modification du `.pwn`, recompiler avec pawncc (SA-MP) vers `basicgm1.amx` — pas de compilateur Pawn dans le sandbox.
+- L'authentification est intégrée au gamemode (dialogues 9520 ouverture / 9521 réponse / 9522 fermeture, préfixe `@auth`). Le client Android les intercepte dans `SAMP.java` → `handleAuthDialog` (page `assets/login/index.html`, pont `SampAuthBridge`).
+- Flux de connexion : `Auth_OnRequestClass` (9520) → login via `/authact login …` → `Auth_Finish` (9522 + `SpawnPlayer` après 900 ms) → `OnPlayerSpawn`.
+
+## Pièges résolus
+- Joueurs figés au spawn : la caméra était posée exactement sur la position du joueur dans `OnPlayerRequestClass` (vecteur de regard nul) et jamais réinitialisée. Correctif : caméra décalée dans `OnPlayerRequestClass` + `SetCameraBehindPlayer(playerid)` en tête de `OnPlayerSpawn`.
+
+## Client Android
+- `SAMP.java` (package `com.gta.game`) et sa copie `com.gta.game32` : maintenir les deux en synchronisation lors des changements.
+- `HudWebView` : les touches traversent vers le jeu sauf zones HUD déclarées par JS (`SampHud.setTouchBounds`) ou quand `fullscreenPage`/`phonePage`/`interactive` sont actifs.

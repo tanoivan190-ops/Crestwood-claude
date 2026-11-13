@@ -1,0 +1,50 @@
+name: mods-inspect
+on:
+  push:
+    paths: ['.github/mods/RUN', '.github/workflows/mods-inspect.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Outils
+        run: sudo apt-get update -q && sudo apt-get install -y -q p7zip-full p7zip-rar unar || sudo apt-get install -y -q p7zip-full unar
+      - name: Telecharger les mods (sans le gros pack et sans gta3.img)
+        run: |
+          mkdir -p m && cd m
+          gh api repos/${{ github.repository }}/releases -q '.[]|select(.assets|length>1)|.assets[]|(.id|tostring)+" "+.name' > ids.txt
+          while read id name; do
+            case "$name" in gta3.img) continue;; esac
+            gh api -H "Accept: application/octet-stream" repos/${{ github.repository }}/releases/assets/$id > "$name"
+          done < ids.txt
+          ls -la
+      - name: Extraire + inventaire
+        run: |
+          mkdir -p x rep
+          cd m
+          for f in *; do
+            [ "$f" = ids.txt ] && continue
+            d="../x/${f%.*}"; mkdir -p "$d"
+            case "$f" in
+              *.zip|*.zip.bak) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" ;;
+              *.rar|*.7z) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" ;;
+            esac
+          done
+          cd ..
+          find x -type f -printf '%s\t%p\n' | sort -k2 > rep/arbre.txt
+          find x -type f | sed 's/.*\.//' | tr A-Z a-z | sort | uniq -c | sort -rn > rep/extensions.txt
+          wc -l rep/arbre.txt
+          for f in $(find x -iname '*.ifp' | head -20); do echo "$f: $(head -c 4 "$f" | xxd -p) $(head -c 24 "$f" | strings | head -1)"; done > rep/ifp.txt
+          for f in $(find x -iname '*.txd' | head -10); do echo "$f $(head -c 12 "$f" | xxd -p)"; done > rep/txd.txt
+          find x -iname '*.txt' -o -iname '*.dat' -o -iname '*.ide' -o -iname 'readme*' | head -30 | while read f; do echo "=== $f"; head -c 1500 "$f"; echo; done > rep/textes.txt
+      - name: Publier le rapport
+        run: |
+          git config user.name ci; git config user.email ci@example.com
+          git checkout --orphan mods-report; git rm -rf . >/dev/null 2>&1 || true
+          cp -r rep/* . ; rm -rf rep x m
+          git add -A; git commit -qm "rapport mods"; git push -f origin mods-report

@@ -26,16 +26,19 @@ jobs:
       - name: Extraire + inventaire
         run: |
           mkdir -p x rep
+          : > rep_err.txt
           cd m
           for f in *; do
             [ "$f" = ids.txt ] && continue
             d="../x/${f%.*}"; mkdir -p "$d"
             case "$f" in
-              *.zip|*.zip.bak) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" ;;
-              *.rar|*.7z) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" ;;
+              *.zip|*.zip.bak) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" || echo "EXTRACTION INCOMPLETE: $f" >> ../rep_err.txt ;;
+              *.rar|*.7z) 7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" || echo "EXTRACTION INCOMPLETE: $f" >> ../rep_err.txt ;;
             esac
           done
           cd ..
+          cp rep_err.txt rep/erreurs.txt
+          ls -la m > rep/telechargements.txt; sha256sum m/* > rep/sha256.txt
           find x -type f -printf '%s\t%p\n' | sort -k2 > rep/arbre.txt
           find x -type f | sed 's/.*\.//' | tr A-Z a-z | sort | uniq -c | sort -rn > rep/extensions.txt
           wc -l rep/arbre.txt

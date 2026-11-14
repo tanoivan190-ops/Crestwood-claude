@@ -47,7 +47,9 @@ inline void ReturnRealTimeShadow_hook(CRealTimeShadowManager* thiz, CRealTimeSha
     thiz->ReturnRealTimeShadow(shdw);
 }
 
+bool CwRealtimeShadowsAllowed();
 inline void DoShadowThisFrame_hook(CRealTimeShadowManager* thiz, CPhysical *physical) {
+    if (!CwRealtimeShadowsAllowed()) return;
     thiz->DoShadowThisFrame(physical);
 }
 

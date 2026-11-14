@@ -2028,11 +2028,9 @@ void InstallCRHooks()
 }
 
 
-// [Crestwood] Ombre temps reel du perso/vehicule : sur certains GPU Mali elle sort en tache noire qui suit le joueur.
-// On la desactive par defaut (le jeu garde alors les ombres simples). Pour la remettre : SAMP/shadows.txt contenant "on".
+// [Crestwood] Ombre temps reel : desactivee par defaut (voir RealTimeShadowManager.cpp), SAMP/shadows.txt = "on" pour la remettre.
 extern char* g_pszStorage;
-static bool (*UseAdvancedShadows_orig)(int) = nullptr;
-static bool UseAdvancedShadows_hook(int)
+bool CwRealtimeShadowsAllowed()
 {
     static int allow = -1;
     if (allow < 0) {
@@ -2042,7 +2040,7 @@ static bool UseAdvancedShadows_hook(int)
         if (FILE* f = fopen(p, "r")) { char w[8] = {0}; if (fscanf(f, "%7s", w) == 1 && !strncmp(w, "on", 2)) allow = 1; fclose(f); }
         FLog("[Shadows] ombre temps reel : %s", allow ? "activee (shadows.txt)" : "desactivee");
     }
-    return allow ? (UseAdvancedShadows_orig ? UseAdvancedShadows_orig(1) : true) : false;
+    return allow != 0;
 }
 void GlTexFallback_Install();
 void InstallSpecialHooks()
@@ -2055,7 +2053,6 @@ void InstallSpecialHooks()
 
     CHook::Redirect("_ZN5CGame20InitialiseRenderWareEv", &CGame::InitialiseRenderWare);
     // Crash SortEntries (texdb .dat/.tmb absent pour le format du GPU) : chargement texdb robuste.
-    CHook::InlineHook("_Z18UseAdvancedShadowsi", &UseAdvancedShadows_hook, &UseAdvancedShadows_orig);
     GlTexFallback_Install();   // [Crestwood] decodage logiciel PVRTC/DXT si le GPU ne les lit pas
     TextureDatabaseSafe::Install(false);
     CHook::InstallPLT(g_libGTASA + (VER_x32 ? 0x6785FC : 0x84EC20), &StartGameScreen__OnNewGameCheck_hook, &StartGameScreen__OnNewGameCheck);

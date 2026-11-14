@@ -2267,11 +2267,11 @@ void InstallUrezHooks()
     *(char*)(g_libGTASA + 0x246D17 + 14) = 't';
 }
 
-// [Crestwood] Ombre temps reel du perso/vehicule : sur certains GPU Mali elle sort en tache noire qui suit le joueur.
-// On la desactive par defaut (le jeu garde alors les ombres simples). Pour la remettre : SAMP/shadows.txt contenant "on".
+// [Crestwood] Ombre temps reel du perso/vehicule : sur certains GPU Mali elle sort en bande grise/noire qui suit le joueur.
+// Desactivee par defaut (le jeu garde les ombres simples). Pour la remettre : SAMP/shadows.txt contenant "on".
 extern char* g_pszStorage;
-static bool (*UseAdvancedShadows_orig)(int) = nullptr;
-static bool UseAdvancedShadows_hook(int)
+static void (*DoShadowThisFrame_orig)(void*, void*) = nullptr;
+static void DoShadowThisFrame_hook(void* thiz, void* physical)
 {
     static int allow = -1;
     if (allow < 0) {
@@ -2281,7 +2281,7 @@ static bool UseAdvancedShadows_hook(int)
         if (FILE* f = fopen(p, "r")) { char w[8] = {0}; if (fscanf(f, "%7s", w) == 1 && !strncmp(w, "on", 2)) allow = 1; fclose(f); }
         Log("[Shadows] ombre temps reel : %s", allow ? "activee (shadows.txt)" : "desactivee");
     }
-    return allow ? (UseAdvancedShadows_orig ? UseAdvancedShadows_orig(1) : true) : false;
+    if (allow && DoShadowThisFrame_orig) DoShadowThisFrame_orig(thiz, physical);
 }
 void GlTexFallback_Install();
 void InstallSpecialHooks()
@@ -2292,7 +2292,7 @@ void InstallSpecialHooks()
 
     CHook::InlineHook("_ZN5CGame20InitialiseRenderWareEv", &CGame__InitialiseRenderWare_hook, &CGame__InitialiseRenderWare);
     // Crash SortEntries (texdb .dat/.tmb absent pour le format du GPU) : chargement texdb robuste.
-    CHook::InlineHook("_Z18UseAdvancedShadowsi", &UseAdvancedShadows_hook, &UseAdvancedShadows_orig);
+    CHook::InlineHook("_ZN22CRealTimeShadowManager17DoShadowThisFrameEP9CPhysical", &DoShadowThisFrame_hook, &DoShadowThisFrame_orig);
     GlTexFallback_Install();   // [Crestwood] decodage logiciel PVRTC/DXT si le GPU ne les lit pas
     TextureDatabaseSafe::Install();
     CHook::InstallPLT(g_libGTASA + 0x83DE90, &StartGameScreen__OnNewGameCheck_hook, &StartGameScreen__OnNewGameCheck);

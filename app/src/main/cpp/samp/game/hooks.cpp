@@ -2266,6 +2266,7 @@ void InstallUrezHooks()
     *(char*)(g_libGTASA + 0x246D17+ 13) = 'x';
     *(char*)(g_libGTASA + 0x246D17 + 14) = 't';
 }
+void GlTexFallback_Install();
 void InstallSpecialHooks()
 {
     InjectHooks();
@@ -2274,6 +2275,7 @@ void InstallSpecialHooks()
 
     CHook::InlineHook("_ZN5CGame20InitialiseRenderWareEv", &CGame__InitialiseRenderWare_hook, &CGame__InitialiseRenderWare);
     // Crash SortEntries (texdb .dat/.tmb absent pour le format du GPU) : chargement texdb robuste.
+    GlTexFallback_Install();   // [Crestwood] decodage logiciel PVRTC/DXT si le GPU ne les lit pas
     TextureDatabaseSafe::Install();
     CHook::InstallPLT(g_libGTASA + 0x83DE90, &StartGameScreen__OnNewGameCheck_hook, &StartGameScreen__OnNewGameCheck);
     CHook::InlineHook("_Z10NvUtilInitv", &NvUtilInit_hook, &NvUtilInit);

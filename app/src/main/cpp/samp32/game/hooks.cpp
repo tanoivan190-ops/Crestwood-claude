@@ -2027,6 +2027,7 @@ void InstallCRHooks()
     }
 }
 
+void GlTexFallback_Install();
 void InstallSpecialHooks()
 {
     InjectHooks();
@@ -2037,6 +2038,7 @@ void InstallSpecialHooks()
 
     CHook::Redirect("_ZN5CGame20InitialiseRenderWareEv", &CGame::InitialiseRenderWare);
     // Crash SortEntries (texdb .dat/.tmb absent pour le format du GPU) : chargement texdb robuste.
+    GlTexFallback_Install();   // [Crestwood] decodage logiciel PVRTC/DXT si le GPU ne les lit pas
     TextureDatabaseSafe::Install(false);
     CHook::InstallPLT(g_libGTASA + (VER_x32 ? 0x6785FC : 0x84EC20), &StartGameScreen__OnNewGameCheck_hook, &StartGameScreen__OnNewGameCheck);
 

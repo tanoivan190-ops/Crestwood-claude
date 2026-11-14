@@ -206,6 +206,31 @@ namespace {
     void Sto_V2(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV2, t, n, f, w, h); }
     void Sto_V3(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV3, t, n, f, w, h); }
 
+    // --- Option de test : sans mipmaps (SAMP/nomips.txt = "on") ---------------------------------
+    // Une texture dont la chaine de mipmaps est incomplete est lue en NOIR par le GPU. En forcant un filtre sans mipmaps,
+    // seul le niveau 0 est lu : les textures noires deviennent visibles (au prix d'un peu de scintillement a distance).
+    typedef void (*PFN_glTexParameteri)(GLenum, GLenum, GLint);
+    PFN_glTexParameteri g_tpV2 = nullptr, g_tpV3 = nullptr;
+    bool NoMips()
+    {
+        static int v = -1;
+        if (v < 0) {
+            v = 0;
+            char pth[512]; snprintf(pth, sizeof(pth), "%sSAMP/nomips.txt", g_pszStorage ? g_pszStorage : "");
+            if (FILE* f = fopen(pth, "r")) { char w[8] = {0}; if (fscanf(f, "%7s", w) == 1 && !strncmp(w, "on", 2)) v = 1; fclose(f); }
+            GLTEX_LOG("[GlTex] sans mipmaps : %s", v ? "ACTIVE (nomips.txt)" : "non");
+        }
+        return v == 1;
+    }
+    void TpImpl(PFN_glTexParameteri orig, GLenum target, GLenum pname, GLint param)
+    {
+        if (pname == 0x2801 /*GL_TEXTURE_MIN_FILTER*/ && param >= 0x2700 && param <= 0x2703 && NoMips())
+            param = (param == 0x2700 || param == 0x2702) ? 0x2600 /*NEAREST*/ : 0x2601 /*LINEAR*/;
+        orig(target, pname, param);
+    }
+    void Tp_V2(GLenum t, GLenum n, GLint p) { TpImpl(g_tpV2, t, n, p); }
+    void Tp_V3(GLenum t, GLenum n, GLint p) { TpImpl(g_tpV3, t, n, p); }
+
     void Hook_V2(GLenum t, GLint l, GLenum f, GLsizei w, GLsizei h, GLint b, GLsizei s, const void* d) { Impl(g_origV2, t, l, f, w, h, b, s, d); }
     void Hook_V3(GLenum t, GLint l, GLenum f, GLsizei w, GLsizei h, GLint b, GLsizei s, const void* d) { Impl(g_origV3, t, l, f, w, h, b, s, d); }
 }
@@ -226,6 +251,7 @@ void GlTexFallback_Install()
         GLTEX_LOG("[GlTex] hook libGLESv2.so : %s", ok ? "ok" : "echec");
         shadowhook_hook_sym_name("libGLESv2.so", "glCompressedTexSubImage2D", (void*)Sub_V2, (void**)&g_subV2);
         shadowhook_hook_sym_name("libGLESv2.so", "glTexStorage2D", (void*)Sto_V2, (void**)&g_stoV2);
+        shadowhook_hook_sym_name("libGLESv2.so", "glTexParameteri", (void*)Tp_V2, (void**)&g_tpV2);
     }
     if (a3 && a3 != a2) {
         bool ok3 = shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexImage2D", (void*)Hook_V3, (void**)&g_origV3) != nullptr;
@@ -233,6 +259,7 @@ void GlTexFallback_Install()
         ok = ok || ok3;
         shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexSubImage2D", (void*)Sub_V3, (void**)&g_subV3);
         shadowhook_hook_sym_name("libGLESv3.so", "glTexStorage2D", (void*)Sto_V3, (void**)&g_stoV3);
+        shadowhook_hook_sym_name("libGLESv3.so", "glTexParameteri", (void*)Tp_V3, (void**)&g_tpV3);
     }
     if (!ok) GLTEX_LOG("[GlTex] aucun hook installe (a2=%p a3=%p) : decodage logiciel indisponible", a2, a3);
 }

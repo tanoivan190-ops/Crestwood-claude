@@ -30,9 +30,12 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include "TextureDatabase.h"
 #include "TextureDatabaseRuntime.h"
 #include "../../vendor/armhook/patch.h"
+
+extern char* g_pszStorage;
 
 #ifndef TDBSAFE_LOG
 #define TDBSAFE_LOG Log
@@ -67,6 +70,29 @@ namespace TextureDatabaseSafe
     inline bool (*LoadDataOffsets_orig)(TextureDatabase*, TextureDatabaseFormat, TDBArray<uint32>*, void**, bool) = nullptr;
     inline void (*SortEntries_orig)(TextureDatabaseRuntime*, bool) = nullptr;
 
+    // [Crestwood] Format force : si le fichier SAMP/texformat.txt contient etc, dxt ou pvr, ce format est utilise
+    // a la place de celui choisi par le moteur (utile pour tester les GPU qui affichent des textures
+    // bruitees ou en blocs). Fichier absent ou autre contenu = comportement d'origine.
+    inline int ForcedFormat()
+    {
+        static int forced = -2;
+        if (forced != -2) return forced;
+        forced = -1;
+        char path[512];
+        snprintf(path, sizeof(path), "%sSAMP/texformat.txt", g_pszStorage ? g_pszStorage : "");
+        if (FILE* f = fopen(path, "r")) {
+            char w[16] = {0};
+            if (fscanf(f, "%15s", w) == 1) {
+                if (!strncmp(w, "etc", 3)) forced = DF_ETC;
+                else if (!strncmp(w, "dxt", 3)) forced = DF_DXT;
+                else if (!strncmp(w, "pvr", 3)) forced = DF_PVR;
+            }
+            fclose(f);
+        }
+        TDBSAFE_LOG("[TexDB] format force par SAMP/texformat.txt : %s", forced >= 0 ? FormatExt(forced) : "aucun (automatique)");
+        return forced;
+    }
+
     inline bool TryFormat(TextureDatabase* thiz, int f, bool setEntries)
     {
         const char* db = thiz->name ? thiz->name : "";
@@ -80,8 +106,17 @@ namespace TextureDatabaseSafe
             return LoadThumbs_orig(thiz, fmt, setEntries);
 
         const char* db = thiz->name;
+        const int forced = ForcedFormat();
+        if (forced >= 0 && forced != (int)fmt && TryFormat(thiz, forced, setEntries)) {
+            thiz->loadedFormat = (TextureDatabaseFormat)forced;
+            TDBSAFE_LOG("[TexDB] '%s' : format %s (demande par le moteur : %s, force : %s)", db, FormatExt(forced), FormatExt(fmt), FormatExt(forced));
+            return true;
+        }
         const bool hasDat = HasPart(db, fmt, "dat");
-        if (hasDat && LoadThumbs_orig(thiz, fmt, setEntries)) return true;
+        if (hasDat && LoadThumbs_orig(thiz, fmt, setEntries)) {
+            TDBSAFE_LOG("[TexDB] '%s' : format %s utilise", db, FormatExt(fmt));
+            return true;
+        }
 
         TDBSAFE_LOG("[TexDB] '%s' : format %s inutilisable (%s) - essai des autres formats",
             db, FormatExt(fmt), hasDat ? ".tmb absent ou ne correspondant pas au .txt" : ".dat absent");

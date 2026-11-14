@@ -20,6 +20,9 @@
 #include <string>
 #include <dlfcn.h>
 #include <set>
+#include <string.h>
+#include <stdio.h>
+extern char* g_pszStorage;
 #include "../../vendor/armhook/patch.h"
 #include "pvr/PVRTDecompress.h"
 
@@ -48,7 +51,7 @@ namespace {
             GLTEX_LOG("[GlTex] %s : format 0x%04X (%dx%d)", path, (unsigned)fmt, w, h);
     }
 
-    bool g_init = false, g_hasPVR = true, g_hasS3TC = true, g_hasETC1 = true;
+    bool g_init = false, g_hasPVR = true, g_hasS3TC = true, g_hasETC1 = true, g_useETC2 = false;
     int  g_swCount = 0;
 
     void InitCaps()
@@ -62,7 +65,16 @@ namespace {
                  || e.find("GL_EXT_texture_compression_dxt1") != std::string::npos
                  || e.find("GL_NV_texture_compression_s3tc") != std::string::npos;
         g_hasETC1 = e.find("GL_OES_compressed_ETC1_RGB8_texture") != std::string::npos;
-        GLTEX_LOG("[GlTex] GPU : %s | PVRTC=%d S3TC=%d ETC1=%d", rnd ? rnd : "?", (int)g_hasPVR, (int)g_hasS3TC, (int)g_hasETC1);
+        // ETC2 (OpenGL ES 3) decode aussi les blocs ETC1 a l'identique, et lit en plus les blocs ETC2 :
+        // on envoie donc toute texture "ETC1" en ETC2 (evite le rendu arc-en-ciel si certaines textures sont en fait ETC2).
+        const char* ver = (const char*)glGetString(GL_VERSION);
+        bool es3 = ver && strstr(ver, "OpenGL ES 3") != nullptr;
+        g_useETC2 = es3;
+        {
+            char pth[512]; snprintf(pth, sizeof(pth), "%sSAMP/etc2.txt", g_pszStorage ? g_pszStorage : "");
+            if (FILE* f = fopen(pth, "r")) { char w[8] = {0}; if (fscanf(f, "%7s", w) == 1 && !strncmp(w, "off", 3)) g_useETC2 = false; fclose(f); }
+        }
+        GLTEX_LOG("[GlTex] GPU : %s | PVRTC=%d S3TC=%d ETC1=%d | ES3=%d | ETC1->ETC2=%d", rnd ? rnd : "?", (int)g_hasPVR, (int)g_hasS3TC, (int)g_hasETC1, (int)es3, (int)g_useETC2);
     }
 
     inline bool IsPow2(int v) { return v > 0 && (v & (v - 1)) == 0; }
@@ -144,9 +156,8 @@ namespace {
                 UploadRGBA(target, level, w, h, out.data());
                 return;
             }
-            // ETC1 sans extension ETC1 : ETC2 (OpenGL ES 3) lit les memes donnees
-            if (fmt == 0x8D64 && !g_hasETC1) fmt = 0x9274; // GL_COMPRESSED_RGB8_ETC2
         }
+        if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274; // GL_COMPRESSED_RGB8_ETC2
         orig(target, level, fmt, w, h, border, size, data);
     }
 
@@ -174,6 +185,7 @@ namespace {
                 return;
             }
         }
+        if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274;
         orig(target, level, xo, yo, w, h, fmt, size, data);
     }
 
@@ -185,6 +197,7 @@ namespace {
             if (g_swCount++ < 6) GLTEX_LOG("[GlTex] TexStorage2D : format 0x%04X non supporte -> RGBA8 (%dx%d)", (unsigned)fmt, w, h);
             fmt = GL_RGBA8;
         }
+        if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274;
         orig(target, levels, fmt, w, h);
     }
 

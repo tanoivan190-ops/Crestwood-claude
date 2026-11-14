@@ -77,6 +77,16 @@ namespace {
         GLTEX_LOG("[GlTex] GPU : %s | PVRTC=%d S3TC=%d ETC1=%d | ES3=%d | ETC1->ETC2=%d", rnd ? rnd : "?", (int)g_hasPVR, (int)g_hasS3TC, (int)g_hasETC1, (int)es3, (int)g_useETC2);
     }
 
+
+    // Texture declaree ETC1 (8 octets / bloc 4x4) mais dont la taille annoncee vaut 16 octets / bloc : ce sont des blocs ETC2 RGBA (EAC).
+    // Lus comme de l'ETC1, ils donnent un rendu arc-en-ciel / raye ; on les envoie en GL_COMPRESSED_RGBA8_ETC2_EAC (0x9278).
+    inline bool LooksEtc2Rgba(GLenum fmt, int w, int h, int size)
+    {
+        if (fmt != 0x8D64 || w <= 0 || h <= 0 || size <= 0) return false;
+        const long blocks = (long)((w + 3) / 4) * ((h + 3) / 4);
+        return (long)size == blocks * 16;
+    }
+
     inline bool IsPow2(int v) { return v > 0 && (v & (v - 1)) == 0; }
 
     // --- DXT (S3TC) logiciel -------------------------------------------------------------------
@@ -157,6 +167,11 @@ namespace {
                 return;
             }
         }
+        if (g_useETC2 && LooksEtc2Rgba(fmt, w, h, size)) {
+            static int n = 0;
+            if (n++ < 5) GLTEX_LOG("[GlTex] ETC2 RGBA detecte (%dx%d, %d octets, niveau %d) -> envoi en RGBA8_ETC2_EAC", w, h, size, level);
+            fmt = 0x9278;
+        } else
         if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274; // GL_COMPRESSED_RGB8_ETC2
         orig(target, level, fmt, w, h, border, size, data);
     }
@@ -185,7 +200,8 @@ namespace {
                 return;
             }
         }
-        if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274;
+        if (g_useETC2 && LooksEtc2Rgba(fmt, w, h, size)) fmt = 0x9278;
+        else if (fmt == 0x8D64 && (!g_hasETC1 || g_useETC2)) fmt = 0x9274;
         orig(target, level, xo, yo, w, h, fmt, size, data);
     }
 

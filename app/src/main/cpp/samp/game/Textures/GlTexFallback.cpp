@@ -19,6 +19,7 @@
 #include <vector>
 #include <string>
 #include <dlfcn.h>
+#include <set>
 #include "../../vendor/armhook/patch.h"
 #include "pvr/PVRTDecompress.h"
 
@@ -33,6 +34,19 @@ void Log(const char* fmt, ...);
 namespace {
     typedef void (*PFN_glCompressedTexImage2D)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const void*);
     PFN_glCompressedTexImage2D g_origV2 = nullptr, g_origV3 = nullptr;
+    typedef void (*PFN_glCompressedTexSubImage2D)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLsizei, const void*);
+    typedef void (*PFN_glTexStorage2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei);
+    PFN_glCompressedTexSubImage2D g_subV2 = nullptr, g_subV3 = nullptr;
+    PFN_glTexStorage2D g_stoV2 = nullptr, g_stoV3 = nullptr;
+
+    // journal : premiere fois que chaque (chemin, format) est vu
+    void SeenOnce(const char* path, GLenum fmt, int w, int h)
+    {
+        static std::set<uint64_t> seen;
+        uint64_t key = ((uint64_t)(unsigned char)path[2] << 40) ^ ((uint64_t)(unsigned char)path[8] << 32) ^ (uint64_t)fmt;
+        if (seen.insert(key).second && seen.size() < 40)
+            GLTEX_LOG("[GlTex] %s : format 0x%04X (%dx%d)", path, (unsigned)fmt, w, h);
+    }
 
     bool g_init = false, g_hasPVR = true, g_hasS3TC = true, g_hasETC1 = true;
     int  g_swCount = 0;
@@ -111,6 +125,7 @@ namespace {
     void Impl(PFN_glCompressedTexImage2D orig, GLenum target, GLint level, GLenum fmt, GLsizei w, GLsizei h, GLint border, GLsizei size, const void* data)
     {
         if (!g_init) InitCaps();
+        SeenOnce("glCompressedTexImage2D", fmt, w, h);
         if (data && w > 0 && h > 0) {
             // PVRTC sur un GPU sans PVRTC
             if (fmt >= 0x8C00 && fmt <= 0x8C03 && !g_hasPVR && IsPow2(w) && IsPow2(h)) {
@@ -135,6 +150,49 @@ namespace {
         orig(target, level, fmt, w, h, border, size, data);
     }
 
+    inline bool Unsupported(GLenum fmt)
+    {
+        if (fmt >= 0x8C00 && fmt <= 0x8C03) return !g_hasPVR;
+        if (fmt >= 0x83F0 && fmt <= 0x83F3) return !g_hasS3TC;
+        return false;
+    }
+
+    void SubImpl(PFN_glCompressedTexSubImage2D orig, GLenum target, GLint level, GLint xo, GLint yo, GLsizei w, GLsizei h, GLenum fmt, GLsizei size, const void* data)
+    {
+        if (!g_init) InitCaps();
+        SeenOnce("glCompressedTexSubImage2D", fmt, w, h);
+        if (data && w > 0 && h > 0 && Unsupported(fmt)) {
+            std::vector<uint8_t> out((size_t)w * h * 4);
+            bool ok = true;
+            if (fmt <= 0x8C03) { if (IsPow2(w) && IsPow2(h)) pvr::PVRTDecompressPVRTC(data, (fmt == 0x8C01 || fmt == 0x8C03) ? 1 : 0, (uint32_t)w, (uint32_t)h, out.data()); else ok = false; }
+            else DecodeDXT((const uint8_t*)data, w, h, (fmt == 0x83F2) ? 3 : (fmt == 0x83F3 ? 5 : 1), out.data());
+            if (ok) {
+                if (g_swCount++ < 6) GLTEX_LOG("[GlTex] SubImage : decodage logiciel du format 0x%04X (%dx%d)", (unsigned)fmt, w, h);
+                GLint prev = 4; glGetIntegerv(GL_UNPACK_ALIGNMENT, &prev); glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexSubImage2D(target, level, xo, yo, w, h, GL_RGBA, GL_UNSIGNED_BYTE, out.data());
+                glPixelStorei(GL_UNPACK_ALIGNMENT, prev);
+                return;
+            }
+        }
+        orig(target, level, xo, yo, w, h, fmt, size, data);
+    }
+
+    void StoImpl(PFN_glTexStorage2D orig, GLenum target, GLsizei levels, GLenum fmt, GLsizei w, GLsizei h)
+    {
+        if (!g_init) InitCaps();
+        SeenOnce("glTexStorage2D", fmt, w, h);
+        if (Unsupported(fmt)) {
+            if (g_swCount++ < 6) GLTEX_LOG("[GlTex] TexStorage2D : format 0x%04X non supporte -> RGBA8 (%dx%d)", (unsigned)fmt, w, h);
+            fmt = GL_RGBA8;
+        }
+        orig(target, levels, fmt, w, h);
+    }
+
+    void Sub_V2(GLenum t, GLint l, GLint x, GLint y, GLsizei w, GLsizei h, GLenum f, GLsizei s, const void* d) { SubImpl(g_subV2, t, l, x, y, w, h, f, s, d); }
+    void Sub_V3(GLenum t, GLint l, GLint x, GLint y, GLsizei w, GLsizei h, GLenum f, GLsizei s, const void* d) { SubImpl(g_subV3, t, l, x, y, w, h, f, s, d); }
+    void Sto_V2(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV2, t, n, f, w, h); }
+    void Sto_V3(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV3, t, n, f, w, h); }
+
     void Hook_V2(GLenum t, GLint l, GLenum f, GLsizei w, GLsizei h, GLint b, GLsizei s, const void* d) { Impl(g_origV2, t, l, f, w, h, b, s, d); }
     void Hook_V3(GLenum t, GLint l, GLenum f, GLsizei w, GLsizei h, GLint b, GLsizei s, const void* d) { Impl(g_origV3, t, l, f, w, h, b, s, d); }
 }
@@ -153,11 +211,15 @@ void GlTexFallback_Install()
     if (a2) {
         ok = shadowhook_hook_sym_name("libGLESv2.so", "glCompressedTexImage2D", (void*)Hook_V2, (void**)&g_origV2) != nullptr;
         GLTEX_LOG("[GlTex] hook libGLESv2.so : %s", ok ? "ok" : "echec");
+        shadowhook_hook_sym_name("libGLESv2.so", "glCompressedTexSubImage2D", (void*)Sub_V2, (void**)&g_subV2);
+        shadowhook_hook_sym_name("libGLESv2.so", "glTexStorage2D", (void*)Sto_V2, (void**)&g_stoV2);
     }
     if (a3 && a3 != a2) {
         bool ok3 = shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexImage2D", (void*)Hook_V3, (void**)&g_origV3) != nullptr;
         GLTEX_LOG("[GlTex] hook libGLESv3.so : %s", ok3 ? "ok" : "echec");
         ok = ok || ok3;
+        shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexSubImage2D", (void*)Sub_V3, (void**)&g_subV3);
+        shadowhook_hook_sym_name("libGLESv3.so", "glTexStorage2D", (void*)Sto_V3, (void**)&g_stoV3);
     }
     if (!ok) GLTEX_LOG("[GlTex] aucun hook installe (a2=%p a3=%p) : decodage logiciel indisponible", a2, a3);
 }

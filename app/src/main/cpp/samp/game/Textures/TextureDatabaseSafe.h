@@ -86,6 +86,7 @@ namespace TextureDatabaseSafe
                 if (!strncmp(w, "etc", 3)) forced = DF_ETC;
                 else if (!strncmp(w, "dxt", 3)) forced = DF_DXT;
                 else if (!strncmp(w, "pvr", 3)) forced = DF_PVR;
+                else if (!strncmp(w, "unc", 3)) forced = DF_UNC;
             }
             fclose(f);
         }

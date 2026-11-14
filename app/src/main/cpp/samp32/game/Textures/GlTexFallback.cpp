@@ -148,6 +148,13 @@ namespace {
     {
         if (!g_init) InitCaps();
         SeenOnce("glCompressedTexImage2D", fmt, w, h);
+        if (w >= 64 && h >= 64 && size > 0) {
+            static std::set<long> ratios;
+            const long blocks = (long)((w + 3) / 4) * ((h + 3) / 4);
+            const long key = ((long)fmt << 16) ^ (size * 100 / (blocks ? blocks : 1));
+            if (ratios.insert(key).second && ratios.size() < 30)
+                GLTEX_LOG("[GlTex] diag : fmt 0x%04X %dx%d niveau %d taille %d (%.2f octets/bloc)", (unsigned)fmt, w, h, level, size, blocks ? (double)size / blocks : 0.0);
+        }
         if (data && w > 0 && h > 0) {
             // PVRTC sur un GPU sans PVRTC
             if (fmt >= 0x8C00 && fmt <= 0x8C03 && !g_hasPVR && IsPow2(w) && IsPow2(h)) {
@@ -222,6 +229,21 @@ namespace {
     void Sto_V2(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV2, t, n, f, w, h); }
     void Sto_V3(GLenum t, GLsizei n, GLenum f, GLsizei w, GLsizei h) { StoImpl(g_stoV3, t, n, f, w, h); }
 
+    typedef void (*PFN_glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void*);
+    PFN_glTexImage2D g_tiV2 = nullptr, g_tiV3 = nullptr;
+    void TiImpl(PFN_glTexImage2D orig, GLenum target, GLint level, GLint ifmt, GLsizei w, GLsizei h, GLint border, GLenum fmt, GLenum type, const void* data)
+    {
+        if (w >= 128 && h >= 128 && level == 0) {
+            static std::set<unsigned long long> seen;
+            unsigned long long key = ((unsigned long long)ifmt << 32) ^ ((unsigned long long)fmt << 16) ^ (unsigned)type ^ ((unsigned long long)w << 48);
+            if (seen.insert(key).second && seen.size() < 25)
+                GLTEX_LOG("[GlTex] diag glTexImage2D : interne 0x%04X %dx%d format 0x%04X type 0x%04X", (unsigned)ifmt, w, h, (unsigned)fmt, (unsigned)type);
+        }
+        orig(target, level, ifmt, w, h, border, fmt, type, data);
+    }
+    void Ti_V2(GLenum t, GLint l, GLint i, GLsizei w, GLsizei h, GLint b, GLenum f, GLenum ty, const void* d) { TiImpl(g_tiV2, t, l, i, w, h, b, f, ty, d); }
+    void Ti_V3(GLenum t, GLint l, GLint i, GLsizei w, GLsizei h, GLint b, GLenum f, GLenum ty, const void* d) { TiImpl(g_tiV3, t, l, i, w, h, b, f, ty, d); }
+
     // --- Option de test : sans mipmaps (SAMP/nomips.txt = "on") ---------------------------------
     // Une texture dont la chaine de mipmaps est incomplete est lue en NOIR par le GPU. En forcant un filtre sans mipmaps,
     // seul le niveau 0 est lu : les textures noires deviennent visibles (au prix d'un peu de scintillement a distance).
@@ -268,6 +290,7 @@ void GlTexFallback_Install()
         shadowhook_hook_sym_name("libGLESv2.so", "glCompressedTexSubImage2D", (void*)Sub_V2, (void**)&g_subV2);
         shadowhook_hook_sym_name("libGLESv2.so", "glTexStorage2D", (void*)Sto_V2, (void**)&g_stoV2);
         shadowhook_hook_sym_name("libGLESv2.so", "glTexParameteri", (void*)Tp_V2, (void**)&g_tpV2);
+        shadowhook_hook_sym_name("libGLESv2.so", "glTexImage2D", (void*)Ti_V2, (void**)&g_tiV2);
     }
     if (a3 && a3 != a2) {
         bool ok3 = shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexImage2D", (void*)Hook_V3, (void**)&g_origV3) != nullptr;
@@ -276,6 +299,7 @@ void GlTexFallback_Install()
         shadowhook_hook_sym_name("libGLESv3.so", "glCompressedTexSubImage2D", (void*)Sub_V3, (void**)&g_subV3);
         shadowhook_hook_sym_name("libGLESv3.so", "glTexStorage2D", (void*)Sto_V3, (void**)&g_stoV3);
         shadowhook_hook_sym_name("libGLESv3.so", "glTexParameteri", (void*)Tp_V3, (void**)&g_tpV3);
+        shadowhook_hook_sym_name("libGLESv3.so", "glTexImage2D", (void*)Ti_V3, (void**)&g_tiV3);
     }
     if (!ok) GLTEX_LOG("[GlTex] aucun hook installe (a2=%p a3=%p) : decodage logiciel indisponible", a2, a3);
 }

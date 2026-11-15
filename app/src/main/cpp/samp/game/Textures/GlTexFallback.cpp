@@ -260,10 +260,37 @@ namespace {
         }
         return v == 1;
     }
+    // --- Filtrage ameliore : anisotrope + trilineaire (SAMP/graphics.txt = "off" pour desactiver) ---------
+    // Netteté des routes et façades vues en biais. Utilise l'extension GL_EXT_texture_filter_anisotropic.
+    float g_maxAniso = 0.f;
+    bool GfxOn()
+    {
+        static int v = -1;
+        if (v < 0) {
+            v = 1;
+            char pth[512]; snprintf(pth, sizeof(pth), "%sSAMP/graphics.txt", g_pszStorage ? g_pszStorage : "");
+            if (FILE* f = fopen(pth, "r")) { char w[8] = {0}; if (fscanf(f, "%7s", w) == 1 && !strncmp(w, "off", 3)) v = 0; fclose(f); }
+            const char* ext = (const char*)glGetString(GL_EXTENSIONS);
+            if (v && ext && strstr(ext, "GL_EXT_texture_filter_anisotropic")) {
+                glGetFloatv(0x84FF /*GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT*/, &g_maxAniso);
+                if (g_maxAniso > 8.f) g_maxAniso = 8.f;
+            }
+            GLTEX_LOG("[GlTex] filtrage ameliore : %s (anisotrope x%.0f)", v ? "actif" : "desactive", (double)g_maxAniso);
+        }
+        return v == 1;
+    }
     void TpImpl(PFN_glTexParameteri orig, GLenum target, GLenum pname, GLint param)
     {
-        if (pname == 0x2801 /*GL_TEXTURE_MIN_FILTER*/ && param >= 0x2700 && param <= 0x2703 && NoMips())
-            param = (param == 0x2700 || param == 0x2702) ? 0x2600 /*NEAREST*/ : 0x2601 /*LINEAR*/;
+        if (pname == 0x2801 /*GL_TEXTURE_MIN_FILTER*/ && param >= 0x2700 && param <= 0x2703) {
+            if (NoMips())
+                param = (param == 0x2700 || param == 0x2702) ? 0x2600 /*NEAREST*/ : 0x2601 /*LINEAR*/;
+            else if (GfxOn()) {
+                if (param == 0x2701) param = 0x2703; // LINEAR_MIPMAP_NEAREST -> LINEAR_MIPMAP_LINEAR (trilineaire)
+                orig(target, pname, param);
+                if (g_maxAniso > 1.f) glTexParameterf(target, 0x84FE /*GL_TEXTURE_MAX_ANISOTROPY_EXT*/, g_maxAniso);
+                return;
+            }
+        }
         orig(target, pname, param);
     }
     void Tp_V2(GLenum t, GLenum n, GLint p) { TpImpl(g_tpV2, t, n, p); }

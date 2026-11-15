@@ -85,6 +85,19 @@ bool CStreaming::TryLoadModel(int modelId) {
         s_failedAt.erase(it);
     }
 
+    // [fix plantages en chaine] Un objet du serveur (id >= 612) absent des archives .img n'a ni position ni taille :
+    // le demander fait lire n'importe quoi au thread de streaming (SIGABRT / blocage). On l'ignore des le depart.
+    if (modelId >= 612) {
+        CStreamingInfo& si = GetInfo(modelId);
+        if (!si.HasCdPosnAndSize()) {
+            s_badModels.insert(modelId);
+            Log("[stream] modele %d absent des archives .img (taille 0) : ignore", modelId);
+            return false;
+        }
+        static int diagN = 0;
+        if (diagN < 40) { diagN++; Log("[stream] modele %d : pos=%u taille=%u secteurs (tampon=%d)", modelId, (unsigned)si.GetCdPosn(), (unsigned)si.GetCdSize(), (int)ms_streamingBufferSize); }
+    }
+
     Log("TryLoadModel %d", modelId);
     GuardBegin(modelId);
     pGame->RequestModel(modelId, 1);

@@ -1,0 +1,60 @@
+name: mods-inspect3
+on:
+  push:
+    paths: ['.github/mods3/RUN', '.github/workflows/mods-inspect3.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Outils
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q 7zip unar || sudo apt-get install -y -q p7zip-full unar
+          command -v 7z || sudo ln -s "$(command -v 7zz || command -v 7za)" /usr/local/bin/7z
+      - name: Telecharger le pack Realty
+        run: |
+          mkdir -p m && cd m
+          gh api repos/${{ github.repository }}/releases/tags/GTA3.img -q '.assets[]|(.id|tostring)+" "+.name' | grep -iE "realty" > ids.txt || true
+          cat ids.txt
+          while read id name; do gh api -H "Accept: application/octet-stream" repos/${{ github.repository }}/releases/assets/$id > "$name"; done < ids.txt
+          ls -la; df -h . | tail -1
+      - name: Extraire (y compris archives imbriquees)
+        run: |
+          mkdir -p x rep; : > rep/erreurs.txt
+          cd m
+          for f in *; do
+            [ "$f" = ids.txt ] && continue
+            d="../x/${f%.*}"; mkdir -p "$d"
+            7z x -y -plibertycity -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -p libertycity -o "$d" "$f" || echo "EXTRACTION INCOMPLETE: $f" >> ../rep/erreurs.txt
+          done
+          cd ../x
+          # un niveau d'archives imbriquees
+          find . -type f \( -iname '*.7z' -o -iname '*.zip' -o -iname '*.rar' \) | head -40 | while read a; do
+            d="${a%.*}_x"; mkdir -p "$d"
+            7z x -y -plibertycity -o"$d" "$a" >/dev/null 2>&1 || unar -q -f -p libertycity -o "$d" "$a" || echo "IMBRIQUEE INCOMPLETE: $a" >> ../rep/erreurs.txt
+          done
+          du -sh . | tail -1
+      - name: Inventaire
+        run: |
+          find x -type f -printf '%s\t%p\n' | sort -k2 > rep/arbre.txt
+          wc -l rep/arbre.txt
+          find x -type f | sed 's/.*\.//' | tr A-Z a-z | sort | uniq -c | sort -rn > rep/extensions.txt
+          find x -type f -printf '%s\t%p\n' | sort -rn | head -60 > rep/plus_gros.txt
+          find x -maxdepth 4 -type d | sort > rep/dossiers.txt
+          find x -type f \( -iname '*.apk' -o -iname '*.so' -o -iname '*.dex' -o -iname '*.exe' -o -iname '*.sh' \) -printf '%s\t%p\n' > rep/executables.txt
+          find x -type f \( -iname 'timecyc*' -o -iname '*.dat' -o -iname '*.ide' -o -iname '*.ipl' -o -iname 'gta.dat' -o -iname 'handling*' \) -printf '%s\t%p\n' | head -200 > rep/data_files.txt
+          find x -type f \( -iname '*.txt' -o -iname '*.md' -o -iname '*.ini' -o -iname 'readme*' \) -size -20k | head -40 | while read f; do echo "=== $f"; head -c 1500 "$f"; echo; done > rep/textes.txt
+          for f in $(find x -type f \( -iname '*.tmb' -o -iname '*.toc' \) | head -12); do echo "$f $(head -c 32 "$f" | od -An -tx1 | tr -d '\n')"; done > rep/texdb_heads.txt
+          for f in $(find x -type f -iname 'timecyc*' | head -6); do echo "=== $f $(stat -c %s "$f")"; head -c 400 "$f" | strings | head -12; done > rep/timecyc.txt
+      - name: Publier le rapport
+        run: |
+          git config user.name ci; git config user.email ci@example.com
+          git checkout --orphan mods-report3; git rm -rf . >/dev/null 2>&1 || true
+          cp -r rep/* . ; rm -rf rep x m
+          git add -A; git commit -qm "rapport mods 3 (Realty)"; git push -f origin mods-report3

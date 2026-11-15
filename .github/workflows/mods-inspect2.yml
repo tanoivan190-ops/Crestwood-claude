@@ -1,0 +1,72 @@
+name: mods-inspect2
+on:
+  push:
+    paths: ['.github/mods2/RUN', '.github/workflows/mods-inspect2.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Outils
+        run: sudo apt-get update -q && sudo apt-get install -y -q p7zip-full p7zip-rar unar
+      - name: Telecharger les 4 archives
+        run: |
+          mkdir -p m && cd m
+          gh api repos/${{ github.repository }}/releases/tags/GTA3.img -q '.assets[]|(.id|tostring)+" "+.name' | grep -E "iv-textures|bidv|vinfast|gta-sa-aml" > ids.txt
+          while read id name; do gh api -H "Accept: application/octet-stream" repos/${{ github.repository }}/releases/assets/$id > "$name"; done < ids.txt
+          ls -la
+      - name: Extraire
+        run: |
+          mkdir -p x rep; : > rep/erreurs.txt
+          cd m
+          for f in *; do
+            [ "$f" = ids.txt ] && continue
+            d="../x/${f%.*}"; mkdir -p "$d"
+            7z x -y -o"$d" "$f" >/dev/null 2>&1 || unar -q -f -o "$d" "$f" || echo "EXTRACTION INCOMPLETE: $f" >> ../rep/erreurs.txt
+          done
+      - name: Inventaire
+        run: |
+          find x -type f -printf '%s\t%p\n' | sort -k2 > rep/arbre.txt
+          wc -l rep/arbre.txt
+          find x -type f | sed 's/.*\.//' | tr A-Z a-z | sort | uniq -c | sort -rn > rep/extensions.txt
+          for d in x/*/; do echo "=== $d : $(find "$d" -type f | wc -l) fichiers, $(du -sh "$d" | cut -f1)"; done > rep/resume.txt
+          find x -iname '*.txt' -o -iname '*.md' -o -iname 'readme*' -o -iname '*.ini' -o -iname '*.cfg' -o -iname '*.json' | head -40 | while read f; do echo "=== $f"; head -c 1500 "$f"; echo; done > rep/textes.txt
+          python3 - <<'PY' > rep/txd.txt
+          import os,struct,glob
+          def parse(p):
+              b=open(p,'rb').read()
+              out=[]
+              if len(b)<12: return ['trop court']
+              t,sz,ver=struct.unpack('<III',b[:12])
+              out.append('chunk=%x size=%d'%(t,sz))
+              i=12; n=0
+              while i+12<=len(b) and n<200:
+                  t2,s2,v2=struct.unpack('<III',b[i:i+12])
+                  if t2==0x15 and i+12+12+4+4+64+8<=len(b):
+                      j=i+12+12
+                      plat,flt=struct.unpack('<II',b[j:j+8])
+                      name=b[j+8:j+40].split(b'\0')[0].decode('latin1')
+                      w,h=struct.unpack('<HH',b[j+80:j+84]) if j+84<=len(b) else (0,0)
+                      dep,mips,typ,comp=b[j+84:j+88] if j+88<=len(b) else (0,0,0,0)
+                      out.append('  tex %-28s plat=%d %dx%d mips=%d comp=%d'%(name,plat,w,h,mips,comp))
+                  i+=12+s2; n+=1
+              return out
+          for p in sorted(glob.glob('x/**/*.txd',recursive=True))[:60]:
+              print('###',p,os.path.getsize(p))
+              try:
+                  for l in parse(p)[:12]: print(l)
+              except Exception as e: print('erreur',e)
+          PY
+          for f in $(find x -iname '*.dff' | head -5); do echo "$f $(head -c 12 "$f" | xxd -p)"; done > rep/dff.txt
+          find x -type f \( -iname '*.so' -o -iname '*.dex' -o -iname '*.apk' -o -iname '*.aml' -o -iname '*.sh' -o -iname '*.exe' \) > rep/executables.txt
+      - name: Publier le rapport
+        run: |
+          git config user.name ci; git config user.email ci@example.com
+          git checkout --orphan mods-report2; git rm -rf . >/dev/null 2>&1 || true
+          cp -r rep/* . ; rm -rf rep x m
+          git add -A; git commit -qm "rapport mods 2"; git push -f origin mods-report2

@@ -17,10 +17,11 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q 7zip unar || sudo apt-get install -y -q p7zip-full unar
           command -v 7z || sudo ln -s "$(command -v 7zz || command -v 7za)" /usr/local/bin/7z
-      - name: Telecharger le pack Realty
+      - name: Telecharger le pack (motif dans .github/mods3/PATTERN)
         run: |
+          PAT="$(cat .github/mods3/PATTERN 2>/dev/null || echo realty)"; echo "motif: $PAT"
           mkdir -p m && cd m
-          gh api repos/${{ github.repository }}/releases/tags/GTA3.img -q '.assets[]|(.id|tostring)+" "+.name' | grep -iE "realty" > ids.txt || true
+          gh api repos/${{ github.repository }}/releases/tags/GTA3.img -q '.assets[]|(.id|tostring)+" "+.name' | grep -iE "$PAT" > ids.txt || true
           cat ids.txt
           while read id name; do gh api -H "Accept: application/octet-stream" repos/${{ github.repository }}/releases/assets/$id > "$name"; done < ids.txt
           ls -la; df -h . | tail -1

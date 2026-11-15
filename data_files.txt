@@ -1,0 +1,6 @@
+33443	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/peds.ide
+43120	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/country/countN2.IPL
+3626	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/interior/gen_int5.IPL
+19272	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/LA/LAw2.ipl
+187457148	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.dat
+985820388	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.dat

@@ -1,0 +1,6 @@
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.toc  7c 5e 2c 0b 00 00 00 00 c2 0a 00 00 8a 35 00 00 4c 60 00 00 14 0b 01 00 ac 5c 01 00 44 62 01 00
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.tmb  83 9d f0 83 08 00 08 00 24 00 00 00 00 00 00 00 e2 e0 ff ff 58 56 95 25 a1 e0 ff ff 09 02 80 60
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.unc.tmb  83 9d 63 83 08 00 08 00 84 00 00 00 00 00 00 00 a0 e0 f3 f4 ff ff ff ff ff ff 91 f4 a0 e0 80 e0
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.toc  e4 6c c2 3a 00 00 00 00 f8 29 00 00 0e 39 00 00 f2 57 00 00 38 7d 00 00 5e a6 00 00 3a cf 00 00
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.unc.tmb  d3 ea 63 83 08 00 08 00 84 00 00 00 00 00 00 00 4e 94 8e 9c 6e 9c 6e 9c 8f 9c 4e 94 4e 94 2d 8c
+x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.tmb  d3 ea 64 8d 08 00 08 00 24 00 00 00 00 00 00 00 9f 8f 77 03 ff ff ff ff 97 8f 77 03 ff ff ff ff

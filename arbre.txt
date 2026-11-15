@@ -1,0 +1,34 @@
+25419	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/Alumox64.png
+542728	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/alleywin4.png
+158054	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/concpanel_la.png
+328831	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/concreteslab_small.png
+19204	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/laspryshpsig1.png
+31155	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_Transfender_dirty.png
+1134365	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_altz_wall10.png
+157838	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_altz_wall10b.png
+124182	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_basheddoor1.png
+546971	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_carpark2.png
+660	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_carshowdoor1.png
+450	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_carshowwin1.png
+450	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_carshowwin1_carshowglass_sfsx.png
+230418	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_officy_ceiling.png
+164058	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_rollerdoor_silver.png
+330263	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_rooftarmac1.png
+16401	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_wangcar1.png
+24055	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_wangcar2.png
+154733	x/novye-tekstury-wang-cars_1712735224_919633/Uncompressed with alpha/ws_white_wall1.png
+152344	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/Replace to gta.img/lae2_5.col
+19272	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/LA/LAw2.ipl
+43120	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/country/countN2.IPL
+3626	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/maps/interior/gen_int5.IPL
+33443	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/data/peds.ide
+985820388	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.dat
+876412	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.tmb
+49816	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.dxt.toc
+780939	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.txt
+1893884	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta3/gta3.unc.tmb
+187457148	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.dat
+229146	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.tmb
+10176	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.dxt.toc
+157118	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.txt
+410586	x/novye-tekstury-zdanijj-v-san-andreas_1686220237_903734/com.rockstargames.gtasa/files/texdb/gta_int/gta_int.unc.tmb

@@ -249,6 +249,7 @@ Telephone > Appareil photo        Photo / Selfie (tourner, zoom) / Drone (120 m,
 /meteo auto | /meteo 0-45    (1)  Relancer le cycle meteo ou figer une meteo
 Drone > Me poser             (1)  Staff : portee illimitee, tu apparais la ou est le drone
 /mapdata on | off            (7)  Mappings a modeles perso (Banque Atlas, Mecano, Concession SF) au redemarrage
+/mapdata hopital on | off    (7)  [v24] Hopital EMS (pack SAMU47) au redemarrage, seulement si 5402/5403 sont dans la data
 
 -------------------------------------------------------------------------------
  2f. HOTBAR ET PRIX (v22)
@@ -258,3 +259,21 @@ Drone > Me poser             (1)  Staff : portee illimitee, tu apparais la ou es
 Panneau admin > Serveur      (6)  "Prix de la boutique" : modifier le prix de chaque article 24/7
 /anim <nom>                       Jouer une animation (ou le petit bouton rond du HUD : mini page a droite)
 /stopanim                         Arreter l'animation
+
+-------------------------------------------------------------------------------
+ 2g. V23 : MDT, ARMEE, EMS, ASSEMBLEUR, ARENE, CRAFT, RECYCLAGE
+-------------------------------------------------------------------------------
+/mdt  /fr texte  /radar [limite]          Forces de l'ordre (MDT dans le HUD, radio inter-factions, radar)
+/amendes  /payeramende <n>|tout           Voir / payer ses amendes
+/charger  /livrer  /fournir <fac> <qte>   Armee : ravitaillement en munitions
+/armurerie  /armee                        Remplir son arme depuis le stock de sa faction / voir les stocks
+/civiere <id>  /chirurgie <id>            EMS ; le patient accepte avec /accepterchirurgie
+/assembler [quitter]  /piece  /poser  /spray   Job assembleur de voitures
+/arene  /quitterarene                     Arene PvP
+/craft  /drogue                           Etabli (munitions, armes, drogue)
+/ramasser  /deposer                       Recyclage
+
+[v25]
+/rendrevelo                       Rendre le velo loue pres d'un point de location (sinon : rouler jusqu'au marqueur velo)
+/telmain 1 | 0                    Sortir / ranger son telephone (automatique a l'ouverture du telephone)
+/adminact bikeadd 0 | bikedel <id> | bikegoto <id>   (4/2) Points de location de velo (panneau admin > Factions)

@@ -455,9 +455,10 @@ stock MapData_Next()
 
 stock MapData_Command(playerid, const arg[])
 {
+	if (arg[0] && !strcmp(arg, "hopital", true, 7)) return MapHopital_Command(playerid, arg[(arg[7] == ' ') ? 8 : 7]);   // [v24]
 	if (Admin_Level(playerid) < 7) return SendClientMessage(playerid, VIE_COL_ERR, "Reserve au staff niveau 7."), 1;
 	new m[200];
-	if (!strcmp(arg, "on", true))
+	if (arg[0] && !strcmp(arg, "on", true))
 	{
 		new File:f = fopen("mappings/data_ok.txt", io_write);
 		if (!f) return SendClientMessage(playerid, VIE_COL_ERR, "Impossible d'ecrire scriptfiles/mappings/data_ok.txt."), 1;
@@ -465,7 +466,7 @@ stock MapData_Command(playerid, const arg[])
 		fclose(f);
 		return SendClientMessage(playerid, POLL_COL, "Mappings personnalises (Banque Atlas, Mecano, Concession SF) : ACTIFS au prochain redemarrage. A faire SEULEMENT si la data du jeu est a jour."), 1;
 	}
-	if (!strcmp(arg, "off", true))
+	if (arg[0] && !strcmp(arg, "off", true))
 	{
 		if (fexist("mappings/data_ok.txt")) fremove("mappings/data_ok.txt");
 		return SendClientMessage(playerid, POLL_COL, "Mappings personnalises : desactives au prochain redemarrage."), 1;

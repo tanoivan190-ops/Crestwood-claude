@@ -246,6 +246,27 @@
   .icon img.appimg{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45));}
   @keyframes uspin{to{transform:rotate(360deg)}}
 </style>
+<style id="crestwood-phone-v25">
+/* [v25] widgets d'accueil + dock sans libelles (comme iOS) */
+.cw-widgets{grid-column:1/-1;grid-row:span 2;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 4px 8px}
+.cw-wd{border-radius:20px;padding:12px 14px;display:flex;flex-direction:column;box-shadow:0 6px 18px rgba(0,0,0,.35);overflow:hidden;position:relative}
+.cw-wd.cal{background:#fff;color:#111}
+.cw-wd.cal small{color:#ff3b30;font-size:11px;font-weight:700;text-transform:capitalize}
+.cw-wd.cal b{font-size:44px;font-weight:300;line-height:1}
+.cw-wd.cal span{font-size:12px;font-weight:600;text-transform:capitalize;color:#333}
+.cw-wd.cal em{margin-top:auto;font-style:normal;font-size:10px;color:#8e8e93}
+.cw-wd.crest{background:linear-gradient(150deg,#1b3d8f,#0b1a3d 70%);color:#fff;justify-content:flex-end}
+.cw-wd.crest img{position:absolute;top:8px;left:10px;width:78%;opacity:.95;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+.cw-wd.crest b{font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.cw-wd.crest span{font-size:10.5px;color:#b9c9ee;margin-top:2px}
+.dock .app .lbl{display:none}
+.app .icon{border-radius:15px}
+.app .icon::after{border-radius:15px}
+/* [v25] l'icone Messages (image carree) restait carree : le badge "non lus" met overflow:visible -> on arrondit l'image elle-meme */
+.app .icon > img:not(.appimg),.app .icon > svg{border-radius:15px}
+#appScreens .icon > img:not(.appimg){border-radius:14px}
+.app:active .icon{transform:scale(.9)}
+</style>
 <style id="crestwood-phone-frame">
 /* [Crestwood] Bord du telephone bien visible : cadre metal (titane clair) + liseret or Crestwood + bezel noir. */
 /* [v20] titane graphite + filet bleu Crestwood (plus d'or) */
@@ -593,6 +614,13 @@ function settingsBodyHTML(){
 const installedApps=new Set(['appstore','photos','camera','settings','yt','whatsapp','safari']);
 function renderHome(){
   const grid=document.getElementById('homeGrid');grid.innerHTML='';
+  // [v25] widgets d'accueil (calendrier + Crestwood), mis a jour chaque minute
+  const now=new Date(),day=now.toLocaleDateString('fr-FR',{weekday:'long'}),mon=now.toLocaleDateString('fr-FR',{month:'long'});
+  const hh=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),h=now.getHours();
+  const w=document.createElement('div');w.className='cw-widgets';
+  w.innerHTML=`<div class="cw-wd cal"><small>${day}</small><b>${now.getDate()}</b><span>${mon}</span><em>Aucun événement</em></div>
+    <div class="cw-wd crest"><img src="../hud/assets/project-logo.png" alt=""><b>${hh}</b><span>${h<6?'Bonne nuit':h<18?'Bonne journée':'Bonne soirée'} à Crestwood</span></div>`;
+  grid.appendChild(w);
   apps.filter(a=>installedApps.has(a.id)).forEach(a=>{
     const d=document.createElement('div');d.className='app';
     d.innerHTML=`<div class="icon ${a.bg}">${S[a.icon]}</div><div class="lbl">${a.lbl}</div>`;
@@ -606,6 +634,7 @@ function renderHome(){
   });
 }
 renderHome();
+setInterval(()=>{try{if(document.getElementById('home').classList.contains('active'))renderHome();}catch(e){}},60000);
 
 /* ================= CONTENU DES APPS ================= */
 const screens=document.getElementById('appScreens');

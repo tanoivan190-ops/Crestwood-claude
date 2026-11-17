@@ -1,0 +1,9 @@
+CRESTWOOD RP - V27  (17/11/2026)
+================================
+MEME STREAMING POUR TOUT LE MONDE
+ - Tous les joueurs : 950 objets de mapping autour d'eux (limite SA-MP : 1 000), chargement a 320 m.
+ - Distance d'affichage minimale des objets : 350 m (les mappings MTA convertis etaient a 150-200 m).
+ - Un gros mapping MTA trop charge pour rentrer en entier se charge en partie au lieu de disparaitre.
+ - Distance d'affichage du jeu imposee a 130 % pour tous (reglage retire de la page Reglages).
+ - Limites totales : 11 000 objets, 6 000 textures, 900 zones.
+A FAIRE : recompiler basicgm1.amx ET reconstruire l'APK.

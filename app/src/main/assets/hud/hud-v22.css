@@ -53,33 +53,33 @@
 .cw22-hb-slots{padding-bottom:16px;margin-bottom:-16px}
 
 /* ---------- 3. bouton d'interaction du HUD (joueur, police, vehicule) = le meme marqueur bleu que dans le monde ---------- */
-.hud-root .interact-tap-button{height:auto!important;min-width:0!important;padding:0!important;gap:9px!important;border:0!important;background:none!important;
+.hud-root .interact-tap-button{height:auto!important;min-width:0!important;padding:0!important;gap:6px!important;border:0!important;background:none!important;
   box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;align-items:center!important;
   flex-direction:row!important;width:auto!important;max-width:none!important;white-space:nowrap;overflow:visible!important}
 .hud-root .interact-tap-button:not([hidden]){display:inline-flex!important}
 .hud-root .interact-tap-button[hidden]{display:none!important}
-.hud-root .interact-tap-button .interact-tap-icon{position:relative;display:grid!important;place-items:center;width:clamp(42px,12.5vh,54px);height:clamp(42px,12.5vh,54px);
-  border-radius:14px;background:linear-gradient(180deg,#4f90ff,#2f74f0);border:1.5px solid rgba(255,255,255,.55);
-  box-shadow:0 6px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
-.hud-root .interact-tap-button .interact-tap-icon::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-6px;border:6px solid transparent;border-top-color:#2f74f0;border-bottom:0}
+.hud-root .interact-tap-button .interact-tap-icon{position:relative;display:grid!important;place-items:center;width:clamp(30px,9vh,38px);height:clamp(30px,9vh,38px);
+  border-radius:10px;background:linear-gradient(180deg,#4f90ff,#2f74f0);border:1.5px solid rgba(255,255,255,.55);
+  box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.hud-root .interact-tap-button .interact-tap-icon::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-4px;border:4px solid transparent;border-top-color:#2f74f0;border-bottom:0}
 .hud-root .interact-tap-button .interact-tap-icon svg{width:56%!important;height:56%!important;stroke:#fff!important;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.hud-root .interact-tap-button .interact-tap-ring{position:absolute;left:0;top:0;width:clamp(42px,12.5vh,54px);height:clamp(42px,12.5vh,54px);border-radius:14px;
+.hud-root .interact-tap-button .interact-tap-ring{position:absolute;left:0;top:0;width:clamp(30px,9vh,38px);height:clamp(30px,9vh,38px);border-radius:10px;
   border:2px solid #3b82ff;animation:cw22Ring 1.4s ease-out infinite;pointer-events:none}
 @keyframes cw22Ring{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}
 .hud-root .interact-tap-button .interact-tap-label{display:block!important;position:static!important;transform:none!important;text-align:left;
-  max-width:none!important;width:auto!important;overflow:visible!important;text-overflow:clip!important;font:800 clamp(11px,3.4vh,14px)/1.15 Montserrat,system-ui,sans-serif;color:#fff;
+  max-width:none!important;width:auto!important;overflow:visible!important;text-overflow:clip!important;font:800 clamp(9px,2.7vh,11px)/1.15 Montserrat,system-ui,sans-serif;color:#fff;
   text-shadow:0 1px 3px rgba(0,0,0,.85)}
-.hud-root .interact-tap-button .interact-tap-label::after{content:"Toucher pour interagir";display:block;margin-top:2px;font-size:.72em;font-weight:700;color:#a8c4ff}
+.hud-root .interact-tap-button .interact-tap-label::after{content:"Toucher pour interagir";display:block;margin-top:1px;font-size:.7em;font-weight:700;color:#a8c4ff}
 .hud-root .interact-tap-button:active .interact-tap-icon{transform:scale(.93);background:#2563d6}
 @media (prefers-reduced-motion:reduce){.hud-root .interact-tap-button .interact-tap-ring{animation:none}}
 
 /* ---------- 4. les 3 boutons sous la carte : style "contour blanc" (comme ta capture) ----------
    carre transparent, fin contour blanc, icone blanche avec ombre, pas de fond ni de texte */
-.hud-root .quick-actions{gap:8px!important;padding:0!important;border-radius:0!important;background:none!important;border:0!important;box-shadow:none!important;
+.hud-root .quick-actions{gap:6px!important;padding:0!important;border-radius:0!important;background:none!important;border:0!important;box-shadow:none!important;
   -webkit-backdrop-filter:none!important;backdrop-filter:none!important;grid-template-columns:repeat(3,auto)!important;justify-content:start!important;width:auto!important}
-.hud-root .quick-actions > button:not([hidden]){width:clamp(38px,11.5vh,48px)!important;height:clamp(38px,11.5vh,48px)!important;border-radius:9px!important;
+.hud-root .quick-actions > button:not([hidden]){width:clamp(28px,8.4vh,36px)!important;height:clamp(28px,8.4vh,36px)!important;border-radius:7px!important;
   border:1.6px solid rgba(255,255,255,.88)!important;background:rgba(0,0,0,.06)!important;box-shadow:0 1px 4px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.12)!important;gap:0!important}
-.hud-root .quick-actions > button svg{width:52%!important;height:52%!important;padding:0!important;background:none!important;box-shadow:none!important;
+.hud-root .quick-actions > button svg{width:54%!important;height:54%!important;padding:0!important;background:none!important;box-shadow:none!important;
   stroke:#fff!important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .hud-root .quick-actions > button:not([hidden]) small.cw19-qa-label,.hud-root .quick-actions .cw19-qa-label{display:none!important}
 .hud-root .quick-actions > button::before,.hud-root .quick-actions > button::after{display:none!important}
@@ -87,7 +87,7 @@
 .hud-root .quick-actions .corner-action.menu-open{background:rgba(255,255,255,.22)!important;box-shadow:0 1px 4px rgba(0,0,0,.35)!important}
 
 /* ---------- 5. petit bouton d'animations (meme style) + mini page a droite ---------- */
-.hud-root .animations-toggle-button{width:clamp(38px,11.5vh,48px)!important;height:clamp(38px,11.5vh,48px)!important;border-radius:9px!important;padding:0!important;
+.hud-root .animations-toggle-button{width:clamp(30px,9vh,38px)!important;height:clamp(30px,9vh,38px)!important;border-radius:7px!important;padding:0!important;
   display:grid!important;place-items:center;background:rgba(0,0,0,.06)!important;border:1.6px solid rgba(255,255,255,.88)!important;
   box-shadow:0 1px 4px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.12)!important}
 .hud-root .animations-toggle-button img{width:58%!important;height:58%!important;object-fit:contain;filter:brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,.6))}
@@ -124,3 +124,13 @@
   font:700 clamp(9.5px,2.8vh,11.5px)/1 Montserrat,system-ui,sans-serif}
 .cw22-anim footer small{font-size:9px;color:rgba(255,255,255,.7);white-space:nowrap}
 body:has(#cwAnimMini.show) .cw22-hb{visibility:hidden}
+
+/* ---------- 6. [v22f] roue du menu AU MILIEU de l'ecran (le cadran est centre, les sous-menus a droite) ---------- */
+.hud-root .radial-menu .radial-wheel.cw19-wheel{left:calc(50% - var(--cw19-dial) / 2)!important;top:50%!important;transform:translateY(-50%)!important}
+.hud-root .radial-menu.cw19-menu.open{background:radial-gradient(circle at 50% 50%,rgba(5,6,8,.5) 0%,rgba(5,6,8,.3) 40%,rgba(5,6,8,.12) 75%)!important}
+@media (max-width:760px){ .hud-root .cw19-panel{width:min(34vw,240px)!important} }
+
+/* ---------- 7. [v22f] clavier du chat plus rapide : la page ne recalcule plus tout le HUD a chaque lettre ---------- */
+.cw-kb{contain:layout paint style;touch-action:none}
+.cw-kb-key{transition:none!important;touch-action:none}
+.cw-kb-pop{will-change:transform;contain:layout paint}

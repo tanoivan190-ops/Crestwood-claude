@@ -1,0 +1,25 @@
+EMS - pack MTA "[KD]PACKSAMU47" (extrait pour Crestwood RP, v24)
+=================================================================
+
+Contenu utilisable (fichiers en clair du pack) :
+
+  skins/250.dff + 250.txd       tenue SAMU 1  -> remplace le skin 250 dans gta3.img
+  skins/275.dff + 275.txd       tenue SAMU 2  -> remplace le skin 275 dans gta3.img
+                                (renommer avec le nom du modele indique dans data/peds.ide)
+  vehicules/416.dff + 416.txd   ambulance     -> ambulan.dff / ambulan.txd
+  vehicules/466.dff + 466.txd   vehicule SAMU -> glendale.dff / glendale.txd
+
+  ATTENTION : 416.dff (6,9 Mo) et 466.dff (8,7 Mo) sont des modeles PC tres lourds.
+  Sur les petits telephones (Redmi...) ils peuvent faire ramer ou planter : a tester
+  avant de les mettre dans la data officielle.
+
+Ce qui N'EST PAS utilisable :
+
+  Le batiment de l'hopital (modeles 5403 laehospital1 et 5402 laehospground1) est vendu
+  sous protection "centralstore" : fichiers .dffcentralstore / .txdcentralstore chiffres,
+  dechiffres seulement par le script compile du vendeur dans MTA. Ils ne sont pas copies
+  ici. Il faut demander la version .dff/.txd en clair a l'auteur du pack.
+
+  Une fois 5402/5403 remplaces dans la data : en jeu, staff niveau 7 -> /mapdata hopital on
+  puis redemarrer le serveur. Le mobilier (599 objets du .map MTA) + l'ascenseur du toit
+  (pickups "i") se chargent (server/basicgm/include/HopitalEMS.inc).

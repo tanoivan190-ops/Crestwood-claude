@@ -25,11 +25,18 @@
     <script src="hud-ring.js" defer></script>
     <script src="hotbar.js" defer></script>
     <script src="anim-mini.js" defer></script>
+    <script src="cw23.js" defer></script>
+    <script src="mdt.js" defer></script>
+    <script src="bike.js" defer></script>
     <link rel="stylesheet" href="../common/cw-perf.css">
     <link rel="stylesheet" href="hud-v18.css" />
     <link rel="stylesheet" href="hud-v19.css" />
     <link rel="stylesheet" href="hud-v21.css" />
     <link rel="stylesheet" href="hud-v22.css" />
+    <link rel="stylesheet" href="cw23.css" />
+    <link rel="stylesheet" href="mdt.css" />
+    <link rel="stylesheet" href="bike.css" />
+    <link rel="stylesheet" href="hud-v25.css" />
 </head>
   <body>
     <main class="hud-root" aria-label="HUD Crestwood">
@@ -58,7 +65,7 @@
         <img data-ring-icon="health" src="original-speedometer/assets/images/heart.svg" alt="" />
         <img data-ring-icon="armour" src="original-speedometer/assets/images/shield.svg" alt="" />
         <img data-ring-icon="thirst" src="original-speedometer/assets/images/water.svg" alt="" />
-        <img data-ring-icon="hunger" src="original-speedometer/assets/images/food.svg" alt="" />
+        <img data-ring-icon="hunger" src="original-speedometer/assets/images/burger.svg" alt="" />
         <img data-ring-icon="energy" src="original-speedometer/assets/images/stress.svg" alt="" />
       </div>
 
@@ -72,7 +79,7 @@
 
       <section class="literal-status-bars hud-movable" data-hud-key="status" aria-label="Statut du personnage">
         <div class="literal-life-box health" data-status="health" style="--status-fill: 100%" aria-label="Santé"><div class="literal-image-box"><img src="original-speedometer/assets/images/heart.svg" alt="" /></div><div class="literal-life-bar"></div></div>
-        <div class="literal-life-box hunger" data-status="hunger" style="--status-fill: 100%" aria-label="Faim"><div class="literal-image-box"><img src="original-speedometer/assets/images/food.svg" alt="" /></div><div class="literal-life-bar"></div></div>
+        <div class="literal-life-box hunger" data-status="hunger" style="--status-fill: 100%" aria-label="Faim"><div class="literal-image-box"><img src="original-speedometer/assets/images/burger.svg" alt="" /></div><div class="literal-life-bar"></div></div>
         <div class="literal-life-box thirst" data-status="thirst" style="--status-fill: 100%" aria-label="Soif"><div class="literal-image-box"><img src="original-speedometer/assets/images/water.svg" alt="" /></div><div class="literal-life-bar"></div></div>
         <div class="literal-life-box energy" data-status="energy" style="--status-fill: 100%" aria-label="Énergie"><div class="literal-image-box"><img src="original-speedometer/assets/images/stress.svg" alt="" /></div><div class="literal-life-bar"></div></div>
         <div class="literal-life-box armour" data-status="armour" style="--status-fill: 0%" aria-label="Gilet"><div class="literal-image-box"><img src="original-speedometer/assets/images/shield.svg" alt="" /></div><div class="literal-life-bar"></div></div>
@@ -148,17 +155,17 @@
 
       <div class="quick-actions hud-movable" data-hud-key="quick" aria-label="Actions rapides">
         <button class="corner-action" type="button" aria-label="Ouvrir le menu rapide">
-          <svg class="menu-icon cw18-wheelicon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="2.4"/><path d="M12 3.4v3.2M12 17.4v3.2M3.4 12h3.2M17.4 12h3.2"/></svg>
+          <svg class="menu-icon cw18-wheelicon cw25-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.6" y="3.6" width="7" height="7" rx="2.2"/><rect x="13.4" y="3.6" width="7" height="7" rx="2.2"/><rect x="3.6" y="13.4" width="7" height="7" rx="2.2"/><circle class="cw25-fill" cx="16.9" cy="16.9" r="3.6"/></svg>
           <span class="close-icon"></span>
           <small class="cw19-qa-label">Menu</small>
         </button>
         <!-- [v18] Paramètres + Téléphone (le chat a son petit bouton en haut, près de la carte) -->
         <button class="clothes-test-action cw18-qa" id="cwQaSettings" type="button" aria-label="Paramètres" title="Paramètres">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>
+          <svg class="cw25-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.2h3.4l.5 2.4a7 7 0 0 1 1.9 1.1l2.3-.8 1.7 2.9-1.8 1.6a7 7 0 0 1 0 2.2l1.8 1.6-1.7 2.9-2.3-.8a7 7 0 0 1-1.9 1.1l-.5 2.4h-3.4l-.5-2.4a7 7 0 0 1-1.9-1.1l-2.3.8-1.7-2.9 1.8-1.6a7 7 0 0 1 0-2.2L3.9 8.8l1.7-2.9 2.3.8a7 7 0 0 1 1.9-1.1z"/><circle class="cw25-fill" cx="12" cy="12" r="2.6"/></svg>
           <small class="cw19-qa-label">Réglages</small>
         </button>
         <button class="clothes-test-action cw18-qa" id="cwQaPhone" type="button" aria-label="Téléphone" title="Téléphone">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 5h3M11 18.5h2"/><i class="cw18-dot" hidden></i></svg>
+          <svg class="cw25-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5.6" y="2.4" width="11" height="19.2" rx="3"/><rect class="cw25-fill" x="9.1" y="4.3" width="4" height="1.5" rx=".75"/><path d="M9.4 18.6h3.4"/><path d="M19.2 8.6a4.6 4.6 0 0 1 0 6.8M21.2 6.6a7.6 7.6 0 0 1 0 10.8"/><i class="cw18-dot" hidden></i></svg>
           <small class="cw19-qa-label">Téléphone</small>
         </button>
         <!-- Au volant : direction au joystick ou aux fleches (touch-controls.js) -->

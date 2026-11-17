@@ -27,8 +27,8 @@
     <string name="asset_pack_sfx1">Audio (partie 1)</string>
     <string name="asset_pack_sfx2">Audio (partie 2)</string>
     <string name="asset_pack_streams">Audio (partie 3)</string>
-    <string name="intro_studio_name">NIGHTCODE STUDIO</string>
+    <string name="intro_studio_name">CRESTWOOD ROLEPLAY</string>
     <string name="intro_presents">présente</string>
-    <string name="intro_copyright">© 2026 Nightcode Studio. Tous droits réservés.</string>
+    <string name="intro_copyright">© 2026 Crestwood Roleplay</string>
     <string name="intro_skip">Touchez pour passer  ›</string>
 </resources>

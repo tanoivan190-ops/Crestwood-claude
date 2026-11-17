@@ -86,6 +86,24 @@
     $("lkPreviewNote").textContent = (state.female ? "Femme" : "Homme") + " · " + (worn.length ? worn.join(", ") : "tenue simple");
   }
 
+  // [v24] armurerie : armes, gilet, soins... (liste envoyee par le serveur selon la faction)
+  function renderGear(list, stock) {
+    const box = $("lkGear");
+    $("lkGearCard").hidden = !list.length;
+    box.replaceChildren();
+    list.forEach(([key, label, info]) => {
+      const b = el("button", "lk-gear-btn");
+      b.type = "button";
+      b.innerHTML = "<b></b><small></small>";
+      b.querySelector("b").textContent = label;
+      b.querySelector("small").textContent = info || "";
+      b.addEventListener("click", () => send("gear", key));
+      box.appendChild(b);
+    });
+    $("lkGearNote").textContent = stock == null || stock < 0 ? "" : "Munitions de la faction : " + Number(stock).toLocaleString("fr-FR") + " (livrées par l'armée)";
+  }
+
+
   function render() {
     $("lkFac").textContent = state.facName || "Police";
     $("lkRank").textContent = "Grade : " + (state.rankName || "—");
@@ -112,6 +130,7 @@
     state.police = d.police === undefined ? 1 : (Number(d.police) ? 1 : 0);
     // autres factions : tenue simple (pas de ceinture / gilet / casquette de police)
     document.body.classList.toggle("lk-simple", !state.police);
+    renderGear(Array.isArray(d.gear) ? d.gear : [], d.stock);
     render();
   }
 

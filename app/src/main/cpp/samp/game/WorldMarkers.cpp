@@ -29,8 +29,10 @@ namespace
         char  label[32] = { 0 };
     };
 
-    constexpr float kMaxDist   = 90.0f;   // [v22] au-dela : invisible (nom + distance visibles de plus loin)
-    constexpr float kFadeFrom  = 65.0f;   // fondu entre 65 et 90 m
+    constexpr float kMaxDist   = 60.0f;   // [v22f] au-dela : invisible (moins de travail par image)
+    constexpr float kFadeFrom  = 45.0f;   // fondu entre 45 et 60 m
+    constexpr float kLabelDist = 32.0f;   // [v22f] nom + distance seulement a moins de 32 m
+    constexpr int   kMaxLabels = 6;       // et au plus 6 etiquettes par image
     constexpr size_t kMaxMarkers = 512;
 
     std::mutex          s_mutex;
@@ -274,6 +276,20 @@ namespace
             dl->AddLine(P(4.4f, 0.0f), P(4.4f, 2.4f), w, th * 1.1f);
             dl->AddLine(P(2.4f, 0.0f), P(2.4f, 1.8f), w, th * 1.1f);
             break;
+        case 19: // [v25] location de velo : velo
+            dl->AddCircle(P(-3.8f, 2.0f), 2.6f * u, w, 20, th);
+            dl->AddCircle(P(3.8f, 2.0f), 2.6f * u, w, 20, th);
+            dl->AddLine(P(-3.8f, 2.0f), P(-1.0f, -2.2f), w, th);
+            dl->AddLine(P(-1.0f, -2.2f), P(2.6f, -2.2f), w, th);
+            dl->AddLine(P(2.6f, -2.2f), P(3.8f, 2.0f), w, th);
+            dl->AddLine(P(-1.0f, -2.2f), P(0.4f, 2.0f), w, th);
+            dl->AddLine(P(0.4f, 2.0f), P(-3.8f, 2.0f), w, th);
+            dl->AddLine(P(0.4f, 2.0f), P(2.6f, -2.2f), w, th);
+            dl->AddLine(P(-1.0f, -2.2f), P(-1.6f, -3.8f), w, th);
+            dl->AddLine(P(-2.6f, -3.8f), P(-0.6f, -3.8f), w, th);
+            dl->AddLine(P(2.6f, -2.2f), P(2.2f, -4.2f), w, th);
+            dl->AddLine(P(1.4f, -4.2f), P(3.2f, -4.2f), w, th);
+            break;
         default: // epingle
             dl->AddCircleFilled(c, 2.6f * u, wf, 16);
             break;
@@ -289,7 +305,7 @@ namespace
             case 8: return "Entrée";         case 9: return "Sortie";        case 10: return "Pêche";
             case 11: return "Maison";        case 12: return "Braquage";     case 13: return "Accessoires";
             case 14: return "Barbier";       case 15: return "Tatouage";     case 16: return "Station-service";
-            case 17: return "Location";      case 18: return "PNJ";
+            case 17: return "Location";      case 18: return "PNJ";           case 19: return "Location de vélo";
         }
         return "Point d'intérêt";
     }
@@ -591,6 +607,7 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
     bool  handShown = false;
     float handX = 0.0f, handY = 0.0f, handR = 0.0f, bestD = 1e9f;
     const Marker* handM = nullptr;
+    int labels = 0;
     for (const Marker& m : list)
     {
         // main d'interaction : TOUS les points (vetements, boutique, vestiaire, banque, garage...) tout pres du joueur
@@ -664,7 +681,9 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
             if (onFoot) { const float ex = me.x - m.x, ey = me.y - m.y, ez = me.z - m.z; dist = std::sqrt(ex * ex + ey * ey + ez * ez); }
             const float fsz = UISettings::fontSize();
             const float br = std::fmax(fsz * 0.85f, std::fmin(ppm * 0.26f, fsz * 1.5f));
-            Badge(dl, renderer, m.type, c, br, alpha, m.label[0] ? m.label : TypeName(m.type), dist);
+            const bool withName = dist <= kLabelDist && labels < kMaxLabels;
+            if (withName) labels++;
+            Badge(dl, renderer, m.type, c, br, alpha, withName ? (m.label[0] ? m.label : TypeName(m.type)) : nullptr, dist);
         }
     }
 

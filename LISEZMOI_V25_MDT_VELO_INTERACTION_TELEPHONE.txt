@@ -1,0 +1,37 @@
+CRESTWOOD RP - V25  (17/11/2026)
+================================
+
+1) MDT DE LA POLICE (Crestwood Police Department)
+   - Ecran de connexion avec le logo CPD (img/cw_police.webp, ton logo detoure), nom, grade, matricule.
+   - Tableau de bord : unites en service, avis de recherche, amendes impayees, radars actifs,
+     derniers avis, unites (a pied / en patrouille), dernieres transmissions radio.
+   - Citoyens : dossier complet (photo d'identite, statut, vehicules, amendes) + actions :
+     GPS, amende, avis de recherche avec choix des etoiles.
+   - Vehicules (plaque), Recherches, Radio (bulles de chat), Cameras (tuiles EN DIRECT), Radar.
+   Fichiers : assets/hud/mdt.js, mdt.css ; serveur : Mdt_Home (Cw23.inc) envoie grade/unites/compteurs.
+
+2) LOCATION DE VELO (BMX), placable en admin
+   Admin : panneau admin > Factions > "Locations de velo" > "Creer une location ici".
+   Joueur : marqueur velo au sol -> en marchant dessus la page s'ouvre (comme ta maquette) :
+   BMX, 500 $ / 1 heure, liquide ou carte, bouton "Louer ce velo".
+   Rendre : rouler jusqu'a n'importe quel point (rendu auto) ou /rendrevelo. Pas rendu a temps :
+   le velo disparait + amende de 750 $ (visible dans le MDT et /amendes).
+   Fichiers : server/basicgm/include/Cw25.inc, assets/hud/bike.js, bike.css, img/bmx.webp,
+   cpp samp + samp32 game/WorldMarkers.cpp (pictogramme velo, type 19).
+
+3) INTERACTION AUTOMATIQUE SUR LES MARQUEURS 3D
+   En marchant sur un marqueur au sol, l'action se lance toute seule : banque, vestiaire, boutique,
+   emploi, portes (entrer / sortir), garage, peche, pompe, location, vetements, velo.
+   PAS pour : maison, vehicule (verrouiller), joueur, police, braquage, PNJ (la main reste).
+   La page ne se rouvre pas tant que tu restes sur le point ; il faut s'eloigner (3 m) puis revenir.
+
+4) HUD
+   - Nouvelles icones des 3 boutons : Menu (grille), Reglages (engrenage), Telephone (smartphone).
+   - Faim : icone burger (anneau de la minimap + compteur).
+   - Telephone : widgets calendrier + Crestwood sur l'accueil, dock sans texte comme sur iPhone.
+
+5) TELEPHONE EN MAIN
+   Quand tu ouvres le telephone, ton perso sort son telephone en jeu (tu peux marcher et courir) ;
+   il le range a la fermeture. Aussi /telmain 1 | 0. Pas en vehicule, ni menotte.
+
+A FAIRE : recompiler basicgm1.amx ET reconstruire l'APK (Java, C++ et assets ont change).

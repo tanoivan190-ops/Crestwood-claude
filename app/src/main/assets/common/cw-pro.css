@@ -117,3 +117,34 @@ html[data-th] :is(.price,.amount,.money,.cost,.sh-price){ color: var(--cw-accent
 
 /* selection de texte */
 html[data-th] ::selection{ background: rgba(59,130,255,0.35) !important; color:#fff; }
+
+/* ==========================================================================
+   [v29] STYLE "JEU" COMMUN (GTA V / FiveM) pour tous les panneaux qui chargent ce fichier :
+   fond image de la ville, titres en italique gras, boutons principaux bleus, coins arrondis.
+   (l'inventaire garde son ancien style)
+   ========================================================================== */
+@font-face{font-family:"CwGame";src:url("fonts/montserrat_black.ttf") format("truetype");font-weight:900;font-display:swap}
+@font-face{font-family:"CwGame";src:url("fonts/montserrat_bold.ttf") format("truetype");font-weight:700;font-display:swap}
+@font-face{font-family:"CwGame";src:url("fonts/montserrat_medium.ttf") format("truetype");font-weight:500;font-display:swap}
+:root{ --pro-radius: 9px; --pro-glass: rgba(12,16,24,.86); }
+html:not([data-flat]):not([data-sg]), html[data-th]:not([data-flat]):not([data-sg]){
+  background: #07090d url("img/bg-city-1.webp") center/cover no-repeat !important;
+}
+html:not([data-flat]):not([data-sg])::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(85% 75% at 50% 45%, rgba(6,9,14,.35), rgba(4,6,10,.82) 78%), linear-gradient(rgba(4,6,10,.2), rgba(4,6,10,.6));
+}
+html:not([data-flat]):not([data-sg]) body{ background: transparent !important; position: relative; z-index: 1; }
+html:not([data-sg]) body{ font-family: CwGame, Montserrat, system-ui, sans-serif; }
+html:not([data-sg]) :is(h1, h2){ font-family: CwGame, Montserrat, sans-serif !important; font-weight: 900 !important; font-style: italic; text-transform: uppercase; letter-spacing: -0.005em; }
+html:not([data-sg]) h3{ font-family: CwGame, Montserrat, sans-serif; font-weight: 900; font-style: italic; }
+html[data-th] :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.frame,.glass:not(.top):not(.round)){
+  background: linear-gradient(180deg, rgba(18,22,32,.92), rgba(10,13,20,.9)) !important;
+  border-radius: 12px !important;
+}
+html:not([data-sg]) button{ font-family: CwGame, Montserrat, sans-serif; }
+html:not([data-sg]) :is(.sh-buy,.pl-confirm,.btn-use,.btn.main,.btn.primary,.lk-btn.primary,.jb-btn.primary,.rp-btn.primary,.dg-btn.primary,[class*="-primary"],.primary){
+  background: linear-gradient(180deg,#3d8bff,#1659e0) !important; border: 1px solid #7fb0ff !important; color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(30,100,255,.35) !important;
+  font-weight: 900 !important; font-style: italic; text-transform: uppercase;
+}

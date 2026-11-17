@@ -45,8 +45,12 @@ public final class CrashLog {
     }
 
     /** A appeler une fois le contexte connu (chemin exact du dossier de l'appli). */
+    private static Context sCtx;
+    private static boolean sExitLogged;
+
     public static void bind(Context ctx) {
         try {
+            if (ctx != null) sCtx = ctx.getApplicationContext();
             File dir = ctx.getExternalFilesDir(null);
             if (dir != null) { dir.mkdirs(); sFile = new File(dir, FILE_NAME); }
         } catch (Throwable ignored) { }
@@ -75,6 +79,58 @@ public final class CrashLog {
         log("ABI : " + Arrays.toString(Build.SUPPORTED_ABIS) + " | processus 64 bits = " + android.os.Process.is64Bit()
                 + " | memoire Java max = " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " Mo");
         installHandler();
+        logPreviousExit();
+    }
+
+    /**
+     * [v25] Pourquoi la session precedente s'est arretee (Android 11+) : plantage natif (avec la trace),
+     * manque de memoire (le telephone a tue le jeu), ANR, fermeture normale...
+     * Indispensable : un manque de memoire ne laisse AUCUNE trace dans le jeu lui-meme.
+     */
+    public static void logPreviousExit() {
+        if (sExitLogged || sCtx == null || Build.VERSION.SDK_INT < 30) return;
+        sExitLogged = true;
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) sCtx.getSystemService(Context.ACTIVITY_SERVICE);
+            java.util.List<android.app.ApplicationExitInfo> list = am.getHistoricalProcessExitReasons(sCtx.getPackageName(), 0, 3);
+            if (list == null || list.isEmpty()) return;
+            android.app.ApplicationExitInfo e = list.get(0);
+            String why;
+            switch (e.getReason()) {
+                case android.app.ApplicationExitInfo.REASON_LOW_MEMORY: why = "MANQUE DE MEMOIRE (Android a tue le jeu)"; break;
+                case android.app.ApplicationExitInfo.REASON_CRASH_NATIVE: why = "PLANTAGE NATIF (C++)"; break;
+                case android.app.ApplicationExitInfo.REASON_CRASH: why = "PLANTAGE JAVA"; break;
+                case android.app.ApplicationExitInfo.REASON_ANR: why = "BLOCAGE (ANR)"; break;
+                case android.app.ApplicationExitInfo.REASON_SIGNALED: why = "TUE PAR UN SIGNAL (souvent memoire)"; break;
+                case android.app.ApplicationExitInfo.REASON_EXIT_SELF: why = "fermeture par le jeu"; break;
+                case android.app.ApplicationExitInfo.REASON_USER_REQUESTED: why = "fermee par le joueur"; break;
+                case android.app.ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE: why = "TROP DE RESSOURCES"; break;
+                default: why = "raison " + e.getReason(); break;
+            }
+            String ts = new SimpleDateFormat("dd/MM HH:mm:ss", Locale.ROOT).format(new Date(e.getTimestamp()));
+            log("Session precedente terminee le " + ts + " : " + why + " | importance " + e.getImportance()
+                    + " | memoire " + (e.getPss() / 1024) + " Mo PSS / " + (e.getRss() / 1024) + " Mo RSS | " + e.getDescription());
+            if (e.getReason() == android.app.ApplicationExitInfo.REASON_CRASH_NATIVE || e.getReason() == android.app.ApplicationExitInfo.REASON_ANR) {
+                try (java.io.InputStream in = e.getTraceInputStream()) {
+                    if (in != null) {
+                        byte[] buf = new byte[24000];
+                        int n = 0, r;
+                        while (n < buf.length && (r = in.read(buf, n, buf.length - n)) > 0) n += r;
+                        String trace = new String(buf, 0, n, java.nio.charset.StandardCharsets.ISO_8859_1);
+                        // les tombstones sont binaires (protobuf) depuis Android 12 : on garde les lignes lisibles
+                        StringBuilder sb = new StringBuilder();
+                        for (String line : trace.split("[\\n\\r]")) {
+                            String l = line.replaceAll("[^\\x20-\\x7E]", " ").trim();
+                            if (l.length() >= 6 && (l.contains("lib") || l.contains("pc ") || l.contains("signal") || l.contains("Abort") || l.contains("fault"))) sb.append("    ").append(l.length() > 200 ? l.substring(0, 200) : l).append("\n");
+                            if (sb.length() > 6000) break;
+                        }
+                        if (sb.length() > 0) log("Trace du plantage :\n" + sb);
+                    }
+                } catch (Throwable ignored) { }
+            }
+        } catch (Throwable t) {
+            log("Raison de la fin de session illisible : " + t);
+        }
     }
 
     public static void installHandler() {

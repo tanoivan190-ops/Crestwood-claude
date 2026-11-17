@@ -434,6 +434,12 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             return;
         }
         // Barre d'objets rapides du HUD : id 9840, titre "@hotbar", contenu JSON (jamais affiche comme dialogue).
+        // [v23] canal generique du HUD : id 9860, titre "@hud", JSON {"m":"mdt"|"craft"|...} -> pages integrees
+        // au HUD (cw23.js). Aucune WebView en plus : affichage instantane.
+        if (dialogId == 9860) {
+            hudJs("window.CwBus && CwBus(" + JSONObject.quote(extractJson(content)) + ")");
+            return;
+        }
         if (dialogId == 9840) {
             final String hot = extractJson(content);
             lastHotbarJson = hot;
@@ -630,9 +636,11 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "**** onCreate");
         CrashLog.bind(this);
+        CrashLog.logPreviousExit();   // [v25] raison de la fin de la session precedente (memoire, plantage natif...)
         CrashLog.logNativeDir(this);
         CrashLog.log("Dossier des donnees du jeu : '" + GetGameBaseDirectory() + "'");
         super.onCreate(savedInstanceState);
+        requestMaxRefreshRate();   // [v28] ecran 90/120 Hz : sans ca Android garde le jeu a 60 Hz
         // Vocal de proximite : on demande le micro des le lancement du jeu (sinon SampVoice ne peut pas enregistrer)
         requestMicPermission();
         CrashLog.log("Activite du jeu creee (moteur 2.10)");
@@ -896,9 +904,13 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
     private HudWebView buildWebLayer() {
         final HudWebView hudWebView = new HudWebView(this);
         addContentView(hudWebView, new FrameLayout.LayoutParams(-1, -1));
+        // [v25] telephone de l'appli ouvert -> telephone en main en jeu (on peut marcher), range a la fermeture
+        HudWebView.phoneListener = open -> sendHudCommand(open ? "/telmain 1" : "/telmain 0");
         if (hudWebView.getParent() instanceof android.view.ViewGroup) hudParent = (android.view.ViewGroup) hudWebView.getParent();
         hudWebView.setBackgroundColor(Color.TRANSPARENT);
-        hudWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        // [v22f] pas de calque materiel : il copiait tout le HUD dans une image plein ecran a chaque mise a jour
+        // (memoire + latence du clavier / des pages). La WebView est deja accelere par le GPU.
+        hudWebView.setLayerType(View.LAYER_TYPE_NONE, null);
 
         // Configuration WebView indispensable pour le rendu des pages HTML (login, HUD, etc.)
         WebSettings ws = hudWebView.getSettings();
@@ -1213,11 +1225,11 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             try {
                 android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
                 if (am != null && (am.isLowRamDevice() || am.getMemoryClass() < 160)) ok = false;
-                // [v22d] Redmi / Xiaomi et telephones a 4 Go ou moins : pas de pages gardees en memoire
+                // [v22d] telephones a 3 Go ou moins : pas de pages gardees en memoire
                 if (am != null) {
                     android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
                     am.getMemoryInfo(mi);
-                    if (mi.totalMem > 0 && mi.totalMem < 4600L * 1024L * 1024L) ok = false;
+                    if (mi.totalMem > 0 && mi.totalMem < 3500L * 1024L * 1024L) ok = false;   // [v22f] 3 Go et moins
                 }
             } catch (Throwable ignored) { }
             pageCacheOn = ok;
@@ -3928,9 +3940,10 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
         @JavascriptInterface public void action(String type, String json) {
             try {
                 String t = type == null ? "" : type.replaceAll("[^a-z]", "");
-                if (!t.equals("wear") && !t.equals("civil") && !t.equals("refresh")) return;
+                if (!t.equals("wear") && !t.equals("civil") && !t.equals("refresh") && !t.equals("gear")) return;   // [v24] gear = armurerie
                 JSONObject o = new JSONObject(json == null || json.isEmpty() ? "{}" : json);
-                String arg = o.optString("arg", "").replaceAll("[^01 ]", "").trim();
+                String arg = t.equals("gear") ? o.optString("arg", "").replaceAll("[^a-z]", "")
+                                              : o.optString("arg", "").replaceAll("[^01 ]", "").trim();
                 if (arg.length() > 12) arg = arg.substring(0, 12);
                 sendHudCommand("/lockeract " + t + (arg.isEmpty() ? "" : " " + arg));
             } catch (Exception e) {
@@ -4013,6 +4026,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             authOpenAttempts++;
             Log.i(TAG, "[auth] ecran de connexion absent -> demande au serveur (essai " + authOpenAttempts + "/5)");
             sendHudCommand("/authact open");
+            sendHudCommand("/cwdev " + deviceRamMb());   // [v25] le serveur adapte le nombre d'objets de mapping a la RAM
             requestAuthOpenLater(4000);
         }, delayMs);
     }
@@ -4982,7 +4996,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             switch (key) {
                 case "fps_counter": applyGameSetting(1, value); break;
                 case "fps_limit": applyGameSetting(2, value); break;
-                case "draw_dist": applyGameSetting(3, value); break;
+                case "draw_dist": applyGameSetting(3, CW_DRAW_DIST); break;   // [v27] meme distance pour tous
                 case "post_fx": applyGameSetting(4, value); break;
                 case "voice_btn": applyGameSetting(5, value); break;
                 case "cw_buttons": applyGameSetting(6, value); break;
@@ -4996,10 +5010,14 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
     }
 
     /** Applique les parametres enregistres (une fois, quand la partie tourne). */
+    /** [v27] distance d'affichage (LOD) IMPOSEE a tous les joueurs : les gros mappings MTA s'affichent pareil pour tout le monde. */
+    private static final int CW_DRAW_DIST = 100;   // [v28] 130 % chargeait trop la memoire (plantages sur les gros mappings)
+
     private void applySavedGameSettings() {
         SharedPreferences sp = getSharedPreferences("display_settings", MODE_PRIVATE);
+        try { applyGameSetting(3, CW_DRAW_DIST); } catch (Throwable ignored) { }
         for (String k : GAME_SETTING_KEYS) {
-            if ("gfx_preset".equals(k)) continue;
+            if ("gfx_preset".equals(k) || "draw_dist".equals(k)) continue;
             // la limite FPS / la distance / l'echelle ne sont forcees que si le joueur les a changees
             if (("fps_limit".equals(k) || "draw_dist".equals(k) || "res_scale".equals(k) || "post_fx".equals(k)) && !sp.contains("cw_" + k)) continue;
             applyGameSettingPref(k, String.valueOf(sp.getInt("cw_" + k, gameSettingDefault(k))), false);
@@ -5095,6 +5113,36 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
     private static final String CMD_CALL_REJECT = "/phoneact decline";
     /** Les actions "système" (boutique, objectifs, documents, Faggio...) passent par "/hudaction <action> <données>". */
     private static final String CMD_SYSTEM = "/hudaction";
+
+    /** [v28] Demande le mode d'affichage le plus rapide (120 / 90 Hz) a la resolution actuelle. Le jeu est deja limite a 120 FPS. */
+    private void requestMaxRefreshRate() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT < 23) return;
+            android.view.Display d = getWindowManager().getDefaultDisplay();
+            android.view.Display.Mode cur = d.getMode(), best = cur;
+            for (android.view.Display.Mode m : d.getSupportedModes()) {
+                if (m.getPhysicalWidth() == cur.getPhysicalWidth() && m.getPhysicalHeight() == cur.getPhysicalHeight()
+                        && m.getRefreshRate() > best.getRefreshRate() + 0.5f) best = m;
+            }
+            android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.preferredDisplayModeId = best.getModeId();
+            lp.preferredRefreshRate = best.getRefreshRate();
+            getWindow().setAttributes(lp);
+            com.gta.game32.CrashLog.log("Ecran : " + Math.round(best.getRefreshRate()) + " Hz demandes (mode " + best.getModeId() + ")");
+        } catch (Throwable t) {
+            com.gta.game32.CrashLog.log("Taux de rafraichissement non modifiable : " + t);
+        }
+    }
+
+    /** [v25] RAM totale du telephone en Mo (0 si inconnue). */
+    private int deviceRamMb() {
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+            am.getMemoryInfo(mi);
+            return (int) (mi.totalMem / (1024L * 1024L));
+        } catch (Throwable t) { return 0; }
+    }
 
     private void sendHudCommand(final String command) {
         if (command == null || command.trim().isEmpty()) return;

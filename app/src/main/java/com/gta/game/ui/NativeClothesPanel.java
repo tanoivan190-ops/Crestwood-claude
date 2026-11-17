@@ -69,8 +69,9 @@ public class NativeClothesPanel extends FrameLayout {
     };
 
     // corps : valeur envoyee au moteur (SkinBodies.h) + libelle
-    // [v21] seulement les 2 corps complets (catalogue + textures) : les corps AVZ / 289 sont convertis
-    private static final int[] BODY_VALUES = {0, 1};
+    // [v22f] seulement les 2 corps "Crestwood" (pack South / AVZ : 4 = homme skin 7, 3 = femme skin 12).
+    //        Les corps 163 / 9 / 289 affichaient les skins d'origine du jeu (costume, etc.) : ils sont convertis.
+    private static final int[] BODY_VALUES = {4, 3};
     private static final String[] BODY_LABELS = {"Homme", "Femme"};
 
     private static final Map<String, String> LABELS = new HashMap<>();
@@ -190,11 +191,10 @@ public class NativeClothesPanel extends FrameLayout {
             gender = o.optInt("gender", 0);
             canSwitchGender = o.optBoolean("canSwitchGender", false);
             supported = o.optBoolean("supported", false);
-            // [v21] corps retires (2 = Homme original 289, 3 = Femme II, 4 = Homme II) : on passe sur le corps
-            // complet du meme genre, sinon les pieces ne s'appliquent pas ("je peux pas changer")
-            if (!bodyMigrated && !finished && canSwitchGender && (gender == 2 || gender == 3 || gender == 4)) {
+            // [v22f] corps retires (0 = 163, 1 = 9, 2 = 289) : on passe sur le corps Crestwood du meme genre
+            if (!bodyMigrated && !finished && canSwitchGender && (gender == 0 || gender == 1 || gender == 2)) {
                 bodyMigrated = true;
-                final int target = gender == 3 ? 1 : 0;
+                final int target = gender == 1 ? 3 : 4;
                 genderLockUntil = System.currentTimeMillis() + 1600;
                 pending.clear();
                 gender = target;

@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Crestwood RP v25 - MDT de la police (fenetre macOS sombre, accent bleu #3B82FF)
+   ========================================================================== */
+.mdt{--bg:#14161b;--side:#191c23;--surf:#1f232b;--surf2:#272c36;--line:rgba(255,255,255,.07);--txt:#eceef3;--mute:#8a91a0;--acc:#3B82FF;--bad:#ef4f5a;--ok:#34c77b;--warn:#f5b544;
+  position:fixed;z-index:61;left:2.6vw;right:2.6vw;top:4vh;bottom:4vh;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;
+  background:var(--bg);color:var(--txt);font-family:Montserrat,system-ui,sans-serif;font-variant-numeric:tabular-nums;
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 0 0 .5px rgba(0,0,0,.7),0 26px 70px rgba(0,0,0,.6);
+  opacity:0;transform:scale(.975);transform-origin:50% 55%;transition:opacity .18s,transform .22s cubic-bezier(.2,.8,.2,1);contain:layout paint style}
+.mdt.show{opacity:1;transform:none}
+.mdt[hidden]{display:none!important}
+.mdt svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mdt button{font-family:inherit;color:inherit;cursor:pointer}
+
+/* barre de titre */
+.mdt-bar{position:relative;flex:none;display:flex;align-items:center;height:clamp(30px,8.4vh,36px);padding:0 14px;
+  background:linear-gradient(#2d3038,#24272e);border-bottom:1px solid rgba(0,0,0,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.mdt-lights{display:flex;gap:8px;z-index:1}
+.mdt-lights button{width:13px;height:13px;padding:0;border-radius:50%;border:.5px solid rgba(0,0,0,.35);position:relative}
+.mdt-lights button::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+.mdt-lights .l-r{background:#ff5f57}.mdt-lights .l-y{background:#febc2e}.mdt-lights .l-g{background:#28c840}
+.mdt-lights button:active{filter:brightness(.7)}
+.mdt-title{position:absolute;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:7px;pointer-events:none}
+.mdt-title img{width:18px;height:18px;object-fit:contain}
+.mdt-title b{font-size:clamp(10.5px,3.1vh,12.5px);font-weight:700;color:#e2e4ea}
+.mdt-title span{font-size:9px;font-weight:800;letter-spacing:.06em;color:#fff;background:var(--acc);border-radius:4px;padding:2px 5px}
+.mdt-clock{margin-left:auto;z-index:1;font-size:clamp(9px,2.7vh,11px);color:#9aa1ae;font-weight:600;white-space:pre}
+
+.mdt-main{flex:1;min-height:0;display:flex}
+
+/* barre laterale */
+.mdt-side{flex:none;width:clamp(160px,21vw,210px);display:flex;flex-direction:column;background:var(--side);border-right:1px solid rgba(0,0,0,.45)}
+.mdt-brand{display:flex;align-items:center;gap:10px;padding:10px 12px 8px}
+.mdt-brand img{width:clamp(34px,10vh,46px);height:clamp(34px,10vh,46px);object-fit:contain;filter:drop-shadow(0 3px 8px rgba(59,130,255,.35))}
+.mdt-brand b{display:block;font-size:clamp(13px,3.9vh,16px);font-weight:900;letter-spacing:.04em}
+.mdt-brand small{display:block;font-size:9px;color:var(--mute);font-weight:600}
+.mdt-nav{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:2px 8px;display:flex;flex-direction:column;gap:2px}
+.mdt-nav::-webkit-scrollbar{display:none}
+.mdt-nav-i{display:flex;align-items:center;gap:9px;width:100%;flex:none;height:clamp(24px,6.6vh,31px);padding:0 10px;border:0;border-radius:8px;background:none;
+  font-size:clamp(10px,3vh,12px);font-weight:600;color:#cfd3dc;text-align:left}
+.mdt-nav-i svg{color:var(--acc)}
+.mdt-nav-i span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt-nav-i em{font-style:normal;font-size:9.5px;font-weight:800;min-width:18px;height:16px;padding:0 5px;border-radius:8px;background:var(--bad);color:#fff;display:grid;place-items:center}
+.mdt-nav-i:active{background:rgba(255,255,255,.06)}
+.mdt-nav-i.on{background:var(--acc);color:#fff}
+.mdt-nav-i.on svg{color:#fff}
+.mdt-me{display:flex;align-items:center;gap:9px;margin:6px 8px 8px;padding:7px 9px;border-radius:10px;background:var(--surf);border:1px solid var(--line);position:relative}
+.mdt-me div{min-width:0}
+.mdt-me b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt-me small{display:block;font-size:9px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt-dot{position:absolute;left:33px;top:30px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--surf)}
+.mdt-avatar{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;
+  background:linear-gradient(145deg,#4b8dff,#2459d6)}
+.mdt-avatar.sm{width:26px;height:26px;font-size:10px}
+.mdt-avatar.bad{background:linear-gradient(145deg,#ff6b74,#c4313b)}
+
+/* zone de contenu */
+.mdt-view{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg) url(img/cw_police.webp) no-repeat right -40px bottom -60px / auto 70%;
+  background-blend-mode:normal}
+.mdt-head{flex:none;display:flex;align-items:center;gap:10px;padding:12px 18px 6px}
+.mdt-head-t{flex:1;min-width:0}
+.mdt-head h2{margin:0;font-size:clamp(15px,4.8vh,20px);font-weight:800;letter-spacing:-.01em}
+.mdt-head p{margin:2px 0 0;font-size:clamp(9px,2.7vh,11px);color:var(--mute);font-weight:500}
+.mdt-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:6px 18px 16px;display:flex;flex-direction:column;gap:10px;
+  background:linear-gradient(90deg,var(--bg) 55%,rgba(20,22,27,.9))}
+.mdt-body::-webkit-scrollbar{display:none}
+
+/* controles */
+.mdt-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;height:clamp(28px,8vh,32px);padding:0 12px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);background:var(--surf2);font-size:clamp(9.5px,2.8vh,11.5px);font-weight:700;white-space:nowrap}
+.mdt-btn:active{transform:scale(.97);filter:brightness(1.15)}
+.mdt-btn.main{background:var(--acc);border-color:var(--acc)}
+.mdt-btn.danger{background:var(--bad);border-color:var(--bad)}
+.mdt-btn.ghost{background:transparent}
+.mdt-btn svg{width:14px;height:14px}
+.mdt-in{flex:1;min-width:0;height:clamp(28px,8vh,32px);padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:#191c22;color:var(--txt);
+  font:600 clamp(10px,3vh,12px) Montserrat,system-ui,sans-serif;outline:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.mdt-in:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(59,130,255,.3)}
+.mdt-in::placeholder{color:#6b7280}
+.mdt-search{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-radius:11px;background:var(--surf);border:1px solid var(--line)}
+.mdt-search > svg{color:var(--mute)}
+.mdt-search .mdt-in{border:0;background:transparent;box-shadow:none;padding:0}
+
+/* blocs */
+.mdt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.mdt-stat{position:relative;padding:11px 12px;border-radius:12px;background:var(--surf);border:1px solid var(--line);overflow:hidden}
+.mdt-stat svg{position:absolute;right:10px;top:10px;width:18px;height:18px;color:var(--acc)}
+.mdt-stat b{display:block;font-size:clamp(18px,6vh,26px);font-weight:800;line-height:1.1}
+.mdt-stat small{font-size:clamp(8.5px,2.5vh,10px);color:var(--mute);font-weight:600}
+.mdt-stat.warn b{color:var(--warn)}
+.mdt-stat.warn svg{color:var(--warn)}
+.mdt-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.mdt-panel{display:flex;flex-direction:column;gap:6px;padding:11px 12px;border-radius:12px;background:var(--surf);border:1px solid var(--line)}
+.mdt-panel > header{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.mdt-panel > header b{font-size:clamp(10.5px,3.1vh,12.5px);font-weight:800}
+.mdt-panel > header small{font-size:9px;color:var(--mute)}
+.mdt-panel > .mdt-btn{align-self:flex-start}
+.mdt-line{display:flex;align-items:center;gap:9px;width:100%;padding:6px 7px;border-radius:9px;border:0;background:transparent;text-align:left}
+.mdt-line:nth-child(odd){background:rgba(255,255,255,.025)}
+.mdt-line > div{flex:1;min-width:0}
+.mdt-line b{display:block;font-size:clamp(10px,3vh,11.5px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt-line small{display:block;font-size:9px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.mdt-line:active{background:rgba(59,130,255,.15)}
+.mdt-empty{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px dashed rgba(255,255,255,.12);color:var(--mute)}
+.mdt-empty svg{width:20px;height:20px}
+.mdt-empty p{margin:0;font-size:clamp(9.5px,2.8vh,11px);font-weight:500}
+.mdt-msg{padding:6px 8px;border-left:2px solid var(--acc);background:rgba(59,130,255,.06);border-radius:0 8px 8px 0}
+.mdt-msg b{display:block;font-size:9px;color:#8fb4ff}
+.mdt-msg p{margin:1px 0 0;font-size:clamp(9.5px,2.8vh,11px)}
+.mdt-tags{display:flex;flex-wrap:wrap;gap:5px}
+.mdt-tag{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;font-size:9px;font-weight:700;background:rgba(255,255,255,.08);color:#cfd3dc;white-space:nowrap}
+.mdt-tag.blue{background:rgba(59,130,255,.18);color:#9cc0ff}
+.mdt-tag.red{background:rgba(239,79,90,.18);color:#ff9aa1}
+.mdt-tag.green{background:rgba(52,199,123,.16);color:#86e2b2}
+.mdt-tag.amber{background:rgba(245,181,68,.16);color:#ffd28a}
+.mdt-stars{display:inline-flex;gap:1px;flex:none}
+.mdt-stars i svg{width:11px;height:11px;color:#4a505c;fill:currentColor;stroke:none}
+.mdt-stars i.on svg{color:var(--warn)}
+.mdt-plate{flex:none;display:inline-block;padding:2px 7px;border-radius:4px;background:#f3f5f8;color:#12151b;font-weight:900;font-size:10.5px;letter-spacing:.04em;border:1.5px solid #12151b;box-shadow:0 0 0 1px #f3f5f8}
+.mdt-num{flex:none;font-size:10px;font-weight:800;color:var(--mute);min-width:34px}
+
+/* dossier */
+.mdt-record{display:flex;flex-direction:column;gap:10px}
+.mdt-rec-top{display:flex;gap:14px;padding:12px;border-radius:12px;background:linear-gradient(120deg,rgba(59,130,255,.14),rgba(59,130,255,.02) 60%),var(--surf);border:1px solid var(--line)}
+.mdt-mug{flex:none;width:clamp(64px,19vh,86px);aspect-ratio:3/4;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;padding:6px;
+  background:repeating-linear-gradient(0deg,#262b34 0 9px,#2b313b 9px 10px);border:1px solid var(--line);color:#5e6674}
+.mdt-mug svg{width:62%;height:auto;flex:1}
+.mdt-mug small{font-size:9px;font-weight:800;color:#cfd3dc;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px}
+.mdt-rec-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.mdt-rec-id h3{margin:0;font-size:clamp(15px,4.6vh,19px);font-weight:800}
+.mdt-rec-id dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 0}
+.mdt-rec-id dl div{padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.22)}
+.mdt-rec-id dt{font-size:8.5px;color:var(--mute);font-weight:700}
+.mdt-rec-id dd{margin:1px 0 0;font-size:clamp(10px,3vh,12px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt-act{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.mdt-starpick{display:flex;gap:2px;flex:none}
+.mdt-starpick button{width:24px;height:28px;padding:0;border:0;background:none;display:grid;place-items:center}
+.mdt-starpick svg{width:18px;height:18px;color:#4a505c;fill:currentColor;stroke:none}
+.mdt-starpick button.on svg{color:var(--warn)}
+.mdt-bigplate{flex:none;width:clamp(120px,30vw,170px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;border-radius:8px;
+  background:#f3f5f8;color:#12151b;border:3px solid #12151b;box-shadow:0 0 0 2px #f3f5f8}
+.mdt-bigplate small{font-size:8px;font-weight:800;letter-spacing:.2em;color:#2b4f9e}
+.mdt-bigplate b{font-size:clamp(18px,6vh,26px);font-weight:900;letter-spacing:.06em}
+
+/* grilles */
+.mdt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px}
+.mdt-wcard{display:flex;flex-direction:column;gap:7px;padding:11px;border-radius:12px;background:var(--surf);border:1px solid var(--line)}
+.mdt-wtop{display:flex;align-items:center;gap:9px}
+.mdt-wtop b{display:block;font-size:12px}
+.mdt-wtop small{font-size:9px;color:var(--mute)}
+.mdt-wcard p{margin:0;font-size:clamp(9.5px,2.8vh,11px);color:#c5c9d2}
+.mdt-grid.cams{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.mdt-cam{position:relative;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:2px;padding:9px;border-radius:11px;text-align:left;
+  border:1px solid var(--line);background:radial-gradient(120% 90% at 70% 20%,#2a3140,#14171d)}
+.mdt-cam > svg{position:absolute;right:10px;top:9px;color:#5e6674}
+.mdt-cam b{font-size:clamp(10px,3vh,12px)}
+.mdt-cam.on{border-color:var(--acc);box-shadow:0 0 0 2px rgba(59,130,255,.4)}
+.mdt-rec{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:800;color:#cfd3dc;letter-spacing:.04em}
+.mdt-rec i{width:6px;height:6px;border-radius:50%;background:#6b7280}
+.mdt-cam.on .mdt-rec i{background:var(--bad);animation:mdtBlink 1.2s steps(2) infinite}
+@keyframes mdtBlink{50%{opacity:.2}}
+
+/* radio */
+.mdt-chat{flex:1;min-height:90px;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:#111317;border:1px solid var(--line)}
+.mdt-chat::-webkit-scrollbar{display:none}
+.mdt-bub{max-width:78%;align-self:flex-start;padding:6px 10px;border-radius:12px 12px 12px 4px;background:var(--surf2)}
+.mdt-bub.me{align-self:flex-end;border-radius:12px 12px 4px 12px;background:var(--acc)}
+.mdt-bub b{display:block;font-size:8.5px;color:#a9c4ff}
+.mdt-bub.me b{color:#dce8ff}
+.mdt-bub p{margin:1px 0 0;font-size:clamp(10px,3vh,11.5px)}
+.mdt-compose{display:flex;gap:7px}
+
+/* radar */
+.mdt-note{margin:0;font-size:clamp(9.5px,2.8vh,11px);color:var(--mute)}
+.mdt-chips{display:flex;flex-wrap:wrap;gap:7px}
+.mdt-gauge{align-self:flex-start;display:flex;align-items:baseline;gap:5px;padding:8px 16px;border-radius:12px;border:2px solid var(--bad);background:#fff;color:#111}
+.mdt-gauge b{font-size:28px;font-weight:900}
+.mdt-gauge small{font-size:11px;font-weight:800}
+
+/* ecran de connexion */
+.mdt-login{position:absolute;inset:clamp(30px,8.4vh,36px) 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:3;
+  background:radial-gradient(70% 90% at 50% 30%,#1b2b52 0%,#10141d 60%,#0b0d12 100%);transition:opacity .35s,visibility .35s}
+.mdt-login.off{opacity:0;visibility:hidden}
+.mdt-login-logo{width:clamp(90px,30vh,150px);height:auto;filter:drop-shadow(0 10px 30px rgba(59,130,255,.45));animation:mdtFloat 4s ease-in-out infinite}
+@keyframes mdtFloat{50%{transform:translateY(-4px)}}
+.mdt-login h1{margin:4px 0 0;font-size:clamp(14px,4.6vh,20px);font-weight:900}
+.mdt-login p{margin:0;font-size:clamp(9px,2.7vh,11px);color:#8f9bb5}
+.mdt-login-card{display:flex;align-items:center;gap:10px;margin-top:6px;padding:8px 14px 8px 8px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.mdt-login-card b{display:block;font-size:12px}
+.mdt-login-card small{display:block;font-size:9.5px;color:#9aa6bf}
+.mdt-login-go{margin-top:4px;height:clamp(30px,8.6vh,36px);padding:0 28px;border-radius:9px;border:0;background:var(--acc);font-weight:800;font-size:clamp(10.5px,3.1vh,12.5px);
+  box-shadow:0 6px 18px rgba(59,130,255,.4)}
+.mdt-login-go:active{transform:scale(.97)}
+.mdt-login-bar{width:clamp(140px,26vw,220px);height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;opacity:0}
+.mdt-login-bar i{display:block;height:100%;width:0;background:var(--acc)}
+.mdt.logging .mdt-login-bar{opacity:1}
+.mdt.logging .mdt-login-bar i{width:100%;transition:width .7s ease}
+.mdt.logging .mdt-login-go{opacity:.5}
+
+/* le reste du HUD se cache derriere l'ordinateur */
+body:has(#cwMdt.show) .cw22-hb, body:has(#cwMdt.show) .interact-tap-button, body:has(#cwMdt.show) #cwAnimMini{visibility:hidden}
+/* clavier Crestwood ouvert : la fenetre remonte au-dessus */
+body.cw-kb-open .mdt{top:1vh;bottom:auto;height:52vh}
+body.cw-kb-open .mdt .mdt-side{width:clamp(130px,16vw,170px)}
+@media (max-width:700px){.mdt-stats{grid-template-columns:repeat(2,1fr)}.mdt-cols{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.mdt,.mdt-login,.mdt-login-logo{transition:none;animation:none}}

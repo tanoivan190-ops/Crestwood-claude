@@ -1,0 +1,41 @@
+CRESTWOOD RP - V24  (17/11/2026)
+================================
+
+1) MDT = ORDINATEUR
+   /mdt ouvre maintenant une fenetre d'ordinateur facon Mac qui prend presque tout l'ecran
+   (paysage) : barre de titre avec les 3 feux (rouge = fermer), menu a gauche
+   (Recherche, Recherches, Radio, Cameras, Radar) et le contenu a droite.
+   Le clavier Crestwood fait remonter la fenetre au-dessus de lui.
+   Fichiers : assets/hud/cw23.js, assets/hud/cw23.css
+
+2) VESTIAIRES : ARMURERIE
+   Dans le vestiaire de ta faction, nouvelle carte "Armurerie" :
+     Police : matraque, taser, Desert Eagle, fusil a pompe, MP5, gilet, trousse de soin
+     FBI    : Desert Eagle, MP5, M4, sniper, gilet, soin
+     Armee  : Desert Eagle, M4, AK-47, sniper, grenades, parachute, gilet, soin
+     Gouv.  : Desert Eagle, gilet, soin
+     EMS    : trousse de soin, 3 bandages (inventaire), extincteur
+     Meca   : extincteur, soin        Journalistes : appareil photo
+   Les armes a feu (police, FBI, armee, gouv.) prennent les munitions dans le stock de la
+   faction (livre par l'armee, /armee). Stock vide = pas d'arme.
+   Admin : "Creer un vestiaire ici" demande TOUJOURS de quelle faction.
+
+3) HOPITAL EMS (pack MTA KDPACKSAMU47)
+   - Mapping converti : include/HopitalEMS.inc (599 objets + ascenseur vers le toit).
+   - Le batiment (modeles 5402 / 5403) est vendu chiffre dans le pack ("centralstore") :
+     il n'est pas utilisable tel quel. Sans lui le mobilier flotterait, donc le mapping
+     reste COUPE tant que tu ne l'actives pas :
+       mettre 5402/5403 en clair dans la data, puis /mapdata hopital on, puis redemarrer.
+   - Skins SAMU (250, 275) et vehicules (416 ambulance, 466) en clair :
+     DATA_MAPPINGS/EMS_SAMU47 (voir son LISEZMOI : vehicules tres lourds).
+
+4) VETEMENTS SUR LE CORPS FEMME (skin 12)
+   Les regles de textures des vetements etaient figees sur le modele du ped au moment
+   ou elles etaient posees (ex. encore 7 juste avant le passage au corps femme) : elles
+   ne s'affichaient plus sur le corps 12. Corrige en 32 et 64 bits
+   (BrlTextureShader.cpp + ClothesCustomization.cpp).
+
+5) BOUTON D'INTERACTION PLUS PETIT
+   La main bleue / "Verrouiller" etc. : icone 30-38 px au lieu de 42-54 px, texte plus petit.
+
+A FAIRE : recompiler basicgm1.amx ET reconstruire l'APK (Java, C++ et assets ont change).

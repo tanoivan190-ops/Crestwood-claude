@@ -1,0 +1,37 @@
+CRESTWOOD RP - V26  (17/11/2026)
+================================
+
+1) PLANTAGES : ON SAURA ENFIN POURQUOI
+   Ton crestwood_log.txt ne contenait que les debuts de session : aucune trace du plantage.
+   C'est typique d'Android qui TUE le jeu par manque de memoire (TECNO KM4 : 2,8 Go de RAM),
+   ce qui ne laisse rien dans le jeu. Maintenant, a chaque lancement, le journal note la raison
+   exacte de la fin de la partie precedente (Android 11+) :
+     "MANQUE DE MEMOIRE", "PLANTAGE NATIF" (+ la trace), "BLOCAGE (ANR)"...
+   Les plantages natifs 64 bits sont aussi copies dans ce fichier.
+   => Apres le prochain plantage, relance le jeu puis envoie-moi crestwood_log.txt.
+
+2) MAPPINGS / STREAMING
+   - Limite totale des objets de mapping : 6 800 -> 9 000.
+   - Objets affiches autour du joueur : avant 720 pour tout le monde, maintenant selon le telephone :
+     moins de 2 Go de RAM : 620 | 2 a 3,5 Go : 820 | plus de 3,5 Go : 940 (SA-MP plafonne a 1 000).
+     L'appli envoie la RAM au serveur toute seule (/cwdev).
+
+3) VESTIAIRE DE FACTION (plantage en prenant la tenue)
+   Avant : le skin changeait, les textures arrivaient et la page HTML se fermait au meme instant.
+   Maintenant : la page se ferme, puis le skin change, puis la tenue s'applique (1 s plus tard).
+
+4) POMPES A ESSENCE ET LOCATIONS
+   Texte 3D "Station-service / Approche-toi et touche la main" comme le magasin de vetements
+   (et "Location de vehicules" sur les points de location).
+
+5) PANNEAU ADMIN > COMMANDES
+   Ajoutees : /maisons /pontons /garages /garageadd /garagespawn /garagedel /donnerveh /nourrir
+   /sondage /meteo /points /mapdata /mapdata hopital /pnj (liste, creer, tp, suppr).
+
+6) APPLI
+   - Demarrage refait : 5 s, photo du mec sur la Dodge, logo CREST WOOD RP, barre de chargement bleue.
+     Plus aucune mention de Nightcode.
+   - Page JOUER : meme photo (le mec sur la voiture) a la place de l'image Crestwood.
+   - Telephone : l'icone Messages n'est plus carree.
+
+A FAIRE : recompiler basicgm1.amx ET reconstruire l'APK.

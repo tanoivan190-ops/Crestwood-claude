@@ -752,6 +752,22 @@ namespace {
             for (int i = 0; i < group.count; ++i)
                 if (!wanted.contains(group.items[i].material)) wanted[group.items[i].material] = kClearTexture;
         }
+        // [v28b] le corps de base n'est JAMAIS habille : la tenue d'origine du modele (sweat, jean,
+        // chaussures...) est toujours cachee ; seuls les vetements choisis dans le studio s'affichent.
+        // Sans rien de choisi : sous-vetements (fantasy_*_underwear reste visible).
+        {
+            static const char* kTopFam[] = { "fantasy_m_torso1", "fantasy_m_torso2", "fantasy_m_torso3", "fantasy_m_torso4",
+                "fantasy_f_torso1", "fantasy_f_torso2", "fantasy_f_torso3", "fantasy_f_torso4", "fantasy_f_torso5", "fantasy_f_torso6", "fantasy_f_bikinitop" };
+            static const char* kBotFam[] = { "fantasy_m_pants1", "fantasy_m_pants2", "fantasy_m_pants3", "fantasy_m_pants4",
+                "fantasy_m_short1", "fantasy_m_short2", "fantasy_m_short3", "fantasy_f_pants1", "fantasy_f_pants2", "fantasy_f_pants4",
+                "fantasy_f_pants5", "fantasy_f_short1", "fantasy_f_bikinibotton" };
+            static const char* kShoeFam[] = { "fantasy_m_boot1", "fantasy_m_boot2", "fantasy_m_boot3", "fantasy_m_boot4",
+                "fantasy_m_slipper1", "fantasy_m_slipper2", "fantasy_m_slipper3", "fantasy_f_boot1", "fantasy_f_boot2", "fantasy_f_boot3",
+                "fantasy_f_boot5", "fantasy_f_slipper1", "fantasy_f_slipper2", "fantasy_f_slipper3" };
+            for (auto m : kTopFam) wanted[m] = kClearTexture;
+            for (auto m : kBotFam) wanted[m] = kClearTexture;
+            for (auto m : kShoeFam) wanted[m] = kClearTexture;
+        }
         std::unordered_map<std::string, std::string> body;
         const bool female = SouthModel() == 9;
         const auto torso = female ? FemaleMobileTextureName("torso", g_look.skinTone) : MobileTextureName("torso", g_look.skinTone);
@@ -760,6 +776,8 @@ namespace {
         for (auto material : kTorsoMaterials) body[material] = torso;
         for (auto material : kLegMaterials) body[material] = leg;
         for (auto material : kFeetMaterials) body[material] = feet;
+        // [v28b] peau visible partout ou il n'y a pas de vetement choisi (l'ancienne tenue la cachait)
+        for (const auto& kv : body) wanted[kv.first] = kv.second;
         std::vector<const SouthClothes::Item*> selected;
         for (const auto& group : SouthClothes::groups) {
             if (group.model != SouthModel()) continue;
@@ -789,11 +807,28 @@ namespace {
             SouthParts(item->remove, [&](const std::string& part) { wanted[part] = kClearTexture; });
     }
 
+	// [v24] dernier corps habille (local / chaque joueur distant) : au changement de corps
+	// (7 -> 12, sexe change, tenue enregistree...) on repart de zero, sinon le cache "deja pose"
+	// sautait des pieces et le corps femme restait sans vetements.
+	uint16_t g_lastLocalBody = 0;
+	std::unordered_map<uint16_t, uint16_t> g_lastRemoteBody;
+
 	void CommitWantedTextures(std::unordered_map<std::string, std::string> wanted)
 	{
         ApplySouth(wanted);
 		const bool remote = g_ctxPlayer != 0xFFFF;
 		auto& applied = remote ? g_remoteApplied[g_ctxPlayer] : g_appliedTextures;
+		{
+			const uint16_t body = RealLocalModelId();
+			uint16_t& last = remote ? g_lastRemoteBody[g_ctxPlayer] : g_lastLocalBody;
+			if (body != 0 && last != body) {
+				if (last != 0) {
+					BrlTextureShader::ClearPlayer(remote ? g_ctxPlayer : static_cast<uint16_t>(0xFFFF));
+					applied.clear();
+				}
+				last = body;
+			}
+		}
 		auto clearTex = [&](const std::string& material) {
 			if (remote) BrlTextureShader::ClearPlayerTexture(g_ctxPlayer, material);
 			else BrlTextureShader::ClearLocalPlayerTexture(material);
@@ -1419,6 +1454,7 @@ void ClothesCustomization::ApplyRemote(uint16_t playerId, const ClothesLook& loo
 
 void ClothesCustomization::ClearRemote(uint16_t playerId)
 {
+	g_lastRemoteBody.erase(playerId);
 	auto it = g_remoteApplied.find(playerId);
 	if (it != g_remoteApplied.end()) {
 		for (const auto& entry : it->second) {

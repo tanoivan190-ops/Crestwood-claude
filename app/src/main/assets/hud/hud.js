@@ -620,6 +620,9 @@
     add("peek", document.querySelector("#cwPeek.show"));
     add("note", document.querySelector(".cw-note.show .cw-note-card"));
     add("animpanel", document.querySelector("#cwAnimMini:not([hidden])"));
+    add("cw23", document.querySelector("#cw23:not([hidden])"));
+    add("mdt", document.querySelector("#cwMdt:not([hidden])"));
+    add("bike", document.querySelector("#cwBike:not([hidden])"));
     bridge.setTouchBounds(entries.join(";"));
   }
   // touch-controls.js recalcule les zones quand ses boutons apparaissent / disparaissent

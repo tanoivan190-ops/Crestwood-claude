@@ -1,0 +1,39 @@
+=====================================================================
+ CRESTWOOD RP - V23 (17/11/2026) : les systemes du cahier
+=====================================================================
+!! Recompiler le gamemode (.amx) ET l'APK (SAMP.java : nouveau canal "@hud" 9860).
+!! Les points (depot, base, usine, etabli, recyclage, arene) sont des coordonnees choisies sur la carte :
+   a verifier en jeu, a changer en haut de server/basicgm/include/Cw23.inc (#define C23_...).
+
+METHODE D'AFFICHAGE (la plus fluide)
+  Les nouvelles pages (MDT, armee, assembleur, arene, craft) vivent DANS le HUD deja charge
+  (hud/cw23.js + cw23.css) : pas de chargement de page, pas de WebView en plus -> instantane.
+  Serveur -> HUD : dialogue 9860 titre "@hud" (JSON) ; HUD -> serveur : /c23 <module> <action>.
+  Les champs texte utilisent le clavier rapide Crestwood (CwKb.openFor) : la page remonte au-dessus.
+
+1. MDT (police, FBI, armee) : /mdt
+   Recherche (nom ou ID) : avis de recherche, niveau, amendes impayees, vehicules + plaques.
+   Plaque : proprietaire et modele. Amende (50 a 50 000 $). Avis de recherche (1-6 etoiles).
+   Localiser : GPS sur un suspect recherche ou avec une amende impayee.
+   Recherches (liste), Radio inter-factions (police, FBI, armee, EMS, gouvernement ; /fr message),
+   Cameras de la ville (6 vues), Radar de vitesse (/radar [limite]) : flash + amende automatique.
+   Citoyens : /amendes, /payeramende <n> | tout.
+2. ARMEE : /charger au depot (aeroport LS) dans un vehicule -> /livrer a la base (docks) = +500 au stock.
+   /fournir police|fbi|gov <qte>, /armurerie (+60 balles a l'arme en main), /armee = stocks.
+   Un gangster qui conduit un vehicule charge -> GPS vers le recel -> /livrer = materiaux (alerte armee + police).
+3. EMS : /civiere <id> (le patient suit, monte dans l'ambulance), /chirurgie <id> -> /accepterchirurgie
+   (changement de sexe, 5 000 $ dont 2 500 $ pour le medecin).
+4. JOB ASSEMBLEUR (usine Willowfield) : /assembler (2 joueurs max), /piece -> /poser x6 (moteur, 4 roues,
+   capot), couleur au hasard, /spray, peindre la voiture (+10 % / 5 s par bombe, 2 bombes = 2x).
+   Paie : 15 000 $ au niveau 1, +1 000 $ par niveau, pour chaque membre.
+5. ARENE PVP : /arene, /quitterarene. Mapping prive (conteneurs + caisses, visible seulement des joueurs
+   de l'arene, monde 777, piste de l'aeroport de LV). Armes fournies, reapparition sur place,
+   classement dans le HUD. Pas de perte d'argent ni d'inconscience dans l'arene.
+6. CRAFT (etabli de Grove Street) : /craft -> munitions (20), 9 mm (150), Deagle (300), Uzi (350),
+   pompe (400), AK-47 (700), drogue (30). /drogue = +25 sante, +15 armure.
+7. RECYCLAGE (casse de Willowfield) : /ramasser un sac poubelle autour, /deposer a moins de 10 m
+   du point -> +60 $ et +2 materiaux.
+
+FICHIERS : server/basicgm/include/Cw23.inc (nouveau), basicgm1.pwn (hooks), hud/cw23.js + cw23.css (nouveaux),
+hud/hud-kb.js (CwKb.openFor), hud/hud.js (zone tactile), hud/index.html, SAMP.java 64 + 32 (canal 9860).
+Base : scriptfiles/crestwood_v23.db (creee toute seule).

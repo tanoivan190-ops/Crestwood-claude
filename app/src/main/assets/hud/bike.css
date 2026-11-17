@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Crestwood RP v25 - Location de velo (BMX) - page plein ecran du HUD
+   ========================================================================== */
+@font-face{font-family:"CwMontBk";src:url("../common/fonts/montserrat_black.ttf") format("truetype");font-weight:900;font-display:swap}
+@font-face{font-family:"CwMontBk";src:url("../common/fonts/montserrat_bold.ttf") format("truetype");font-weight:700;font-display:swap}
+@font-face{font-family:"CwMontBk";src:url("../common/fonts/montserrat_medium.ttf") format("truetype");font-weight:500;font-display:swap}
+.bk{--acc:#2f7bff;--acc2:#1a5ee8;--panel:rgba(14,18,26,.86);--line:rgba(255,255,255,.12);
+  position:fixed;inset:0;z-index:62;display:grid;grid-template-rows:auto 1fr auto;gap:1.6vh;padding:3.4vh 3.2vw 3vh;color:#fff;
+  font-family:CwMontBk,Montserrat,system-ui,sans-serif;
+  background:radial-gradient(90% 80% at 30% 55%,rgba(10,14,22,.25),rgba(6,9,14,.82) 70%),linear-gradient(rgba(6,9,14,.55),rgba(6,9,14,.78));
+  opacity:0;transition:opacity .2s;contain:layout paint style}
+.bk.show{opacity:1}
+.bk[hidden]{display:none!important}
+.bk svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bk button{font-family:inherit;color:inherit;cursor:pointer}
+
+/* bandeau du haut */
+.bk-top{display:flex;align-items:center;gap:clamp(10px,1.8vw,22px);height:clamp(54px,16vh,76px);padding:0 clamp(10px,1.6vw,18px);border-radius:12px;
+  background:linear-gradient(90deg,rgba(14,18,26,.95),rgba(14,18,26,.8));border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.35);
+  transform:translateY(-10px);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.bk.show .bk-top{transform:none}
+.bk-logo{height:115%;margin:-4% 0 -10%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.bk-sep{width:3px;align-self:stretch;margin:12px 0;border-radius:2px;background:rgba(255,255,255,.75)}
+.bk-ico{width:clamp(44px,8vw,64px);color:#fff;display:grid;place-items:center}
+.bk-ico svg{width:100%;stroke-width:2.6}
+.bk-title{flex:1;min-width:0;border-left:1px solid var(--line);padding-left:clamp(10px,1.6vw,18px)}
+.bk-title h1{margin:0;font-weight:900;font-style:italic;font-size:clamp(18px,6.6vh,30px);line-height:1;letter-spacing:-.01em;text-transform:uppercase}
+.bk-title h1 em{color:var(--acc);font-style:italic}
+.bk-title p{margin:4px 0 0;font-weight:500;font-style:italic;font-size:clamp(9.5px,3vh,13px);color:#d5dbe6}
+.bk-x{flex:none;width:clamp(34px,10vh,44px);height:clamp(34px,10vh,44px);border-radius:9px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);display:grid;place-items:center}
+.bk-x svg{width:55%;height:55%;stroke-width:2.8}
+.bk-x:active{background:rgba(255,255,255,.15)}
+
+/* scene : velo + fiche */
+.bk-stage{min-height:0;display:grid;grid-template-columns:1.25fr 1fr;align-items:center;gap:2vw}
+.bk-photo{position:relative;margin:0;height:100%;min-height:0}
+.bk-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  -webkit-mask-image:radial-gradient(ellipse 62% 66% at 50% 52%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 62% 66% at 50% 52%,#000 58%,transparent 100%);
+  transform:translateX(-18px) scale(.97);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1) .05s,opacity .4s .05s}
+.bk.show .bk-photo img{transform:none;opacity:1}
+.bk-card{align-self:stretch;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:1.1vh;padding:1.8vh 1.6vw;border-radius:12px;
+  background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.bk-card h2{margin:0;font-weight:900;font-style:italic;font-size:clamp(26px,10vh,46px);line-height:.95;letter-spacing:-.01em}
+.bk-tag{margin:0;font-style:italic;font-weight:500;font-size:clamp(10px,3.2vh,14px);color:#d5dbe6;padding-bottom:1.2vh;border-bottom:1px solid rgba(255,255,255,.18)}
+.bk-specs{margin:0;padding:.6vh .8vw;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.bk-specs div{display:grid;grid-template-columns:1fr 1fr;align-items:center;height:clamp(24px,7.6vh,36px)}
+.bk-specs div + div{border-top:1px solid rgba(255,255,255,.07)}
+.bk-specs dt{display:flex;align-items:center;gap:10px;font-weight:500;font-size:clamp(10px,3.1vh,14px);color:#d5dbe6}
+.bk-specs dt svg{width:clamp(16px,5vh,22px);height:clamp(16px,5vh,22px);color:#fff;padding-right:10px;border-right:1px solid rgba(255,255,255,.18);box-sizing:content-box}
+.bk-specs dd{margin:0;font-weight:700;font-size:clamp(10.5px,3.3vh,15px)}
+.bk-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bk-tile{display:flex;align-items:center;gap:10px;padding:1.4vh .9vw;border-radius:10px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08)}
+.bk-tile svg{flex:none;width:clamp(26px,9vh,40px);height:clamp(26px,9vh,40px);stroke-width:1.7}
+.bk-tile small{display:block;font-weight:500;font-style:italic;font-size:clamp(9px,2.8vh,12.5px);color:#d5dbe6}
+.bk-tile b{display:block;font-weight:900;font-style:italic;font-size:clamp(16px,6vh,28px);line-height:1.05;white-space:nowrap}
+.bk-tile:first-child b{color:var(--acc)}
+
+/* barre du bas */
+.bk-bar{display:flex;align-items:stretch;gap:10px;min-height:clamp(46px,14vh,62px)}
+.bk-tip{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.bk-tip span{flex:none;width:clamp(26px,8vh,34px);height:clamp(26px,8vh,34px);border-radius:50%;background:#fff;color:#0e121a;display:grid;place-items:center;
+  font:900 italic clamp(13px,4.4vh,19px)/1 Georgia,serif}
+.bk-tip p{margin:0;padding-left:12px;border-left:1px solid rgba(255,255,255,.25);font-style:italic;font-weight:500;font-size:clamp(9px,2.8vh,12.5px);line-height:1.3;color:#e6eaf1}
+.bk-pay{flex:none;display:flex;gap:6px;padding:5px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.bk-pay[hidden]{display:none}
+.bk-pay button{min-width:clamp(70px,11vw,110px);padding:0 10px;border-radius:8px;border:1px solid transparent;background:transparent;text-align:left}
+.bk-pay small{display:block;font-weight:500;font-size:9.5px;color:#aab4c6}
+.bk-pay b{display:block;font-weight:700;font-size:clamp(10px,3.1vh,13px);white-space:nowrap}
+.bk-pay button.on{background:rgba(47,123,255,.2);border-color:var(--acc)}
+.bk-go{flex:none;display:flex;align-items:center;justify-content:center;gap:14px;min-width:clamp(190px,32vw,330px);padding:0 24px;border-radius:12px;border:1px solid #7fb0ff;
+  background:linear-gradient(180deg,#3d8bff,#1659e0);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px rgba(30,100,255,.45)}
+.bk-go svg{width:clamp(34px,6vw,50px);stroke-width:2.6}
+.bk-go span{font-weight:900;font-style:italic;font-size:clamp(14px,5vh,22px);white-space:nowrap}
+.bk-go:active{transform:scale(.98);filter:brightness(.92)}
+.bk-go.off{filter:grayscale(.65) brightness(.75);box-shadow:none}
+.bk.renting .bk-go{background:linear-gradient(180deg,#34c77b,#1f9a5a);border-color:#8fe3b0;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 22px rgba(30,180,100,.35)}
+.bk.renting .bk-tile:last-child b{color:#ffd166}
+.bk-back{position:absolute;left:3.2vw;bottom:3vh;display:none}
+
+/* Retour : sous la barre si la hauteur le permet, sinon le X suffit */
+@media (min-height:430px){
+  .bk{padding-bottom:calc(3vh + 54px)}
+  .bk-back{display:flex;align-items:center;gap:16px;height:44px;padding:0 26px 0 18px;border-radius:10px;border:1px solid var(--line);background:rgba(10,13,19,.9);font-weight:700;font-style:italic;font-size:16px}
+  .bk-back svg{width:24px;height:24px;stroke-width:2.6}
+}
+.bk-toast{position:absolute;left:50%;top:calc(3.4vh + clamp(54px,16vh,76px) + 10px);transform:translateX(-50%);padding:8px 16px;border-radius:9px;font-weight:700;font-size:12px;
+  background:#1f9a5a;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.bk-toast.bad{background:#d93a44}
+.bk-toast[hidden]{display:none}
+body:has(#cwBike.show) .hud-root{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.bk,.bk-top,.bk-photo img{transition:none}}

@@ -1,0 +1,9 @@
+/* ==========================================================================
+   Crestwood RP v25 - nouvelles icones des 3 boutons (Menu, Reglages, Telephone)
+   ========================================================================== */
+.hud-root .quick-actions svg.cw25-ico{stroke-width:1.7!important}
+.hud-root .quick-actions svg.cw25-ico .cw25-fill,svg.cw25-ico .cw25-fill{fill:currentColor!important;stroke:none!important}
+.hud-root .quick-actions .corner-action svg.cw25-ico{fill:none!important;stroke:currentColor!important;stroke-linecap:round;stroke-linejoin:round}
+/* l'icone du menu tourne legerement quand la roue est ouverte */
+.hud-root .quick-actions .corner-action.menu-open svg.cw25-ico{transform:rotate(45deg);transition:transform .2s}
+.hud-root .quick-actions .corner-action svg.cw25-ico{transition:transform .2s}

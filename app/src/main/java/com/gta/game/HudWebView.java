@@ -88,13 +88,25 @@ public class HudWebView extends WebView {
     public void resetHudMode() {
         fullscreenPage = false;
         phonePage = false;
+        notifyPhone(false);
         cameraPage = false;
         wheelOpen = false;
         touchGrabbed = false;
     }
     public void setFullscreenPage(boolean value) { fullscreenPage = value; cameraPage = false; }
     public void setVehicleMode(boolean value) { vehicleMode = value; }
-    public void setPhonePage(boolean value) { phonePage = value; cameraPage = false; }
+    public void setPhonePage(boolean value) { phonePage = value; cameraPage = false; notifyPhone(value); }
+
+    // [v25] telephone ouvert / ferme (toutes couches confondues) -> le perso sort son telephone en jeu (/telmain)
+    public interface PhoneListener { void onPhone(boolean open); }
+    public static volatile PhoneListener phoneListener;
+    private static boolean sPhoneOpen;
+    private static void notifyPhone(boolean open) {
+        if (open == sPhoneOpen) return;
+        sPhoneOpen = open;
+        PhoneListener l = phoneListener;
+        if (l != null) { try { l.onPhone(open); } catch (Throwable ignored) { } }
+    }
 
     /** Caméra du téléphone : seules les zones du cadre téléphone (haut/bas) captent, le viseur laisse passer le tactile vers le jeu. */
     public void setCameraPage(boolean value) { cameraPage = value; }

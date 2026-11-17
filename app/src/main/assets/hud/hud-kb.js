@@ -10,9 +10,11 @@
    ===================================================================== */
 (() => {
   "use strict";
-  const input = document.querySelector(".floating-chat-composer input");
+  const chatInput = document.querySelector(".floating-chat-composer input");
   const form = document.querySelector(".floating-chat-composer");
-  if (!input || !form) return;
+  if (!chatInput || !form) return;
+  // [v23] le meme clavier rapide sert aussi aux champs des pages du HUD (MDT, craft...) : CwKb.openFor(champ, valider)
+  let input = chatInput, externalDone = null;
 
   const KEY = "cw.kb.macros";
   const MAX_MACROS = 24;
@@ -49,7 +51,10 @@
   const chips = kb.querySelector("#cwKbChips");
 
   const save = () => { try { window.localStorage.setItem(KEY, JSON.stringify(macros)); } catch (_) {} };
-  const canBuzz = typeof navigator.vibrate === "function";
+  // [v22f] vibration coupee par defaut : sur Xiaomi / Redmi chaque vibration bloquait le moteur de la page
+  // quelques ms -> lettres en retard. Pour la remettre : localStorage "cwKbBuzz" = "1".
+  let canBuzz = false;
+  try { canBuzz = typeof navigator.vibrate === "function" && localStorage.getItem("cwKbBuzz") === "1"; } catch (_) { canBuzz = false; }
   const buzz = (ms) => { if (canBuzz) { try { navigator.vibrate(ms); } catch (_) {} } };
   const hold = (e) => { e.stopPropagation(); };
 
@@ -86,6 +91,7 @@
     notifyInput();
   }
   function submit() {
+    if (input !== chatInput) { const cb = externalDone, v = input.value; close(); if (cb) cb(v); return; }
     if (!input.value.trim()) return;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     if (typeof form.requestSubmit === "function") form.requestSubmit();
@@ -313,6 +319,7 @@
     return true;
   }
   function close() {
+    if (input !== chatInput) { input.readOnly = false; input.removeAttribute("inputmode"); input = chatInput; externalDone = null; }
     isOpen = false;
     kb.hidden = true;
     document.body.classList.remove("cw-kb-open");
@@ -323,5 +330,13 @@
 
   kb.addEventListener("pointerdown", hold);
   kb.addEventListener("touchstart", hold, { passive: true });
-  window.CwKb = { open, close: reset, isOpen: () => isOpen, element: kb };
+  function openFor(el, done) {
+    if (!el) return false;
+    if (isOpen) close();
+    input = el; externalDone = typeof done === "function" ? done : null;
+    nativeOnce = false;
+    const ok = open();
+    return ok;
+  }
+  window.CwKb = { open, openFor, close: reset, isOpen: () => isOpen, element: kb };
 })();

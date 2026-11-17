@@ -114,11 +114,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
   var CATS = [
     { id: "gfx", n: "Graphismes", rows: [
       { k: "gfx_preset", n: "Qualité graphique", t: "list", o: PRESETS.map(function (p, i) { return [p.n, i]; }),
-        d: "Règle d'un coup la résolution, la distance d'affichage et les effets. « Bas » pour les petits téléphones." },
+        d: "Règle d'un coup la résolution et les effets (la distance d'affichage est la même pour tous). « Bas » pour les petits téléphones." },
       { k: "res_scale", n: "Échelle de résolution", t: "bar", min: 50, max: 100, step: 5, u: " %",
         d: "Moins de pixels = plus de FPS. 100 % = la résolution de ton écran." },
-      { k: "draw_dist", n: "Distance d'affichage", t: "bar", min: 40, max: 160, step: 10, u: " %",
-        d: "Distance à laquelle les bâtiments détaillés apparaissent. Plus bas = plus fluide." },
       { k: "post_fx", n: "Effets visuels", t: "list", o: ONOFF,
         d: "Filtres de couleur et effets d'image du jeu. Les couper donne quelques FPS en plus." },
       { k: "fps_limit", n: "Limite d'images (FPS)", t: "list", o: [["30", 30], ["45", 45], ["60", 60], ["90", 90], ["120", 120]],
@@ -169,7 +167,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
       apply(r.k, r.o[i][1]);
       if (r.k === "gfx_preset") {
         var p = PRESETS[r.o[i][1]];
-        apply("res_scale", p.res_scale, true); apply("draw_dist", p.draw_dist, true); apply("post_fx", p.post_fx, true);
+        apply("res_scale", p.res_scale, true); apply("post_fx", p.post_fx, true);
         toast("Qualité « " + p.n + " » appliquée");
       }
     } else if (r.t === "bar") {

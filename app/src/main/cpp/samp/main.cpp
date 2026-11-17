@@ -86,6 +86,8 @@ void InitRenderWareFunctions();
 void InitializeGraphicsSystem();
 void InstallCrashFixHooks();
 void Log(const char* fmt, ...);
+// [v25] pendant un plantage, le journal est aussi copie dans crestwood_log.txt (dossier de l'appli)
+static volatile bool g_logMirror = false;
 
 int work = 0;
 
@@ -137,6 +139,7 @@ void handler(int signum, siginfo_t *info, void* contextPtr)
 
 	if(info->si_signo == SIGSEGV)
 	{
+		g_logMirror = true;
 		Log("SIGSEGV | Fault address: %p", info->si_addr);
 
 		PRINT_CRASH_STATES(context);
@@ -160,6 +163,7 @@ void handler1(int signum, siginfo_t *info, void* contextPtr)
 
 	if(info->si_signo == SIGABRT)
 	{
+		g_logMirror = true;
 		Log("SIGABRT | Fault address: %p", info->si_addr);
 
 		PRINT_CRASH_STATES(context);
@@ -181,6 +185,7 @@ void handler2(int signum, siginfo_t *info, void* contextPtr)
 
 	if(info->si_signo == SIGFPE)
 	{
+		g_logMirror = true;
 		Log("SIGFPE | Fault address: %p", info->si_addr);
 
 		PRINT_CRASH_STATES(context);
@@ -202,6 +207,7 @@ void handler3(int signum, siginfo_t *info, void* contextPtr)
 
 	if(info->si_signo == SIGBUS)
 	{
+		g_logMirror = true;
 		Log("SIGBUS | Fault address: %p", info->si_addr);
 
 		PRINT_CRASH_STATES(context);
@@ -674,6 +680,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 	static struct sigaction act4_old;
 	struct sigaction act4;
 	act4.sa_sigaction = [](int signum, siginfo_t* info, void* contextPtr) {
+		g_logMirror = true;
 		Log("SIGILL | Fault address: %p", info->si_addr);
 		CStackTrace::printBacktrace();
 		if (act4_old.sa_sigaction) act4_old.sa_sigaction(signum, info, contextPtr);
@@ -713,6 +720,12 @@ void Log(const char* fmt, ...)
 	LOGI("%s", buffer);
 	firebase::crashlytics::Log(buffer);
 
+	if (g_logMirror)
+	{
+		static FILE* flCrash = nullptr;
+		if (!flCrash) flCrash = fopen("/storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_log.txt", "a");
+		if (flCrash) { fprintf(flCrash, "  [natif] %s\n", buffer); fflush(flCrash); }
+	}
 	if (flLog == nullptr) return;
 	fprintf(flLog, "%s\n", buffer);
 	fflush(flLog);

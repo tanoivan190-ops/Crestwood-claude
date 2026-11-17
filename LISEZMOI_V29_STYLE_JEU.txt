@@ -1,0 +1,6 @@
+CRESTWOOD RP - V29  (17/11/2026)
+================================
+- Panneaux (banque, boutique, emploi, vestiaire, maison, gang, faction, peche, rapports, gouvernement,
+  police...) : style GTA V / FiveM, fond image de la ville, titres italique gras, boutons bleus.
+- INVENTAIRE : ancien style remis (inchange).
+A FAIRE : reconstruire l'APK (assets seulement).

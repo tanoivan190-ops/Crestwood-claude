@@ -1,0 +1,16 @@
+CRESTWOOD RP - V28  (17/11/2026)
+================================
+1) PLANTAGE EN ARRIVANT SUR UN MAPPING
+   La v27 chargeait trop d'objets d'un coup (950 par joueur, distance 130 %). Maintenant, toujours
+   pareil pour tout le monde mais plus raisonnable : 800 objets, 260 m, distance du jeu 100 %,
+   et les objets arrivent plus progressivement.
+   Si ca plante encore : relance le jeu et envoie crestwood_log.txt (il dit maintenant POURQUOI).
+2) 120 FPS
+   Le jeu etait deja limite a 120 FPS, mais Android laissait l'ecran a 60 Hz. L'appli demande
+   maintenant le mode 120 Hz (ou 90 Hz) du telephone. Regle la "Limite d'images" sur 120 dans Reglages.
+   (Il faut un telephone avec un ecran 90/120 Hz.)
+3) LE PERSO N APPARAIT PLUS HABILLE PAR DEFAUT
+   La tenue d'origine du corps (sweat, jean, chaussures) est TOUJOURS cachee : sans rien de choisi,
+   le perso est en sous-vetements. Seuls les vetements pris dans le studio s'affichent, jamais par-dessus.
+   32 et 64 bits.
+A FAIRE : recompiler basicgm1.amx ET reconstruire l'APK.

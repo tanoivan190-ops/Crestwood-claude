@@ -34,7 +34,8 @@
   const FOOT_SPAN = 260;      // unités visibles sur la largeur du cadre, à pied
   const VEHICLE_SPAN = 260;   // base en véhicule, + vitesse
   const SPEED_SPAN_GAIN = 1.6;
-  const MIN_FRAME_MS = 33;    // [v19] ~30 images / s maximum (moins de travail pour la WebView posee sur le jeu)
+  // [v19] ~30 images / s maximum ; [v22f] 20 images / s sur les telephones a 4 Go ou moins (navigator.deviceMemory)
+  const MIN_FRAME_MS = (navigator.deviceMemory && navigator.deviceMemory <= 4) ? 50 : 33;
   const ROUTE_COLOR = "#3b82ff";        // [v20] bleu Crestwood (avant : violet GTA V)
   const ROUTE_EDGE = "rgba(6, 14, 32, 0.92)";
   const ROUTE_CORE = "rgba(190, 215, 255, 0.95)";

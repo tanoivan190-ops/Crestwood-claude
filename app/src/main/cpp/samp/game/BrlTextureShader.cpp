@@ -450,7 +450,12 @@ bool BrlTextureShader::HasTexture(const std::string& textureName)
 
 bool BrlTextureShader::SetPlayerTexture(uint16_t playerId, const std::string& sourceTexture, const std::string& replacementTexture)
 {
-	return SetRule({BrlShaderTargetType::Player, playerId, 0}, sourceTexture, replacementTexture, CurrentPlayerModelId(playerId));
+	// [v24] regle valable quel que soit le modele du ped : la regle est deja propre a CE joueur.
+	// Avant, elle etait figee sur le modele du moment (ex. 7 juste avant le passage au corps femme 12,
+	// ou modele pas encore change cote client) et ne s'affichait plus jamais sur le nouveau corps.
+	// ClothesCustomization vide les regles du joueur a chaque changement de corps.
+	(void) CurrentPlayerModelId;
+	return SetRule({BrlShaderTargetType::Player, playerId, 0}, sourceTexture, replacementTexture, kAnyShaderModelId);
 }
 
 bool BrlTextureShader::SetLocalPlayerTexture(const std::string& sourceTexture, const std::string& replacementTexture)

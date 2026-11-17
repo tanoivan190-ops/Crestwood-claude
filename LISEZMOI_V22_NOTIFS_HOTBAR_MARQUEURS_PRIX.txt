@@ -57,6 +57,17 @@
    - Journal des plantages en 32 ET 64 bits : Android/data/com.crestwood.rp/files/crestwood_log.txt
      (modele du telephone, RAM, erreur Java exacte). Si ca plante encore : envoie ce fichier.
 
+8. V22f : SKINS, VITESSE, ROUE, CLAVIER
+   - Studio de style : "Homme" = corps Crestwood skin 7, "Femme" = corps Crestwood skin 12 (ceux qui ont les
+     vetements du pack). Les skins 163 / 9 / 289 affichaient les skins d'origine du jeu (costume...) : les
+     joueurs dessus sont passes automatiquement sur le bon corps (serveur : CLOTH_SKIN_MALE 7, FEMALE 12).
+   - Vitesse : la WebView du HUD n'a plus de calque materiel (copie plein ecran a chaque mise a jour = lent
+     + memoire) ; pages gardees en memoire sur les telephones de plus de 3 Go ; minimap a 20 images/s sur
+     les telephones a 4 Go ou moins ; marqueurs 3D : noms seulement a moins de 32 m (6 max), visibles a 60 m.
+   - Clavier du chat : vibration coupee (bloquait Xiaomi / Redmi a chaque lettre), le clavier ne fait plus
+     recalculer tout le HUD a chaque touche.
+   - Les 3 boutons et le bouton d'anims sont plus petits. La roue du Menu est AU MILIEU de l'ecran.
+
 FICHIERS : hud/anim-mini.js (nouveau), server/basicgm/include/Cw22.inc (nouveau), basicgm1.pwn (hooks + admin), hud (hud-v22.css,
 hud.js, hotbar.js, index.html), admin/admin.js, common/cw-signal.css, blazer/index.html,
 cpp/samp + cpp/samp32 game/WorldMarkers.cpp, COMMANDES_CRESTWOOD_RP.txt. Apercu : apercu_v22.jpg

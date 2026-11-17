@@ -219,3 +219,48 @@
 - cw-signal.css v22 : habillage unique (variables --cw-glass) ; blazer charge cw-signal.
 - v22b : hud/anim-mini.js (window.CwAnim.toggle, #cwAnimMini, zone tactile "animpanel") ouvert par .animations-toggle-button (hud.js) ; serveur Anim_Quick (/animq, /anim, /stopanim) sur g_RpAnim / g_RpAnimMode / g_RpCur de Rp.inc. hud-v22.css sections 4 (capsule .quick-actions) et 5 (mini page). Attention : .interact-tap-button garde display:none quand [hidden].
 - v22d (stabilite) : HeightProvider (game, game32, nvidia) showAtLocation protege (token null / finishing, 10 essais, try/catch), dismiss dans SAMP.onDestroy ; setOffscreenPreRaster retire ; pageCacheEnabled = false si RAM totale < 4,6 Go ; CrashLog (game32) utilise aussi par game/GTASA (64 bits), fichier crestwood_log.txt.
+- v22f : corps du studio = 4 (skin 7) et 3 (skin 12) ; NativeClothesPanel migre 0/1/2 ; serveur CLOTH_SKIN_MALE 7 / FEMALE 12, Cloth_BaseSkin 163/289 -> 7, 9 -> 12. hudWebView LAYER_TYPE_NONE. Cache des pages si RAM > 3,5 Go. minimap MIN_FRAME_MS 50 si deviceMemory <= 4. hud-kb.js : vibration desactivee (localStorage cwKbBuzz=1 pour la remettre). hud-v22.css sections 6 (roue Menu centree) et 7 (contain sur .cw-kb). WorldMarkers kMaxDist 60, kLabelDist 32, kMaxLabels 6.
+
+## v23 (17/11/2026) : MDT, armee, EMS, assembleur, arene, craft, recyclage
+- include/Cw23.inc (apres <Cw22>), base crestwood_v23.db (c23_players, c23_fines, c23_stock). Hooks : init, connect, disconnect, OnPlayerSpawn (Cw23_OnSpawn EN DERNIER), OnPlayerDeath (inArena = Cw23_OnDeath -> Bank_OnDeath / Cw_OnDeath sautes), OnPlayerStateChange, commandes AVANT Law_OnCommand (/mdt = nouveau MDT, /centrale = ancienne tablette).
+- Canal HUD generique : dialogue 9860 "@hud" -> SAMP.java hudJs("CwBus(json)") -> hud/cw23.js (modules mdt, army, asm, arena, craft). HUD -> serveur : sendChatMessage("/c23 <module> <action> ..."). A reutiliser pour toute nouvelle page : pas de WebView en plus.
+- hud-kb.js : CwKb.openFor(input, valider) = clavier Crestwood sur n'importe quel champ du HUD.
+- Arene : objets joueur (CreatePlayerObject) crees a l'entree, detruits a la sortie ; monde 777.
+
+## v24 (17/11/2026) : MDT ordinateur, armurerie des vestiaires, hopital EMS, corps femme
+- MDT = fenetre facon macOS (classe .mac sur #cw23 quand mod === "mdt") : barre de titre + 3 feux (rouge/jaune ferment), barre laterale (onglets avec icones), contenu a droite, 94vw x 90vh. Les autres modules gardent le panneau de droite. Structure commune : header + .cw23-main (nav + body).
+- Vestiaire : Locker_GearJson(type) = liste [cle, libelle, info] par type de faction, envoyee dans "@locker" ("gear", "stock"). Action JS "gear <cle>" -> /lockeract gear <cle> -> Locker_Gear (memes controles faction / distance / delai). Armes a feu des factions armees = munitions prises dans g_C23Stock (C23_TakeStock / C23_StockOf dans Cw23.inc). SampLockerBridge (2 SAMP.java) accepte "gear" (arg [a-z]).
+- Admin : creation de vestiaire -> demande TOUJOURS la faction (liste, ou numero si la liste des factions n'est pas chargee).
+- include/HopitalEMS.inc : 599 objets du .map MTA (objets "scale" != 1 ignores) + batiment 5403/5402 + ascenseur du toit (pickups 1318, MapHopital_OnPickup). Charge seulement si scriptfiles/mappings/hopital_ems_ok.txt (/mapdata hopital on). Le batiment du pack est chiffre (centralstore) : ne pas tenter de le dechiffrer, demander les fichiers en clair.
+- Vetements corps femme (12) : BrlTextureShader::SetPlayerTexture pose les regles en kAnyShaderModelId (avant : figees sur le modele du moment -> rien sur le nouveau corps). ClothesCustomization::CommitWantedTextures vide les regles + le cache "deja pose" quand le corps change (g_lastLocalBody / g_lastRemoteBody). samp ET samp32.
+- Bouton d'interaction du HUD reduit (hud-v22.css section 3 : icone 30-38 px, texte 9-11 px).
+- Piege Pawn : strcmp("", "on") == 0 -> toujours tester arg[0] avant (corrige dans /mapdata).
+
+## v25 (17/11/2026) : MDT pro + logo CPD, location de velo, interaction auto, icones, telephone en main
+- MDT : nouvelle fenetre hud/mdt.js + mdt.css (#cwMdt, CwMdt.onData). cw23.js renvoie m === "mdt" vers CwMdt. Ecran de connexion (logo img/cw_police.webp, une fois par session), tableau de bord (unites, avis, amendes, radars), citoyens, vehicules, recherches, radio, cameras, radar. Mdt_Home envoie en plus id, rank, fines, radars, online, units [[id,nom,faction,enVehicule]].
+- Extension generique : window.CwBusExt[m] = fonction (ex. bike.js). A utiliser pour toute nouvelle page HUD.
+- include/Cw25.inc (apres <Cw23>) : location de velo BMX (table c25_bikes dans crestwood_v23.db, admin bikeadd/bikedel/bikegoto/bikelist, cle d'interaction 200, marqueur WorldMarkers type 19 = pictogramme velo dans samp ET samp32), 500 $ / 1 h, rendu automatique en roulant sur un point, amende 750 $ dans c23_fines sinon. Page hud/bike.js + bike.css (photo img/bmx.webp).
+- Interaction automatique (Interact_Refresh) : en ARRIVANT sur un marqueur (cle precedente 0), cles 10 30 50 60 70 71 90 110 150 160 190 200 -> Interact_Do. Pas maison (120/121), vehicule, joueur, police, braquage, PNJ. Re-arme quand on s'eloigne de 3 m (g_InteractArmed / g_InteractAutoPos), 2,5 s mini entre deux.
+- Telephone en main : HudWebView.phoneListener (static) appele a chaque ouverture / fermeture de la page telephone -> /telmain 1|0 -> SPECIAL_ACTION_USECELLPHONE (on peut marcher). Les 2 SAMP.java posent le listener.
+- HUD : icones des 3 boutons (Menu = grille, Reglages = engrenage, Telephone = smartphone) + hud-v25.css ; faim = burger.svg (anneau + compteur). Telephone : widgets d'accueil (calendrier + Crestwood), dock sans libelles.
+
+## v26 (17/11/2026) : plantages, streaming, demarrage sans Nightcode
+- Diagnostic : CrashLog.logPreviousExit() (Android 11+) ecrit dans crestwood_log.txt POURQUOI la session precedente s'est arretee (MANQUE DE MEMOIRE, PLANTAGE NATIF + trace, ANR...). 64 bits : appele par startSession (GTASA) ; 32 bits : apres CrashLog.bind dans SAMP.onCreate. samp/main.cpp : g_logMirror copie aussi le journal du gestionnaire de signaux dans crestwood_log.txt.
+- Streaming des mappings : MS_MAX_OBJ 9000 (avant 6800), plafond par joueur selon la RAM envoyee par l'appli (/cwdev <Mo> avant /authact open) : < 2 Go 620, 2-3,5 Go 820, > 3,5 Go 940 (avant 720 pour tous). Ms_Cap / Ms_SetDevice.
+- Vestiaires : Locker_Apply / RpX_WearUniform / RpX_RemoveUniform ferment d'abord la page HTML, puis skin (350 ms, actions speciales et anims coupees), puis apparence (900 ms plus tard). Avant : skin + textures + navigation de la WebView au meme instant.
+- Textes 3D "Station-service" / "Location de vehicules" (meme style que le magasin de vetements) : Svc_BuildLabels (Cw25.inc), reconstruits dans Marks_SendAll.
+- Panneau admin > Commandes : ajout de /maisons /pontons /garages /garageadd /garagespawn /garagedel /donnerveh /nourrir /sondage /meteo /points /mapdata /mapdata hopital /pnj liste|creer|tp|suppr.
+- Launcher : IntroOverlay reecrit (5 s : photo du joueur sur la Dodge, logo cw_boot_logo, barre bleue, plus de "Nightcode"). Page JOUER : fond intro_slide_1.
+- Telephone : icones d'apps (Messages) arrondies meme avec le badge non lus (overflow visible).
+
+## v27 (17/11/2026) : meme streaming pour tous
+- Streamer Pawn (Ms) : plafond commun MS_PLAYER_CAP 950 pour TOUS (plus d'adaptation a la RAM, /cwdev ne fait que logger), chargement MS_LOAD_MARGIN 320 / dechargement 400, distance d'affichage mini MS_MIN_DRAW 350, une case qui depasse le plafond est chargee en partie (avant : sautee). MS_MAX_OBJ 11000, MS_MAX_MAT 6000, MS_MAX_ZONES 900.
+- Appli : distance d'affichage (LOD) imposee a 130 % (CW_DRAW_DIST, 2 SAMP.java), curseur retire de la page Reglages.
+
+## v28 (17/11/2026) : plantage en arrivant sur un mapping, 120 Hz, vetements par-dessus la tenue
+- Streamer : plafond commun 800 (950 plantait), chargement 260 / dechargement 340, MS_MIN_DRAW 300, MS_PER_TICK 40 (pics plus doux). LOD impose 100 % (CW_DRAW_DIST).
+- requestMaxRefreshRate() dans les 2 SAMP.onCreate : mode d'ecran le plus rapide (120/90 Hz) a la meme resolution ; le moteur est deja limite a 120 FPS (ApplyFPSPatch).
+- ApplySouth (samp + samp32) : la tenue d'origine du corps est TOUJOURS cachee (familles torso / pants-short-bikini / boot-slipper) et la peau remise partout ; seuls les vetements "south" choisis s'affichent (sans rien : sous-vetements). Ancienne note : choisir une piece cache toute la famille (fantasy_*_torso*, pants/short/bikini, boot/slipper) : plus de vetement par-dessus le sweat / jean de base.
+
+## v29 (17/11/2026) : style "jeu" (GTA V / FiveM) sur les panneaux
+- common/cw-pro.css section [v29] : fond image common/img/bg-city-1.webp + voile, police CwGame (common/fonts), titres italique gras, coins 9-12 px, boutons principaux bleus. Exclus : pages html[data-flat] et html[data-sg] (inventaire : le joueur a prefere l'ancien style, garde tel quel).

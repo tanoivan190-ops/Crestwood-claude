@@ -14,7 +14,7 @@
     "Bannir (durée), débannir, véhicules, météo, heure, armes, jetpack", "Ban hors ligne, créer / supprimer des factions, points de gang, commandes",
     "Rôles du staff (en dessous de son niveau)", "Argent liquide et banque", "Redémarrage, fin de saison des gangs", "Tous les droits"];
   const GANG_RANKS = ["Recrue", "Soldat", "Lieutenant", "Chef"];
-  const state = { lvl: 0, role: "Joueur", me: -1, count: 0, players: [], lockers: [], cshops: [], prices: [], chat: [], sel: null, tab: "players", filter: "",
+  const state = { lvl: 0, role: "Joueur", me: -1, count: 0, players: [], lockers: [], cshops: [], bikes: [], prices: [], chat: [], sel: null, tab: "players", filter: "",
     reports: [], repView: -1, thread: null, repFilter: "all", myName: "",
     fac: [], gangs: [], gangOnline: [], season: 1, bans: [], banNow: 0, log: [], logNow: 0,
     world: { invis: 0, rt: 1, gz: [], pumps: [], auc: [] }, npcs: [], cjobs: [] };
@@ -708,7 +708,10 @@ function renderFactions() {
       add.type = "button";
       add.style.marginTop = "6px";
       add.addEventListener("click", () => {
-        if (!state.fac.length) { send("lockeradd", 0, "1"); return; }
+        if (!state.fac.length) {
+          openModal({ title: "Vestiaire de quelle faction ?", text: "Numéro de la faction (voir /factions) :", value: "1", number: true }, { fn: (v) => { const id = parseInt(v, 10); if (id > 0) send("lockeradd", 0, String(id)); } });
+          return;
+        }
         openModal({ title: "Vestiaire de quelle faction ?", text: "Seuls ses membres pourront l'utiliser.", choices: state.fac.map((f) => f.n) }, { fn: (pick) => send("lockeradd", 0, String(state.fac[Number(pick) || 0].id)) });
       });
       c.appendChild(add);
@@ -730,6 +733,37 @@ function renderFactions() {
         });
         row.appendChild(go);
         row.appendChild(del);
+        list.appendChild(row);
+      });
+      c.appendChild(list);
+    }));
+
+    // [v25] locations de velo (BMX) : le joueur marche sur le marqueur velo -> page de location
+    box.appendChild(serverCard("Locations de vélo", 4, (c) => {
+      c.appendChild(el("p", "adm-hint", "Place-toi à pied, dehors : un marqueur vélo apparaît au sol avec un texte 3D. Le joueur marche dessus pour louer un BMX (500 $ / 1 h) et le rend en roulant jusqu'à n'importe quel point."));
+      const add = el("button", "adm-btn primary", "Créer une location ici");
+      add.type = "button";
+      add.style.marginTop = "6px";
+      add.addEventListener("click", () => send("bikeadd", 0, ""));
+      c.appendChild(add);
+      const list = el("div", "adm-lockers");
+      if (!state.bikes.length) list.appendChild(el("div", "adm-empty", "Aucune location de vélo pour le moment."));
+      state.bikes.forEach((m) => {
+        const row = el("div", "adm-locker");
+        const info = el("div", "adm-locker-info");
+        info.appendChild(el("b", "", "Location de vélo #" + m.i));
+        info.appendChild(el("small", "", "X " + m.x + " · Y " + m.y + " · Z " + m.z));
+        row.appendChild(info);
+        const go = el("button", "adm-btn", "Y aller");
+        go.type = "button";
+        go.addEventListener("click", () => send("bikegoto", m.i, ""));
+        row.appendChild(go);
+        if (state.lvl >= 4) {
+          const del = el("button", "adm-btn danger", "Supprimer");
+          del.type = "button";
+          del.addEventListener("click", () => openModal({ title: "Supprimer la location #" + m.i + " ?", text: "Le point disparaît pour tous les joueurs." }, { fn: () => send("bikedel", m.i, "") }));
+          row.appendChild(del);
+        }
         list.appendChild(row);
       });
       c.appendChild(list);
@@ -810,13 +844,14 @@ function renderFactions() {
     else if (d.x === "ban") { state.bans = Array.isArray(d.bans) ? d.bans : []; state.banNow = Number(d.now) || Math.floor(Date.now() / 1000); }
     else if (d.x === "log") { state.log = Array.isArray(d.log) ? d.log : []; state.logNow = Number(d.now) || 0; }
     else if (d.x === "cshop") state.cshops = Array.isArray(d.shops) ? d.shops : [];
+    else if (d.x === "bike") state.bikes = Array.isArray(d.l) ? d.l : [];
     else if (d.x === "prices") { state.prices = Array.isArray(d.items) ? d.items : []; renderServer(); return; }
     else if (d.x === "npc") { state.npcs = Array.isArray(d.l) ? d.l : []; renderWorld(); return; }
     else if (d.x === "cjobs") { state.cjobs = Array.isArray(d.l) ? d.l : []; renderWorld(); return; }
     else if (d.x === "world") { state.world = { invis: Number(d.invis) || 0, rt: Number(d.rt) || 0, gz: d.gz || [], pumps: d.pumps || [], auc: d.auc || [] }; renderWorld(); renderHead(); return; }
     else return;
     if (d.x === "fac" || d.x === "gang") { renderList(); renderDetail(); renderFactions(); }
-    if (d.x === "cshop") renderFactions();
+    if (d.x === "cshop" || d.x === "bike") renderFactions();
     if (d.x === "ban") renderServer();
     if (d.x === "log") renderStaff();
   }
@@ -878,7 +913,27 @@ function renderFactions() {
     { cat: "Médical", c: "/blesses", lvl: 1, d: "Liste des joueurs inconscients (GPS vers le premier)." },
     { cat: "Médical", c: "/reanimer", lvl: 2, d: "Réanimer un joueur inconscient.", p: [P.id] },
     { cat: "Divers", c: "/vocal", lvl: 1, d: "État du vocal de proximité (micro)." },
-    { cat: "Divers", c: "/debloquer", lvl: 1, d: "Se débloquer si on est figé." }
+    { cat: "Divers", c: "/debloquer", lvl: 1, d: "Se débloquer si on est figé." },
+    // [v25] commandes staff qui n'etaient pas encore dans le panneau
+    { cat: "Immobilier", c: "/maisons", lvl: 4, d: "Liste des maisons (ID, prix, propriétaire)." },
+    { cat: "Pêche", c: "/pontons", lvl: 4, d: "Liste des pontons de pêche." },
+    { cat: "Garages", c: "/garages", lvl: 6, d: "Liste des garages." },
+    { cat: "Garages", c: "/garageadd", lvl: 6, d: "Créer un garage à ta position (à pied).", p: [{ ph: "Nom du garage", w: 200, opt: true }] },
+    { cat: "Garages", c: "/garagespawn", lvl: 6, d: "Placer la sortie des véhicules d'un garage (sois au volant, à l'endroit voulu).", p: [{ ph: "ID garage", num: true, w: 100 }] },
+    { cat: "Garages", c: "/garagedel", lvl: 6, d: "Supprimer un garage.", p: [{ ph: "ID garage", num: true, w: 100 }], danger: true },
+    { cat: "Véhicules", c: "/donnerveh", lvl: 8, d: "Donner un véhicule à un joueur (rangé dans son garage).", p: [P.who, { ph: "Modèle (ex : sultan)", w: 160 }, { ph: "Prix affiché", num: true, w: 110, opt: true }] },
+    { cat: "Médical", c: "/nourrir", lvl: 2, d: "Remettre la faim et la soif à 100 (toi si pas d'ID).", p: [{ ph: "ID joueur", num: true, w: 90, opt: true }] },
+    { cat: "Monde", c: "/sondage", lvl: 1, d: "Lancer un sondage oui / non à tout le serveur.", p: [{ ph: "Question", w: 260 }] },
+    { cat: "Monde", c: "/meteo", lvl: 1, d: "Relancer le cycle météo (auto) ou figer une météo (0 à 45).", p: [{ ph: "auto ou 0-45", w: 120 }] },
+    { cat: "Monde", c: "/points", lvl: 4, d: "Panneau des points : pompes, locations, arrivées, lieux." },
+    { cat: "Mappings", c: "/mapdata", lvl: 7, d: "Mappings à modèles perso (Banque Atlas, Mécano, Concession SF) : actifs au prochain redémarrage. Seulement si la data est à jour.", p: [{ sel: [["on", "Activer"], ["off", "Couper"]] }] },
+    { cat: "Mappings", c: "/mapdata hopital", lvl: 7, d: "Hôpital EMS (pack SAMU47) au prochain redémarrage, seulement si les modèles 5402/5403 sont dans la data.", p: [{ sel: [["on", "Activer"], ["off", "Couper"]] }] },
+    { cat: "PNJ", c: "/pnj liste", lvl: 4, d: "Liste des PNJ (aussi : onglet Monde > PNJ)." },
+    { cat: "PNJ", c: "/pnj creer", lvl: 4, d: "Créer un PNJ à ta position.", p: [{ sel: [["vendeur", "Vendeur"], ["banquier", "Banquier"], ["guide", "Guide"], ["instructeur", "Instructeur"], ["coursier", "Coursier"], ["securite", "Sécurité"], ["etatcivil", "État civil"], ["ambiance", "Ambiance"]] }, { ph: "Skin", num: true, w: 80 }, { ph: "Nom", w: 160 }] },
+    { cat: "PNJ", c: "/pnj tp", lvl: 4, d: "Se téléporter à un PNJ.", p: [{ ph: "ID PNJ", num: true, w: 90 }] },
+    { cat: "PNJ", c: "/pnj suppr", lvl: 4, d: "Supprimer un PNJ.", p: [{ ph: "ID PNJ", num: true, w: 90 }], danger: true },
+    { cat: "Location de vélo", c: "/rendrevelo", lvl: 0, d: "Rendre le vélo loué (près d'un point de location)." },
+    { cat: "Police & prison", c: "/mdt", lvl: 0, d: "Ouvrir le MDT (forces de l'ordre)." }
   ];
   function renderCmds() {
     const box = $("admCmds");

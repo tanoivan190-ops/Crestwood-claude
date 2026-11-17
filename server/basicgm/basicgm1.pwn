@@ -1307,6 +1307,9 @@ stock Veh_OnCommand(playerid, const cmdtext[])
 #define INTERACT_PLAYER       8      // un autre joueur tout pres : menu d'interaction (module INTERFACES)
 
 new g_InteractCur[MAX_PLAYERS];      // cle de la cible actuellement affichee (0 = rien)
+new g_InteractArmed[MAX_PLAYERS] = {1, ...};   // [v25] interaction automatique en marchant sur un marqueur
+new g_InteractAutoLast[MAX_PLAYERS];
+new Float:g_InteractAutoPos[MAX_PLAYERS][3];
 
 // Definies plus bas (module FACTIONS + VESTIAIRES)
 forward Locker_InteractKey(playerid);
@@ -1327,6 +1330,9 @@ stock Interact_Key(playerid)
 
 	new csKey = Cs_InteractKey(playerid);        // [v21] magasin de vetements (190)
 	if (csKey) return csKey;
+
+	new bikeKey = Bike_InteractKey(playerid);    // [v25] location de velo (200)
+	if (bikeKey) return bikeKey;
 
 	new garKey = Garage_InteractKey(playerid);   // module GARAGES (garage 90)
 	if (garKey) return garKey;
@@ -1396,6 +1402,7 @@ stock Interact_Send(playerid, key)
 		case 160: format(json, sizeof json, "{\"show\":1,\"id\":\"rent\",\"label\":\"Location\"}");
 		case 170: format(json, sizeof json, "{\"show\":1,\"id\":\"talk\",\"label\":\"Parler\"}");
 		case 190: format(json, sizeof json, "{\"show\":1,\"id\":\"clothes\",\"label\":\"Vetements\"}");
+		case 200: format(json, sizeof json, "{\"show\":1,\"id\":\"bike\",\"label\":\"Location de velo\"}");
 		case 141: format(json, sizeof json, "{\"show\":1,\"id\":\"rob\",\"label\":\"Pirater\"}");
 		case 142: format(json, sizeof json, "{\"show\":1,\"id\":\"rob\",\"label\":\"Prendre\"}");
 		case 20:  format(json, sizeof json, "{\"show\":1,\"id\":\"vehicle_lock\",\"label\":\"Verrouiller\"}");
@@ -1410,10 +1417,36 @@ stock Interact_Send(playerid, key)
 stock Interact_Refresh(playerid)
 {
 	new key = Interact_Key(playerid);
+	// [v25] re-arme l'interaction automatique quand le joueur s'est eloigne du dernier point declenche
+	if (!g_InteractArmed[playerid] && !IsPlayerInRangeOfPoint(playerid, 3.0, g_InteractAutoPos[playerid][0], g_InteractAutoPos[playerid][1], g_InteractAutoPos[playerid][2])) g_InteractArmed[playerid] = 1;
 	if (key == g_InteractCur[playerid]) return 0;
+	new prev = g_InteractCur[playerid];
 	g_InteractCur[playerid] = key;
 	Interact_Send(playerid, key);
+	// [v25] marqueurs 3D au sol : on marche dessus -> l'action se lance toute seule (sauf maison, vehicule,
+	// joueur, police, braquage, PNJ). Seulement en ARRIVANT sur le point (prev == 0) : pas de ping-pong
+	// entree/sortie apres une teleportation, et une page fermee ne se rouvre pas tant qu'on reste dessus.
+	if (prev == 0 && Interact_IsAuto(key) && g_InteractArmed[playerid])
+	{
+		new now = GetTickCount();
+		if (g_InteractAutoLast[playerid] == 0 || now - g_InteractAutoLast[playerid] > 2500)
+		{
+			g_InteractAutoLast[playerid] = (now == 0 ? 1 : now);
+			g_InteractArmed[playerid] = 0;
+			GetPlayerPos(playerid, g_InteractAutoPos[playerid][0], g_InteractAutoPos[playerid][1], g_InteractAutoPos[playerid][2]);
+			Interact_Do(playerid);
+		}
+	}
 	return 1;
+}
+
+stock Interact_IsAuto(key)
+{
+	switch (key)
+	{
+		case 10, 30, 50, 60, 70, 71, 90, 110, 150, 160, 190, 200: return 1;
+	}
+	return 0;
 }
 
 public Interact_Update()
@@ -1444,6 +1477,7 @@ stock Interact_Do(playerid)
 		case 15, 16:           Svc_InteractDo(playerid);     // station-service / location
 		case 17:               Npc_Talk(playerid);           // [v18] PNJ
 		case 19:               Cs_Use(playerid);             // [v21] magasin de vetements
+		case 20:               Bike_Use(playerid);           // [v25] location de velo
 	}
 	// met a jour l'icone tout de suite (banque ouverte -> cachee, cadenas -> nouveau libelle)
 	Interact_Refresh(playerid);
@@ -1459,6 +1493,8 @@ stock Interact_OnInit()
 stock Interact_OnConnect(playerid)
 {
 	g_InteractCur[playerid] = 0;
+	g_InteractArmed[playerid] = 1;
+	g_InteractAutoLast[playerid] = GetTickCount();   // pas d'ouverture automatique juste apres la connexion
 	return 1;
 }
 
@@ -2458,8 +2494,8 @@ stock Inv_OnCommand(playerid, const cmdtext[])
 
 #define CLOTH_COUNT           46          // nombre de valeurs d'apparence
 #define CLOTH_MAX_VALUE       255          // valeur max acceptee par champ
-#define CLOTH_SKIN_MALE       163
-#define CLOTH_SKIN_FEMALE     9
+#define CLOTH_SKIN_MALE       7           // [v22f] corps Crestwood homme (avant 163 = costume d'origine)
+#define CLOTH_SKIN_FEMALE     12          // [v22f] corps Crestwood femme (avant 9)
 #define CLOTH_PRICE           0           // prix d'un changement (0 = gratuit)
 #define CLOTH_SAVE_DELAY_MS   1000        // anti-spam entre deux sauvegardes
 
@@ -2561,11 +2597,11 @@ stock Cloth_IsValidSkin(skin)
 	return (skin == 7 || skin == 9 || skin == 12 || skin == 163 || skin == 246 || skin == 280 || skin == 289);
 }
 
-// [v21] corps retires du studio (Homme II 7, Femme II 12, Homme original 289) -> corps complet du meme genre
+// [v22f] corps retires du studio (163, 9, 289 = skins d'origine du jeu) -> corps Crestwood du meme genre (7 / 12)
 stock Cloth_BaseSkin(skin)
 {
-	if (skin == 12) return CLOTH_SKIN_FEMALE;
-	if (skin == 7 || skin == 289) return CLOTH_SKIN_MALE;
+	if (skin == 9) return CLOTH_SKIN_FEMALE;
+	if (skin == 163 || skin == 289) return CLOTH_SKIN_MALE;
 	return skin;
 }
 
@@ -2611,7 +2647,7 @@ stock Cloth_Load(playerid)
 				if (vals[i] > CLOTH_MAX_VALUE) vals[i] = CLOTH_MAX_VALUE;
 				g_ClothV[playerid][i] = vals[i];
 			}
-			if (skin == 289) { for (new i = 0; i < CLOTH_COUNT; i++) g_ClothV[playerid][i] = g_ClothDefault[i]; }   // [v21] autre catalogue
+			if (skin == 289) { for (new i = 0; i < CLOTH_COUNT; i++) g_ClothV[playerid][i] = g_ClothDefault[i]; }   // autre catalogue
 			g_ClothSkin[playerid] = Cloth_BaseSkin(skin);
 			g_ClothSaved[playerid] = 1;
 		}
@@ -3323,11 +3359,33 @@ stock Locker_LoadCivilData(playerid)
 }
 
 // Sauvegarde l'apparence en memoire et l'envoie au joueur + aux autres
+// [v25] anti-plantage : la page du vestiaire se ferme d'abord (la WebView quitte la page),
+// puis le skin change, et l'apparence n'est envoyee qu'une fois le nouveau modele charge
+// (avant : skin + textures + page HTML dans le meme instant -> plantage sur certains telephones).
+forward Locker_ApplySkin(playerid);
+forward Locker_ApplyLook(playerid);
 stock Locker_Apply(playerid)
 {
 	g_ClothLoaded[playerid] = 1;
 	Cloth_SaveToDB(playerid);
+	if (g_LockerOpen[playerid]) Locker_Close(playerid, 1);
+	SetTimerEx("Locker_ApplySkin", 350, false, "i", playerid);
+	return 1;
+}
+
+public Locker_ApplySkin(playerid)
+{
+	if (!IsPlayerConnected(playerid)) return 0;
+	if (GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_NONE && GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_CUFFED) SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
+	ClearAnimations(playerid);
 	SetPlayerSkin(playerid, g_ClothSkin[playerid]);
+	SetTimerEx("Locker_ApplyLook", 900, false, "i", playerid);
+	return 1;
+}
+
+public Locker_ApplyLook(playerid)
+{
+	if (!IsPlayerConnected(playerid)) return 0;
 	Cloth_Send(playerid, CLOTH_DIALOG_APPLY);
 	Cloth_Broadcast(playerid);
 	SetTimerEx("Cloth_Resend", 1500, false, "i", playerid);
@@ -3538,9 +3596,60 @@ stock Locker_InteractKey(playerid)
 	return INTERACT_LOCKER * 10;
 }
 
+// [v24] armurerie du vestiaire : [cle, libelle, info] selon le type de faction
+// armes = munitions prises dans le stock de la faction (ravitaillement de l'armee, Cw23.inc)
+stock Locker_GearJson(t, out[], size)
+{
+	out[0] = 0;
+	switch (t)
+	{
+		case FACTION_POLICE:     format(out, size, "[\"matraque\",\"Matraque\",\"\"],[\"taser\",\"Taser\",\"50 balles\"],[\"deagle\",\"Desert Eagle\",\"70 balles\"],[\"pompe\",\"Fusil a pompe\",\"40 balles\"],[\"mp5\",\"MP5\",\"180 balles\"],[\"gilet\",\"Gilet pare-balles\",\"armure 100\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_FEDERAL:    format(out, size, "[\"deagle\",\"Desert Eagle\",\"70 balles\"],[\"mp5\",\"MP5\",\"180 balles\"],[\"m4\",\"M4\",\"200 balles\"],[\"sniper\",\"Sniper\",\"20 balles\"],[\"gilet\",\"Gilet pare-balles\",\"armure 100\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_ARMY:       format(out, size, "[\"deagle\",\"Desert Eagle\",\"70 balles\"],[\"m4\",\"M4\",\"200 balles\"],[\"ak\",\"AK-47\",\"200 balles\"],[\"sniper\",\"Sniper\",\"20 balles\"],[\"grenade\",\"Grenades\",\"x3\"],[\"parachute\",\"Parachute\",\"\"],[\"gilet\",\"Gilet pare-balles\",\"armure 100\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_GOVERNMENT: format(out, size, "[\"deagle\",\"Desert Eagle\",\"70 balles\"],[\"gilet\",\"Gilet pare-balles\",\"armure 100\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_MEDIC:      format(out, size, "[\"soin\",\"Trousse de soin\",\"sante 100\"],[\"bandages\",\"Bandages\",\"x3 inventaire\"],[\"extincteur\",\"Extincteur\",\"\"]");
+		case FACTION_MECHANIC:   format(out, size, "[\"extincteur\",\"Extincteur\",\"\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_NEWS:       format(out, size, "[\"camera\",\"Appareil photo\",\"\"]");
+	}
+	return 1;
+}
+
+stock Locker_Gear(playerid, const key[], msg[], msize)
+{
+	new t = Fac_Type(playerid), list[700];
+	Locker_GearJson(t, list, sizeof list);
+	new pat[24];
+	format(pat, sizeof pat, "[\"%s\"", key);
+	if (!key[0] || strfind(list, pat) == -1) return format(msg, msize, "Pas disponible pour ta faction."), 0;
+	new w = 0, ammo = 0;
+	if (!strcmp(key, "matraque")) { w = 3; ammo = 1; }
+	else if (!strcmp(key, "taser")) { w = 23; ammo = 50; }
+	else if (!strcmp(key, "deagle")) { w = 24; ammo = 70; }
+	else if (!strcmp(key, "pompe")) { w = 25; ammo = 40; }
+	else if (!strcmp(key, "mp5")) { w = 29; ammo = 180; }
+	else if (!strcmp(key, "m4")) { w = 31; ammo = 200; }
+	else if (!strcmp(key, "ak")) { w = 30; ammo = 200; }
+	else if (!strcmp(key, "sniper")) { w = 34; ammo = 20; }
+	else if (!strcmp(key, "grenade")) { w = 16; ammo = 3; }
+	else if (!strcmp(key, "parachute")) { w = 46; ammo = 1; }
+	else if (!strcmp(key, "extincteur")) { w = 42; ammo = 500; }
+	else if (!strcmp(key, "camera")) { w = 43; ammo = 50; }
+	else if (!strcmp(key, "gilet")) { SetPlayerArmour(playerid, 100.0); return format(msg, msize, "Gilet pare-balles equipe."), 1; }
+	else if (!strcmp(key, "soin")) { SetPlayerHealth(playerid, 100.0); return format(msg, msize, "Soigne."), 1; }
+	else if (!strcmp(key, "bandages")) { Inv_SetQty(playerid, "bandage", Inv_GetQty(playerid, "bandage") + 3); return format(msg, msize, "3 bandages ajoutes a l'inventaire."), 1; }
+	if (!w) return format(msg, msize, "Objet inconnu."), 0;
+	// armes a feu : munitions prises dans le stock de la faction
+	if (w >= 22 && w <= 34 && (t == FACTION_POLICE || t == FACTION_FEDERAL || t == FACTION_ARMY || t == FACTION_GOVERNMENT))
+	{
+		if (!C23_TakeStock(t, ammo)) return format(msg, msize, "Stock de munitions vide : demande a l'armee."), 0;
+	}
+	GivePlayerWeapon(playerid, w, ammo);
+	return format(msg, msize, "Equipement pris."), 1;
+}
+
 stock Locker_Send(playerid, dialogid, ok, const msg[])
 {
-	new json[420], fname[48], rname[32];
+	new json[1200], fname[48], rname[32], gear[700];
 	new fac = Fac_Get(playerid);
 	Fac_Name(fac, fname, sizeof fname);
 	Fac_RankName(fac, g_FacRank[playerid], rname, sizeof rname);
@@ -3554,8 +3663,9 @@ stock Locker_Send(playerid, dialogid, ok, const msg[])
 		hat = g_ClothV[playerid][CLOTH_IDX_HAT];
 	}
 	else female = (g_ClothSkin[playerid] == CLOTH_SKIN_FEMALE) ? 1 : 0;
-	format(json, sizeof json, "{\"fac\":%d,\"facName\":\"%s\",\"rank\":%d,\"rankName\":\"%s\",\"uniform\":%d,\"female\":%d,\"belt\":%d,\"vest\":%d,\"hat\":%d,\"police\":%d,\"ok\":%d,\"msg\":\"%s\"}",
-		fac, fname, g_FacRank[playerid], rname, uniform, female, belt, vest, hat, (Fac_Type(playerid) == FACTION_POLICE) ? 1 : 0, ok, msg);
+	Locker_GearJson(Fac_Type(playerid), gear, sizeof gear);
+	format(json, sizeof json, "{\"fac\":%d,\"facName\":\"%s\",\"rank\":%d,\"rankName\":\"%s\",\"uniform\":%d,\"female\":%d,\"belt\":%d,\"vest\":%d,\"hat\":%d,\"police\":%d,\"ok\":%d,\"msg\":\"%s\",\"stock\":%d,\"gear\":[%s]}",
+		fac, fname, g_FacRank[playerid], rname, uniform, female, belt, vest, hat, (Fac_Type(playerid) == FACTION_POLICE) ? 1 : 0, ok, msg, C23_StockOf(Fac_Type(playerid)), gear);
 	return ShowPlayerDialog(playerid, dialogid, DIALOG_STYLE_MSGBOX, "@locker", json, "OK", "");
 }
 
@@ -3599,6 +3709,13 @@ stock Locker_Action(playerid, const params[])
 	if (Fac_Type(playerid) == FACTION_NONE) format(msg, sizeof msg, "Reserve aux membres de la faction.");
 	else if (Locker_Find(playerid) == -1 || g_LkFac[Locker_Find(playerid)] != Fac_Get(playerid)) format(msg, sizeof msg, "Tu es trop loin du vestiaire de ta faction.");
 	else if (g_LockerLast[playerid] != 0 && now - g_LockerLast[playerid] < LOCKER_COOLDOWN_MS) format(msg, sizeof msg, "Doucement, patiente une seconde.");
+	else if (!strcmp(action, "gear", true))
+	{
+		new key[12];
+		Bank_NextToken(params, idx, key, sizeof key);
+		g_LockerLast[playerid] = (now == 0 ? 1 : now);
+		ok = Locker_Gear(playerid, key, msg, sizeof msg);
+	}
 	else if (Fac_Type(playerid) != FACTION_POLICE && !strcmp(action, "wear", true))
 	{
 		// autres factions : uniforme simple (skin SA de la faction)
@@ -7904,16 +8021,17 @@ stock Map_OnCommand(playerid, const cmdtext[])
 //  Ms_BeginZone / Ms_EndZone restent acceptes (ils ne font plus rien).
 // ============================================================
 
-#define MS_MAX_OBJ            6800        // objets de mapping au total
-#define MS_MAX_MAT            4400        // textures personnalisees
+#define MS_MAX_OBJ            11000       // objets de mapping au total ([v27] 9000 -> 11000)
+#define MS_MAX_MAT            6000        // textures personnalisees ([v27] 4400 -> 6000)
 #define MS_MAX_TXT            140         // textes sur objets
-#define MS_MAX_ZONES          600         // cases de MS_CELL x MS_CELL metres
+#define MS_MAX_ZONES          900         // cases de MS_CELL x MS_CELL metres
 #define MS_CELL               60.0 
 #define MS_PLAYERS            120         // ids joueurs geres (maxplayers <= 120)
-#define MS_PLAYER_CAP         720         // objets max par joueur (limite SA-MP : 1000 ; 720 = marge memoire telephones)
-#define MS_LOAD_MARGIN        220.0       // distance de chargement au-dela du rayon de la case
-#define MS_UNLOAD_MARGIN      300.0
-#define MS_PER_TICK           60          // cout max par tick et par joueur (objet = 1, + 1 par texture/texte) : anti-crash
+#define MS_PLAYER_CAP         800         // [v28] MEME plafond pour TOUS (950 en v27 faisait planter en arrivant sur un gros mapping)
+#define MS_LOAD_MARGIN        260.0       // [v27] distance de chargement au-dela du rayon de la case (avant 220) : identique pour tous
+#define MS_UNLOAD_MARGIN      340.0       // (avant 300)
+#define MS_MIN_DRAW           300.0       // [v27] distance d'affichage minimale d'un objet (les .map MTA convertis arrivaient a 150-200 m)
+#define MS_PER_TICK           40          // [v28] 60 -> 40 : moins de pics en arrivant sur un mapping ; cout max par tick et par joueur (objet = 1, + 1 par texture/texte) : anti-crash
 #define MS_TICK_MS            250
 #define MS_TP_DIST            120.0       // deplacement > 120 m entre deux ticks = teleportation
 #define MS_TP_PAUSE           2           // ticks sans creation apres une teleportation (le client libere l'ancien mapping)
@@ -7957,6 +8075,7 @@ new g_MsPState[MS_PLAYERS][MS_MAX_ZONES];     // 0 rien, 1 en chargement, 2 char
 new g_MsPNext[MS_PLAYERS][MS_MAX_ZONES];      // prochain objet a creer
 new g_MsPObj[MS_PLAYERS][MS_MAX_OBJ];         // id d'objet joueur (0 = aucun)
 new g_MsPCount[MS_PLAYERS];                   // objets de mapping crees pour ce joueur
+new g_MsCap[MS_PLAYERS];                      // [v25] plafond d'objets de ce joueur (RAM du telephone)
 new Float:g_MsPLast[MS_PLAYERS][3];           // position au tick precedent (detection des teleportations)
 new g_MsPPause[MS_PLAYERS];                   // ticks restants sans creation (apres teleportation)
 
@@ -7980,7 +8099,7 @@ stock Ms_Add(modelid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, F
 	g_MsModel[i] = modelid;
 	g_MsPos[i][0] = x; g_MsPos[i][1] = y; g_MsPos[i][2] = z;
 	g_MsPos[i][3] = rx; g_MsPos[i][4] = ry; g_MsPos[i][5] = rz;
-	g_MsDraw[i] = (dd <= 0.0) ? 300.0 : dd;
+	g_MsDraw[i] = (dd < MS_MIN_DRAW) ? MS_MIN_DRAW : dd;   // [v27] meme distance d'affichage pour tous les mappings
 	g_MsMatHead[i] = -1;
 	g_MsTxt[i] = -1;
 	return i;
@@ -8110,7 +8229,7 @@ stock Ms_Build()
 // ---- Creation / destruction pour un joueur ----
 stock Ms_CreateFor(playerid, i)
 {
-	if (g_MsPCount[playerid] >= MS_PLAYER_CAP) return 0;
+	if (g_MsPCount[playerid] >= Ms_Cap(playerid)) return 0;
 	new o = CreatePlayerObject(playerid, g_MsModel[i], g_MsPos[i][0], g_MsPos[i][1], g_MsPos[i][2], g_MsPos[i][3], g_MsPos[i][4], g_MsPos[i][5], g_MsDraw[i]);
 	if (o == INVALID_OBJECT_ID) return 0;
 	g_MsPObj[playerid][i] = o;
@@ -8151,7 +8270,7 @@ stock Ms_LoadZone(playerid, z, budget)
 			for (new m = g_MsMatHead[i]; m != -1; m = g_MsMatNext[m]) cost++;
 			for (new t = g_MsTxt[i]; t != -1; t = g_MsTxtNext[t]) cost++;
 			if (budget > 0 && cost > budget && budget < MS_PER_TICK) { budget = 0; break; }   // la suite au prochain tick
-			if (!Ms_CreateFor(playerid, i) && g_MsPCount[playerid] >= MS_PLAYER_CAP) break;   // plafond atteint
+			if (!Ms_CreateFor(playerid, i) && g_MsPCount[playerid] >= Ms_Cap(playerid)) break;   // plafond atteint
 			if (budget > 0) budget = (cost >= budget) ? 0 : budget - cost;
 		}
 		g_MsPNext[playerid][z]++;
@@ -8185,7 +8304,9 @@ stock Ms_UpdateAt(playerid, Float:x, Float:y, Float:z, budget)
 	for (new a = 0; a < nc; a++)
 	{
 		new zn = cand[a], size = g_MsZoneEnd[zn] - g_MsZoneFirst[zn];
-		if (total + size > MS_PLAYER_CAP && a > 0) { keep = a; break; }
+		// [v27] la case qui depasse le plafond est chargee EN PARTIE (avant : sautee en entier ->
+		// un gros mapping MTA de 600 objets dans une seule case n'apparaissait pas du tout)
+		if (total >= Ms_Cap(playerid) && a > 0) { keep = a; break; }
 		total += size;
 	}
 	for (new a = keep; a < nc; a++) if (g_MsPState[playerid][cand[a]] != 0) Ms_UnloadZone(playerid, cand[a]);
@@ -8246,6 +8367,20 @@ stock Ms_OnConnect(playerid)
 	for (new zn = 0; zn < MS_MAX_ZONES; zn++) { g_MsPState[playerid][zn] = 0; g_MsPNext[playerid][zn] = 0; }
 	for (new i = 0; i < MS_MAX_OBJ; i++) g_MsPObj[playerid][i] = 0;
 	g_MsPCount[playerid] = 0;
+	g_MsCap[playerid] = MS_PLAYER_CAP;
+	return 1;
+}
+
+stock Ms_Cap(playerid) return (playerid >= 0 && playerid < MS_PLAYERS && g_MsCap[playerid] > 0) ? g_MsCap[playerid] : MS_PLAYER_CAP;
+
+// l'appli envoie la RAM du telephone a la connexion : /cwdev <Mo> (information seulement depuis v27)
+stock Ms_SetDevice(playerid, ramMb)
+{
+	if (playerid < 0 || playerid >= MS_PLAYERS) return 0;
+	// [v27] plus d'adaptation a la RAM : tout le monde a la meme distance et le meme plafond (MS_PLAYER_CAP).
+	// La RAM est seulement notee dans les logs (utile si un telephone plante).
+	g_MsCap[playerid] = MS_PLAYER_CAP;
+	printf("[OBJETS] joueur %d : telephone %d Mo de RAM (plafond commun %d objets).", playerid, ramMb, MS_PLAYER_CAP);
 	return 1;
 }
 
@@ -14854,6 +14989,7 @@ stock MapObj_OnInit()
 		MapReg_Begin("Concession SF");              MapImp_ConcessionSF();   MapReg_End();
 	}
 	printf("[MAPPINGS] Modeles personnalises (Banque Atlas, Mecano, Concession SF) : %s", g_MapData ? ("ACTIFS") : ("en attente de la data (/mapdata on)"));
+	MapHopital_OnInit();        // [v24]
 	MapFile_LoadAll();          // [v18] scriptfiles/mappings/liste.txt (avant le rangement du streamer)
 	Ms_OnInit();
 	Pts_LoadArrivals();
@@ -14871,6 +15007,7 @@ stock MapObj_OnConnect(playerid)
 	MapObj_CityHallRemove(playerid);
 	MapImp_RemoveBuildings(playerid);
 	if (g_MapData) MapImp_RemoveBuildingsData(playerid);   // [v21] decide au demarrage
+	MapHopital_OnConnect(playerid);   // [v24] hopital EMS
 	MapFile_RemoveBuildings(playerid);   // [v18] mappings importes
 #endif
 	return 1;
@@ -19939,6 +20076,7 @@ stock Marks_Send(playerid)
 	Svc_PushMarks();         // pompes a essence (16) + location (17)
 	Npc_PushMarks();         // [v18] PNJ (18) : main bleue au-dessus de la tete
 	Cs_PushMarks();          // [v21] magasins de vetements (1) : t-shirt 3D
+	Bike_PushMarks();        // [v25] location de velo (19)
 	if (g_MkChunk == 0 || g_MkN > 0) Mk_Flush();
 	g_MkTo = INVALID_PLAYER_ID;
 	return 1;
@@ -19946,6 +20084,7 @@ stock Marks_Send(playerid)
 
 stock Marks_SendAll()
 {
+	Svc_BuildLabels();   // [v25] textes 3D des pompes / locations (points modifies)
 	for (new i = 0, m = GetMaxPlayers(); i < m; i++)
 	{
 		if (IsPlayerConnected(i) && g_AuthLogged[i]) Marks_Send(i);
@@ -20969,6 +21108,8 @@ stock Adm_Need(const action[])
 	if (cjn) return cjn;
 	new csn = Cs_AdminNeed(action);   // [v21] magasins de vetements
 	if (csn) return csn;
+	new bkn = Bike_AdminNeed(action); // [v25] location de velo
+	if (bkn) return bkn;
 	new prn = Price_AdminNeed(action); // [v22] prix de la boutique
 	if (prn) return prn;
 	static const lv2[][] = { "heal", "bring", "freeze", "slap", "mute", "warn", "sethp", "armour", "announce", "screen", "clearchat" };
@@ -21293,6 +21434,7 @@ stock AdmX_SendExtras(playerid)
 	Npc_AdminSend(playerid);       // [v18] PNJ (onglet Monde)
 	Cj_AdminSend(playerid);        // [v18] emplois du staff (onglet Monde)
 	Cs_AdminSend(playerid);        // [v21] magasins de vetements (onglet Factions)
+	Bike_AdminSend(playerid);      // [v25] locations de velo (onglet Factions)
 	Price_AdminSend(playerid);     // [v22] prix de la boutique (onglet Serveur)
 	return 1;
 }
@@ -21310,6 +21452,7 @@ stock AdmX_Action(playerid, const action[], const tid[], target, const arg[], ms
 	if (Npc_AdminAction(playerid, action, tid, arg, msg, msgsize, ok)) { Npc_AdminSend(playerid); return 1; }   // [v18] PNJ
 	if (Cj_AdminAction(playerid, action, tid, arg, msg, msgsize, ok)) { Cj_AdminSend(playerid); return 1; }     // [v18] emplois
 	if (Cs_AdminAction(playerid, action, tid, msg, msgsize, ok)) return 1;   // [v21] magasins de vetements
+	if (Bike_AdminAction(playerid, action, tid, msg, msgsize, ok)) return 1; // [v25] location de velo
 	if (Price_AdminAction(playerid, action, tid, arg, msg, msgsize, ok)) return 1;   // [v22] prix
 
 	if (!strcmp(action, "setadmin", true) || !strcmp(action, "makeadmin", true))
@@ -23463,6 +23606,8 @@ public OnGameModeInit()
 	Ville_OnInit();         // [v19b] courses de rue, mariages
 	Cw21_OnInit();          // [v21] camera drone, cadeau, parrain, sondages, meteo, afk
 	Cw22_OnInit();          // [v22] hotbar, prix
+	Cw23_OnInit();          // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
+	Cw25_OnInit();          // [v25] location de velo
 	return 1;
 }
 
@@ -23532,6 +23677,8 @@ public OnPlayerConnect(playerid)
 	Ville_OnConnect(playerid); // [v19b] course / mariage
 	Cw21_OnConnect(playerid);  // [v21]
 	Cw22_OnConnect(playerid);  // [v22]
+	Cw23_OnConnect(playerid);  // [v23]
+	Cw25_OnConnect(playerid);  // [v25]
 	g_CwLastVeh[playerid] = 0;
 	return 1;
 }
@@ -23548,6 +23695,8 @@ public OnPlayerDisconnect(playerid, reason)
 	Vie_OnDisconnect(playerid);  // [v19] sauvegarde faim/soif/niveau
 	Ville_OnDisconnect(playerid); // [v19b] rembourse la course
 	Cw21_OnDisconnect(playerid);  // [v21] coupe le drone, retire [AFK]
+	Cw23_OnDisconnect(playerid);  // [v23] arene, civiere, assembleur, radar
+	Cw25_OnDisconnect(playerid);  // [v25] velo loue, telephone
 	Phone_OnDisconnect(playerid);
 	Voice_OnDisconnect(playerid);
 	Garage_OnDisconnect(playerid);
@@ -23588,18 +23737,20 @@ public OnPlayerSpawn(playerid)
 	Cw21_OnSpawn(playerid);     // [v21] camera remise derriere le joueur
 	Cw22_OnSpawn(playerid);     // [v22] hotbar renvoyee
 	Cw_OnSpawn(playerid);      // [v15] en dernier : blesse -> remis a terre sur place
+	Cw23_OnSpawn(playerid);    // [v23] arene : reapparition dans l'arene (apres tout le reste)
 	return 1;
 }
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	Bank_OnDeath(playerid);
+	new inArena = Cw23_OnDeath(playerid, killerid);   // [v23] arene PvP : pas de perte d'argent ni d'inconscience
+	if (!inArena) Bank_OnDeath(playerid);
 	Pol_OnDeath(playerid);
 	Shop_Close(playerid, true);
 	Ui_Close(playerid, true);
 	Job_OnDeath(playerid);
 	RpX_OnDeath(playerid, killerid);
-	Cw_OnDeath(playerid, killerid);   // [v15] inconscient au lieu de reapparaitre
+	if (!inArena) Cw_OnDeath(playerid, killerid);   // [v15] inconscient au lieu de reapparaitre
 	Npc_OnDeath(playerid);            // [v18] quete echouee
 	Cj_OnDeath(playerid);             // [v18] emploi arrete
 	Cw21_OnSpawn(playerid);           // [v21] coupe la camera selfie/drone et [AFK]
@@ -23633,6 +23784,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Auth_OnCommand(playerid, cmdtext)) return 1;
 	if (RpX_OnCommand(playerid, cmdtext)) return 1;
 	if (Rp_OnCommand(playerid, cmdtext)) return 1;     // tablette RP (/rp, /menu, /rpact)
+	if (Cw25_OnCommand(playerid, cmdtext)) return 1;   // [v25] /c25, /telmain, /rendrevelo
+	if (Cw23_OnCommand(playerid, cmdtext)) return 1;   // [v23] /mdt (nouveau), armee, EMS, assembleur, arene, craft, recyclage
 	if (Law_OnCommand(playerid, cmdtext)) return 1;    // centrale police / FBI / armee
 	if (Svc_OnCommand(playerid, cmdtext)) return 1;    // station-service / location
 	if (Pts_OnCommand(playerid, cmdtext)) return 1;    // [v13] /mappings /points (admin)
@@ -23693,6 +23846,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 	if (newstate == PLAYER_STATE_DRIVER || newstate == PLAYER_STATE_PASSENGER) g_CwLastVeh[playerid] = GetPlayerVehicleID(playerid);   // station-service
 	Job_OnStateChange(playerid, newstate);
 	Obj_OnStateChange(playerid, newstate, oldstate);
+	Cw23_OnStateChange(playerid, newstate);   // [v23] cargaison militaire
 	Npc_OnStateChange(playerid, newstate);
 	return 1;
 }
@@ -23748,6 +23902,7 @@ public OnPlayerObjectMoved(playerid, objectid)
 
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
+	if (MapHopital_OnPickup(playerid, pickupid)) return 1;   // [v24] ascenseur de l'hopital
 	Bank_OnPickup(playerid, pickupid);
 	return 1;
 }
@@ -23853,6 +24008,9 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #include <Ville>             // [v19] notifications facon GTA SA, faim/soif, niveau, apparence, loto
 #include <Cw21>              // [v21] camera selfie/drone, cadeau, parrainage, sondages, meteo, AFK
 #include <Cw22>              // [v22] hotbar Crestwood, prix de la boutique (panneau admin)
+#include <Cw23>
+#include <Cw25>              // [v25] location de velo, telephone en main
+#include <HopitalEMS>        // [v24] hopital EMS (pack MTA SAMU47), actif avec /mapdata hopital on              // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
 
 // ============================================================
 //  RP PLUS (31/10/2026) : chat de proximite, actions RP, services des factions
@@ -24076,7 +24234,18 @@ stock RpX_WearUniform(playerid, female)
 	new skin = g_RpXUniSkin[t][female ? 1 : 0];
 	if (!skin) return 0;
 	g_RpXUni[playerid] = skin;
-	SetPlayerSkin(playerid, skin);
+	if (g_LockerOpen[playerid]) Locker_Close(playerid, 1);   // [v25] page fermee avant le changement de skin
+	SetTimerEx("RpX_UniformSkin", 350, false, "i", playerid);
+	return 1;
+}
+
+forward RpX_UniformSkin(playerid);
+public RpX_UniformSkin(playerid)
+{
+	if (!IsPlayerConnected(playerid) || !g_RpXUni[playerid]) return 0;
+	if (GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_NONE && GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_CUFFED) SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
+	ClearAnimations(playerid);
+	SetPlayerSkin(playerid, g_RpXUni[playerid]);
 	return 1;
 }
 
@@ -24084,9 +24253,8 @@ stock RpX_RemoveUniform(playerid)
 {
 	g_RpXUni[playerid] = 0;
 	if (!g_ClothLoaded[playerid]) Cloth_Load(playerid);
-	SetPlayerSkin(playerid, g_ClothSkin[playerid]);
-	Cloth_Send(playerid, CLOTH_DIALOG_APPLY);
-	Cloth_Broadcast(playerid);
+	if (g_LockerOpen[playerid]) Locker_Close(playerid, 1);   // [v25]
+	SetTimerEx("Locker_ApplySkin", 350, false, "i", playerid);   // skin civil puis apparence (meme chemin que la police)
 	return 1;
 }
 

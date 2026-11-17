@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Page JOUER : photo Brabus CREST WOOD RP en fond, boutons en verre transparent (blanc) -->
+<!-- Page JOUER : [v25] photo du joueur assis sur la Dodge en fond, boutons en verre transparent (blanc) -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@drawable/launcher_home_background"
+        android:src="@drawable/intro_slide_1"
         android:importantForAccessibility="no" />
 
     <View

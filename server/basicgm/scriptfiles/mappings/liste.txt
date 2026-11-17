@@ -3,3 +3,6 @@
 # exemple_pawn.txt
 # exemple_mta.map
 # banque_atlas.txt      (banque Atlas Studio : modeles personnalises requis, voir LISEZMOI_V18)
+
+# LSPD (Agha_Talabani / Team 18-81) : 522 objets + 8 batiments retires, vers 1571,-1675
+lspd_agha.txt

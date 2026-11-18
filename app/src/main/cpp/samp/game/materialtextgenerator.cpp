@@ -1,3 +1,4 @@
+#include <GLES3/gl3.h>
 #include "../main.h"
 #include "game.h"
 #include "../gui/gui.h"
@@ -100,6 +101,19 @@ RwTexture* MaterialTextGenerator::Generate(const char* text, int size, int font_
         Log("MaterialTextGenerator::Generate6");
 		RwCameraBeginUpdate((RwCamera*)m_camera);
 		DefinedState();
+		{	// [Crestwood] la texture du texte n'est pas initialisee sur Mali : on la vide explicitement (couleur du fond)
+			GLboolean sc = glIsEnabled(GL_SCISSOR_TEST);
+			if (sc) glDisable(GL_SCISSOR_TEST);
+			GLfloat prevCc[4]; glGetFloatv(GL_COLOR_CLEAR_VALUE, prevCc);
+			GLboolean prevMask[4]; glGetBooleanv(GL_COLOR_WRITEMASK, prevMask);
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			const ImColor bg = fix_color(background_color);
+			glClearColor(bg.Value.x, bg.Value.y, bg.Value.z, bg.Value.w);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glClearColor(prevCc[0], prevCc[1], prevCc[2], prevCc[3]);
+			glColorMask(prevMask[0], prevMask[1], prevMask[2], prevMask[3]);
+			if (sc) glEnable(GL_SCISSOR_TEST);
+		}
         Log("MaterialTextGenerator::Generate7");
 		Render(text, ImVec2(width, height), font_size, bold, fix_color(font_color), fix_color(background_color), alignment);
         Log("MaterialTextGenerator::Generate8");

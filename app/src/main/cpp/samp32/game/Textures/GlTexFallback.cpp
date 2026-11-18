@@ -155,6 +155,13 @@ namespace {
             if (ratios.insert(key).second && ratios.size() < 30)
                 GLTEX_LOG("[GlTex] diag : fmt 0x%04X %dx%d niveau %d taille %d (%.2f octets/bloc)", (unsigned)fmt, w, h, level, size, blocks ? (double)size / blocks : 0.0);
         }
+        {   // [diag] petites textures (ex. mattextures/sampblack) et tailles incoherentes
+            static int smallN = 0, oddN = 0;
+            const long blocks2 = (long)((w + 3) / 4) * ((h + 3) / 4);
+            const bool oddSize = (fmt == 0x8D64 && size != blocks2 * 8) && (fmt == 0x8D64);
+            if (level == 0 && (w <= 8 || h <= 8) && smallN < 60) { smallN++; GLTEX_LOG("[GlTex] diag petite : fmt 0x%04X %dx%d taille %d (blocs %ld)", (unsigned)fmt, w, h, size, blocks2); }
+            else if (oddSize && oddN < 40) { oddN++; GLTEX_LOG("[GlTex] diag taille inattendue : fmt 0x%04X %dx%d niveau %d taille %d (attendu %ld)", (unsigned)fmt, w, h, level, size, blocks2 * 8); }
+        }
         if (data && w > 0 && h > 0) {
             // PVRTC sur un GPU sans PVRTC
             if (fmt >= 0x8C00 && fmt <= 0x8C03 && !g_hasPVR && IsPow2(w) && IsPow2(h)) {

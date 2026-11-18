@@ -1,0 +1,8 @@
+RemoveBuildingForPlayer(playerid, 3976, 1571.599, -1675.750, 35.679, 0.250);
+RemoveBuildingForPlayer(playerid, 4064, 1571.599, -1675.750, 35.679, 0.250);
+RemoveBuildingForPlayer(playerid, 620, 1547.569, -1661.030, 13.046, 0.250);
+RemoveBuildingForPlayer(playerid, 647, 1546.869, -1658.339, 14.437, 0.250);
+RemoveBuildingForPlayer(playerid, 647, 1546.599, -1664.630, 14.437, 0.250);
+RemoveBuildingForPlayer(playerid, 647, 1546.869, -1687.099, 14.437, 0.250);
+RemoveBuildingForPlayer(playerid, 620, 1547.569, -1689.979, 13.046, 0.250);
+RemoveBuildingForPlayer(playerid, 647, 1546.599, -1693.390, 14.437, 0.250);

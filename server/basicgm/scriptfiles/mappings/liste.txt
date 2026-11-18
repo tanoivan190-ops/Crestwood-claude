@@ -5,4 +5,5 @@
 # banque_atlas.txt      (banque Atlas Studio : modeles personnalises requis, voir LISEZMOI_V18)
 
 # LSPD (Agha_Talabani / Team 18-81) : 522 objets + 8 batiments retires, vers 1571,-1675
-lspd_agha.txt
+# lspd_1_retire_ancien.txt   (retire l'ancien LSPD : a activer seulement quand les modeles 18762/18766... sont dans le jeu)
+lspd_2_nouveau.txt

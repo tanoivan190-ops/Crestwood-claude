@@ -21,6 +21,8 @@
 #include <unordered_map>
 #include <atomic>
 #include <cmath>
+#include "ModLoaderTemplate.h"
+#include <cmath>
 
 extern char* g_pszStorage;
 void Log(const char* fmt, ...);
@@ -60,51 +62,35 @@ namespace {
         const uint8_t* p = (const uint8_t*)v; o.insert(o.end(), p, p + 12); o.insert(o.end(), d.begin(), d.end()); } };
     template<class T> void Add(std::vector<uint8_t>& o, T v) { const uint8_t* p = (const uint8_t*)&v; o.insert(o.end(), p, p + sizeof(T)); }
 
-    std::vector<uint8_t> BuildBoxDff(const char* name, float sx, float sy, float sz) {
-        const float hx = sx / 2, hy = sy / 2, hz = sz / 2;
-        struct F { float n[3]; float q[4][3]; };
-        const F faces[6] = {
-            {{1,0,0},{{hx,-hy,-hz},{hx,hy,-hz},{hx,hy,hz},{hx,-hy,hz}}},
-            {{-1,0,0},{{-hx,hy,-hz},{-hx,-hy,-hz},{-hx,-hy,hz},{-hx,hy,hz}}},
-            {{0,1,0},{{hx,hy,-hz},{-hx,hy,-hz},{-hx,hy,hz},{hx,hy,hz}}},
-            {{0,-1,0},{{-hx,-hy,-hz},{hx,-hy,-hz},{hx,-hy,hz},{-hx,-hy,hz}}},
-            {{0,0,1},{{-hx,-hy,hz},{hx,-hy,hz},{hx,hy,hz},{-hx,hy,hz}}},
-            {{0,0,-1},{{-hx,hy,-hz},{hx,hy,-hz},{hx,-hy,-hz},{-hx,-hy,-hz}}}};
-        const float uv[4][2] = {{0,1},{1,1},{1,0},{0,0}};
-        std::vector<uint8_t> g; const uint32_t nv = 24, nt = 12;
-        Add<uint32_t>(g, 0x00010076); Add<uint32_t>(g, nt); Add<uint32_t>(g, nv); Add<uint32_t>(g, 1);
-        for (int f = 0; f < 6; f++) for (int i = 0; i < 4; i++) { Add<float>(g, uv[i][0]); Add<float>(g, uv[i][1]); }
-        uint16_t tri[12][3];
-        for (int f = 0; f < 6; f++) { uint16_t b = f * 4; tri[f*2][0]=b; tri[f*2][1]=b+1; tri[f*2][2]=b+2; tri[f*2+1][0]=b; tri[f*2+1][1]=b+2; tri[f*2+1][2]=b+3; }
-        for (int t = 0; t < 12; t++) { Add<uint16_t>(g, tri[t][1]); Add<uint16_t>(g, tri[t][0]); Add<uint16_t>(g, 0); Add<uint16_t>(g, tri[t][2]); }
-        Add<float>(g, 0); Add<float>(g, 0); Add<float>(g, 0); Add<float>(g, sqrtf(hx*hx + hy*hy + hz*hz));
-        Add<uint32_t>(g, 1); Add<uint32_t>(g, 1);
-        for (int f = 0; f < 6; f++) for (int i = 0; i < 4; i++) for (int k = 0; k < 3; k++) Add<float>(g, faces[f].q[i][k]);
-        for (int f = 0; f < 6; f++) for (int i = 0; i < 4; i++) for (int k = 0; k < 3; k++) Add<float>(g, faces[f].n[k]);
-        std::vector<uint8_t> gs; Chunk::Put(gs, 0x01, g);
-        std::vector<uint8_t> mat, m1; Add<uint32_t>(m1, 0); Add<uint32_t>(m1, 0xFFFFFFFFu); Add<uint32_t>(m1, 1); Add<uint32_t>(m1, 0);
-        Add<float>(m1, 1); Add<float>(m1, 1); Add<float>(m1, 1);
-        Chunk::Put(mat, 0x01, m1); Chunk::Put(mat, 0x03, {});
-        std::vector<uint8_t> ml, ms; Add<uint32_t>(ms, 1); Add<int32_t>(ms, -1);
-        std::vector<uint8_t> mlin; Chunk::Put(mlin, 0x01, ms); Chunk::Put(mlin, 0x07, mat); Chunk::Put(ml, 0x08, mlin);
-        std::vector<uint8_t> bm; Add<uint32_t>(bm, 0); Add<uint32_t>(bm, 1); Add<uint32_t>(bm, nt * 3); Add<uint32_t>(bm, nt * 3); Add<uint32_t>(bm, 0);
-        for (int t = 0; t < 12; t++) for (int k = 0; k < 3; k++) Add<uint32_t>(bm, tri[t][k]);
-        std::vector<uint8_t> bmc, gext; Chunk::Put(bmc, 0x050E, bm); Chunk::Put(gext, 0x03, bmc);
-        std::vector<uint8_t> gin = gs; gin.insert(gin.end(), ml.begin(), ml.end()); gin.insert(gin.end(), gext.begin(), gext.end());
-        std::vector<uint8_t> geom, gl, gli; Chunk::Put(geom, 0x0F, gin);
-        std::vector<uint8_t> gcount; Add<uint32_t>(gcount, 1); Chunk::Put(gli, 0x01, gcount); gli.insert(gli.end(), geom.begin(), geom.end()); Chunk::Put(gl, 0x1A, gli);
-        std::vector<uint8_t> fr; Add<uint32_t>(fr, 1);
-        const float rot[12] = {1,0,0, 0,1,0, 0,0,1, 0,0,0}; for (float r : rot) Add<float>(fr, r);
-        Add<int32_t>(fr, -1); Add<uint32_t>(fr, 0x00020003);
-        std::string nm = name; nm.push_back(0); while (nm.size() % 4) nm.push_back(0);
-        std::vector<uint8_t> nmv(nm.begin(), nm.end()), nmc, frx, fli, fl; Chunk::Put(nmc, 0x0253F2FE, nmv); Chunk::Put(frx, 0x03, nmc);
-        std::vector<uint8_t> frs; Chunk::Put(frs, 0x01, fr); fli = frs; fli.insert(fli.end(), frx.begin(), frx.end()); Chunk::Put(fl, 0x0E, fli);
-        std::vector<uint8_t> as, ai, at; Add<uint32_t>(as, 0); Add<uint32_t>(as, 0); Add<uint32_t>(as, 5); Add<uint32_t>(as, 0);
-        Chunk::Put(ai, 0x01, as); Chunk::Put(ai, 0x03, {}); Chunk::Put(at, 0x14, ai);
-        std::vector<uint8_t> cs, cin, clump, empty; Add<uint32_t>(cs, 1); Add<uint32_t>(cs, 0); Add<uint32_t>(cs, 0);
-        Chunk::Put(cin, 0x01, cs); cin.insert(cin.end(), fl.begin(), fl.end()); cin.insert(cin.end(), gl.begin(), gl.end()); cin.insert(cin.end(), at.begin(), at.end());
-        Chunk::Put(cin, 0x03, {}); Chunk::Put(clump, 0x10, cin);
-        return clump;
+    // Boite aux dimensions voulues : on part d'un vrai cube du jeu (format Android, geometrie 'native') et
+    // on ne remplace que les positions des 24 sommets (+ la sphere englobante).
+    std::vector<uint8_t> BuildBoxDff(const char* /*name*/, float sx, float sy, float sz) {
+        std::vector<uint8_t> d(kBoxTemplate, kBoxTemplate + sizeof(kBoxTemplate));
+        auto findHdr = [&](uint32_t type, uint32_t size) -> long {
+            for (size_t i = 0; i + 12 <= d.size(); i += 1) {
+                uint32_t w[3]; memcpy(w, &d[i], 12);
+                if (w[0] == type && w[1] == size && w[2] == 0x1803FFFF) return (long)i;
+            }
+            return -1;
+        };
+        long nat = findHdr(0x510, 556);
+        long gs = findHdr(0x01, 40);
+        if (nat < 0 || gs < 0) return d;
+        uint8_t* v = &d[nat + 12 + 76];            // 24 sommets de 20 octets (position = 3 float)
+        float mn[3] = {1e30f, 1e30f, 1e30f}, mx[3] = {-1e30f, -1e30f, -1e30f};
+        for (int i = 0; i < 24; i++) for (int a = 0; a < 3; a++) {
+            float f; memcpy(&f, v + i * 20 + a * 4, 4);
+            if (f < mn[a]) mn[a] = f; if (f > mx[a]) mx[a] = f;
+        }
+        const float h[3] = {sx / 2, sy / 2, sz / 2};
+        for (int i = 0; i < 24; i++) for (int a = 0; a < 3; a++) {
+            float f; memcpy(&f, v + i * 20 + a * 4, 4);
+            float o = (f > (mn[a] + mx[a]) / 2) ? h[a] : -h[a];
+            memcpy(v + i * 20 + a * 4, &o, 4);
+        }
+        float sph[4] = {0, 0, 0, sqrtf(h[0] * h[0] + h[1] * h[1] + h[2] * h[2])};
+        memcpy(&d[gs + 12 + 16], sph, 16);          // sphere englobante apres les 4 mots d'en-tete
+        return d;
     }
     struct BuiltinModel { int id; const char* name; float x, y, z; };
     const BuiltinModel kBuiltin[] = {

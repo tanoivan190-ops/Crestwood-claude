@@ -1370,12 +1370,19 @@ void ClothesCustomization::ApplyCurrent()
     if (SkinBodies::IsCivilBody(realModel) && realModel != 289) {
         std::string error;
         // Shared model is loaded once per body, on the game thread, for local and remote players.
-        if (!SouthModelLoader::LoadForModel(realModel, error)) return;
+        if (!SouthModelLoader::LoadForModel(realModel, error)) {
+            Log("[clothes] ApplyCurrent: LoadForModel(%d) echec: %s", (int)realModel, error.c_str());
+            return;
+        }
     }
 	const uint16_t modelId = CurrentLocalModelId();
 	if (!IsSupportedSkin(modelId) || !CurrentLocalPedReady()) {
+		Log("[clothes] ApplyCurrent: abandon real=%d model=%d supporte=%d pedPret=%d",
+			(int)realModel, (int)modelId, (int)IsSupportedSkin(modelId), (int)CurrentLocalPedReady());
 		return;
 	}
+	Log("[clothes] ApplyCurrent: real=%d model=%d base=%d", (int)realModel, (int)modelId,
+		(int)SkinBodies::ClothesBase(modelId));
 
 	// Les corps AVZ 7 (homme) et 12 (femme) partagent les matériaux,
 	// textures et catalogues des corps de base 163 et 9. Avant ce correctif,

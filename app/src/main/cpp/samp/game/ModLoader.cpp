@@ -13,6 +13,7 @@
 #include "StreamingInfo.h"
 #include "../vendor/armhook/patch.h"
 #include <dirent.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <cstdio>
 #include <cstring>
@@ -137,7 +138,7 @@ namespace {
         int skippedTxd = 0;
         Scan(modDir, mods, skippedTxd);
         if (skippedTxd) Log("[modloader] %d fichier(s) .txd ignore(s) (pas pris en charge pour l'instant)", skippedTxd);
-        if (mods.empty()) Log("[modloader] dossier SAMP/modloader vide ou absent (seuls les modeles integres sont ajoutes)");
+        if (mods.empty()) Log("[modloader] dossier SAMP/modloader vide ou absent ");
 
         // 1) archive cwmods.img
         std::string cache = root + "texdb/cwmods.img";
@@ -164,7 +165,10 @@ namespace {
         }
         // modeles integres (si l'utilisateur n'a pas fourni son propre fichier du meme nom)
         std::vector<std::pair<int, std::string>> builtinIds;
+        // Desactives par defaut : le jeu plante en lisant la texture de ces blocs (a reactiver avec SAMP/modloader_builtin.txt).
+        const bool wantBuiltin = access((root + "SAMP/modloader_builtin.txt").c_str(), F_OK) == 0;
         for (auto& b : kBuiltin) {
+            if (!wantBuiltin) break;
             std::string n = Lower(std::string(b.name) + ".dff");
             if (placed.count(n)) continue;
             std::vector<uint8_t> d = BuildBoxDff(b.name, b.x, b.y, b.z);

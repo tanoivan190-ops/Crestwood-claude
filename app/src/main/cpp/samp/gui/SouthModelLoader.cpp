@@ -425,6 +425,9 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     }
     RwTexDictionary* dict = EnsureModelDictionary(modelInfo);
     if (!dict) {
+        Log("[clothes] diag txd: modele %d txdIndex=%d pool=%p def=%p", modelId, (int)modelInfo->m_nTxdIndex,
+            (void*)CTxdStore::ms_pTxdPool,
+            (modelInfo->m_nTxdIndex >= 0 && CTxdStore::ms_pTxdPool) ? (void*)CTxdStore::ms_pTxdPool->GetAt(modelInfo->m_nTxdIndex) : nullptr);
         err = "no texture dictionary for model " + std::to_string(modelId);
         return false;
     }

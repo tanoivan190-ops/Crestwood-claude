@@ -9,6 +9,7 @@
 //     vers cwmods.img (CStreamingInfo : numero d'archive, position, taille).
 // Les .txd ne sont pas pris en charge ici (les textures sont dans texdb, format different).
 #include "Streaming.h"
+#include "Models/ModelInfo.h"
 #include "StreamingInfo.h"
 #include "../vendor/armhook/patch.h"
 #include <dirent.h>
@@ -96,6 +97,29 @@ namespace {
     const BuiltinModel kBuiltin[] = {
         {18762, "Concrete1mx1mx5m", 1, 1, 5}, {18766, "Concrete10mx1mx5m", 10, 1, 5}, {18980, "Concrete1mx1mx25m", 1, 1, 25},
         {18763, "Concrete3mx3mx5m", 3, 3, 5}, {18764, "Concrete5mx5mx5m", 5, 5, 5}, {18765, "Concrete10mx10mx5m", 10, 10, 5}};
+
+    // Les modeles ajoutes n'ont pas de fichier de textures (leur .txd n'existe dans aucune archive) : le moteur
+    // plantait en lisant la texture du materiau. On leur donne le dictionnaire de textures d'un vrai petit objet
+    // du jeu (celui dont on a copie la forme, 'temp_cardbox') pour que tout soit charge normalement.
+    int TemplateTxdIndex() {
+        static int cached = -2;
+        if (cached != -2) return cached;
+        cached = -1;
+        for (int i = 0; i < (int)CModelInfo::NUM_MODEL_INFOS; i++) {
+            CBaseModelInfo* mi = CModelInfo::GetModelInfo(i);
+            if (mi && strncmp(mi->m_modelName, "temp_cardbox", 12) == 0 && mi->m_modelName[12] == 0) { cached = mi->m_nTxdIndex; break; }
+        }
+        return cached;
+    }
+    void GiveTemplateTxd(int modelId, bool force) {
+        CBaseModelInfo* mi = CModelInfo::GetModelInfo(modelId);
+        int tx = TemplateTxdIndex();
+        if (!mi || tx < 0) { Log("[modloader] modele %d : info modele ou dictionnaire de reference introuvable", modelId); return; }
+        CStreamingInfo& ti = CStreaming::ms_aInfoForModel[(int)RESOURCE_ID_TXD + (mi->m_nTxdIndex < 0 ? 0 : mi->m_nTxdIndex)];
+        if (!force && mi->m_nTxdIndex >= 0 && ti.HasCdPosnAndSize()) return;
+        Log("[modloader] modele %d : dictionnaire de textures %d -> %d", modelId, (int)mi->m_nTxdIndex, tx);
+        mi->m_nTxdIndex = (int16_t)tx;
+    }
 
     FILE* OpenImg(const char* imgName) {
         std::string rel = imgName;
@@ -217,6 +241,7 @@ namespace {
             si.m_nImgId = (uint8)newSlot;
             si.SetCdPosnAndSize(pl.first, pl.second);
             used[bi.second] = true;
+            GiveTemplateTxd(bi.first, true);
             Log("[modloader] modele integre %d (%s) ajoute", bi.first, bi.second.c_str());
         }
         // 5) modeles qui n'existent dans AUCUNE archive (ex. objets SA-MP 18762...) : on les trouve par leur nom
@@ -253,6 +278,7 @@ namespace {
             si.m_nNextIndexOnCd = -1;
             si.m_nImgId = (uint8)newSlot;
             si.SetCdPosnAndSize(kv.second.first, kv.second.second);
+            GiveTemplateTxd(ide->second, false);
             added++;
             Log("[modloader] %s -> modele %d AJOUTE (absent des archives)", kv.first.c_str(), ide->second);
         }

@@ -241,6 +241,24 @@ RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
     return reinterpret_cast<RwTexDictionary*>(def->m_pRwDictionary);
 }
 
+// Cherche la hierarchie d'animation sur TOUS les atomics (le helper du moteur
+// ne regarde que le premier, qui peut ne pas etre l'atomic "skin").
+struct HierSearch { RpHAnimHierarchy* hier = nullptr; int atomics = 0; int skinned = 0; };
+static RpAtomic* FindHierCB(RpAtomic* atomic, void* data) {
+    auto* r = static_cast<HierSearch*>(data);
+    ++r->atomics;
+    if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) ++r->skinned;
+    if (!r->hier) r->hier = RpSkinAtomicGetHAnimHierarchy(atomic);
+    return atomic;
+}
+static RpHAnimHierarchy* FindAnimHierarchy(RpClump* clump, int* atomics, int* skinned) {
+    HierSearch r;
+    RpClumpForAllAtomics(clump, FindHierCB, &r);
+    if (atomics) *atomics = r.atomics;
+    if (skinned) *skinned = r.skinned;
+    return r.hier;
+}
+
 // MTA CRenderWareSA::ReplacePedModel: hierarchy check, double clone (render
 // order flips per clone), SetClump, destroy the previous model-info clump.
 bool ReplacePedModel(CBaseModelInfo* modelInfo, RpClump* source, std::string& err) {
@@ -248,11 +266,10 @@ bool ReplacePedModel(CBaseModelInfo* modelInfo, RpClump* source, std::string& er
         err = "null modelInfo/clump";
         return false;
     }
-    RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(source);
+    int nAtomics = 0, nSkinned = 0;
+    RpHAnimHierarchy* hier = FindAnimHierarchy(source, &nAtomics, &nSkinned);
     if (!hier) {
-        hier = GetAnimHierarchyFromSkinClump(source);
-    }
-    if (!hier) {
+        FLog("[clothes] diag dff: %d atomic(s), %d avec skin, aucune hierarchie", nAtomics, nSkinned);
         err = "no anim hierarchy on DFF (MTA refuses ReplacePedModel)";
         return false;
     }

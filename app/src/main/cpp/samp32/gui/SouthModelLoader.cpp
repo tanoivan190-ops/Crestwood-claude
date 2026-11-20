@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
+#include <dlfcn.h>
 #include <strings.h>
 #include <unordered_map>
 #include <vector>
@@ -204,12 +205,29 @@ RpClump* LoadDffFile(const char* path, std::string& err) {
     return clump;
 }
 
+// ms_pTxdPool est un inline statique jamais renseigne cote client : on lit le
+// vrai pointeur du moteur (sinon "no texture dictionary" et habits inchanges).
+static CTxdPool* NativeTxdPool() {
+    if (CTxdStore::ms_pTxdPool) return CTxdStore::ms_pTxdPool;
+    const char* libs[] = { "libGame.so", "libGTASA.so" };
+    for (const char* name : libs) {
+        void* h = dlopen(name, RTLD_NOLOAD | RTLD_LAZY);
+        if (!h) continue;
+        void* sym = dlsym(h, "_ZN9CTxdStore11ms_pTxdPoolE");
+        if (sym) {
+            CTxdStore::ms_pTxdPool = *(CTxdPool**)sym;
+            break;
+        }
+    }
+    return CTxdStore::ms_pTxdPool;
+}
+
 RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
     if (!modelInfo) {
         return nullptr;
     }
     const int16 txdIndex = modelInfo->m_nTxdIndex;
-    if (txdIndex < 0 || !CTxdStore::ms_pTxdPool) {
+    if (txdIndex < 0 || !NativeTxdPool()) {
         return nullptr;
     }
     TxdDef* def = CTxdStore::ms_pTxdPool->GetAt(txdIndex);

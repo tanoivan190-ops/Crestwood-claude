@@ -295,7 +295,7 @@
     const s=slides[slideIndex];
     s.style.animation='none';void s.offsetWidth;s.style.animation='';   // relance le zoom lent
     s.classList.add('on');
-  },7000);
+  },5500);
   // [v20] plus d'affiche avec logo integre : le nouveau logo PNG reste affiche en haut
   const TIPS=[
     'Le roleplay, c’est d’abord ton personnage : parle et agis comme lui. /me et /do décrivent tes actions.',
@@ -309,7 +309,15 @@
     'Une question, un souci ? /report prévient le staff et /aide liste les commandes utiles.',
     'Les zones vertes sont protégées : aucune violence n’y est tolérée. Respecte-les.',
     'Le respect avant tout : ici, on joue ensemble. Les insultes hors personnage ne sont pas tolérées.',
-    'Une belle scène vaut mieux qu’un duel : laisse toujours aux autres joueurs la possibilité de réagir.'
+    'Une belle scène vaut mieux qu’un duel : laisse toujours aux autres joueurs la possibilité de réagir.',
+    'Garde ton calme : en roleplay, une situation tendue se résout d’abord par le dialogue.',
+    'Un bon personnage a une histoire : métier, passé, qualités et défauts. Prends le temps de l’imaginer.',
+    'Ne mélange pas le HRP et le RP : ce que tu apprends hors du jeu, ton personnage ne le sait pas.',
+    'Si ta vie est en danger, joue-le : un personnage blessé ne court pas, il appelle les secours.',
+    'Respecte le code de la route : un bon conducteur évite les amendes et les accidents.',
+    'Lance ton activité ou rejoins une faction : métiers, entreprises et organisations font vivre la ville.',
+    'Pas de précipitation : prends le temps de découvrir Los Santos, ses quartiers et ses rencontres.',
+    'Un souci avec un joueur ? Garde des preuves (capture, vidéo) et signale-le avec /report.'
   ];
   const TIPS_I18N={
     en:['Roleplay starts with your character: speak and act as they would. /me and /do describe your actions.',
@@ -323,7 +331,15 @@
       'A question or a problem? /report alerts the staff and /aide lists the useful commands.',
       'Green zones are protected: no violence is tolerated there. Respect them.',
       'Respect above all: we play together here. Out-of-character insults are not tolerated.',
-      'A good scene beats a fight: always give other players the chance to react.'],
+      'A good scene beats a fight: always give other players the chance to react.',
+      'Stay calm: in roleplay, a tense situation is first settled through dialogue.',
+    'A good character has a story: job, past, strengths and flaws. Take the time to imagine it.',
+    'Don\'t mix OOC and IC: what you learn outside the game, your character does not know.',
+    'If your life is in danger, play it out: a wounded character doesn\'t run, they call for help.',
+    'Follow the rules of the road: a good driver avoids fines and accidents.',
+    'Start your own business or join a faction: jobs, companies and organizations bring the city to life.',
+    'No rush: take the time to discover Los Santos, its neighborhoods and its encounters.',
+    'A problem with a player? Keep proof (screenshot, video) and report it with /report.'],
     pt:['O roleplay começa pelo seu personagem: fale e aja como ele. /me e /do descrevem suas ações.',
       'Novo na cidade? Digite um código promocional no cadastro para receber um veículo e algum dinheiro.',
       'Lembre-se de comer e beber: fome e sede aparecem ao redor do minimapa, e sua saúde depende disso.',
@@ -335,7 +351,15 @@
       'Uma dúvida ou um problema? /report avisa a staff e /aide lista os comandos úteis.',
       'Zonas verdes são protegidas: nenhuma violência é tolerada lá. Respeite-as.',
       'Respeito acima de tudo: aqui jogamos juntos. Insultos fora do personagem não são tolerados.',
-      'Uma boa cena vale mais que uma briga: sempre dê aos outros jogadores a chance de reagir.']
+      'Uma boa cena vale mais que uma briga: sempre dê aos outros jogadores a chance de reagir.',
+      'Mantenha a calma: no roleplay, uma situação tensa se resolve primeiro com diálogo.',
+    'Um bom personagem tem uma história: profissão, passado, qualidades e defeitos. Reserve um tempo para imaginá-lo.',
+    'Não misture o OOC e o IC: o que você aprende fora do jogo, seu personagem não sabe.',
+    'Se sua vida estiver em perigo, interprete: um personagem ferido não corre, ele pede socorro.',
+    'Respeite o código de trânsito: um bom motorista evita multas e acidentes.',
+    'Abra seu negócio ou entre numa facção: profissões, empresas e organizações dão vida à cidade.',
+    'Sem pressa: reserve um tempo para descobrir Los Santos, seus bairros e seus encontros.',
+    'Problema com um jogador? Guarde provas (captura, vídeo) e denuncie com /report.']
   };
   const L=window.CwI18n&&window.CwI18n.lang;
   if(TIPS_I18N[L])TIPS.splice(0,TIPS.length,...TIPS_I18N[L]);
@@ -347,7 +371,7 @@
     window.setInterval(()=>{
       tipBox.classList.add('out');
       window.setTimeout(()=>{tipIndex=(tipIndex+1)%TIPS.length;tipText.textContent=TIPS[tipIndex];tipBox.classList.remove('out');},360);
-    },6500);
+    },6000);
   }
 
   window.LoadingBridge={setProgress,ready,error,storageAccessRequired,storageAccessGranted,stopMusic,connecting};

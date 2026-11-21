@@ -298,28 +298,44 @@
   },7000);
   // [v20] plus d'affiche avec logo integre : le nouveau logo PNG reste affiche en haut
   const TIPS=[
-    'Utilise /me et /do pour décrire tes actions : c’est la base du roleplay.',
-    'Nouveau ? Entre un code promo à l’inscription pour recevoir un véhicule et de l’argent.',
-    'Mange et bois régulièrement : la faim et la soif s’affichent autour de ta carte.',
-    'Chaque heure de jeu te rapporte de l’expérience. Tape /niveau pour voir ta progression.',
-    'Décris ton personnage avec /apparence : les autres le découvrent avec /examiner.',
-    'Tente ta chance au loto de Crestwood dans les superettes 24/7 : /loto.',
-    'Ta carte d’identité se fait à l’état civil. Sans elle, /papiers t’y guide au GPS.',
-    'Tes véhicules t’attendent partout : /garage ou la roue du HUD.',
-    'Besoin d’aide ? /report contacte le staff, /aide liste les commandes.',
-    'Les zones vertes interdisent toute violence : respecte-les.'
+    'Le roleplay, c’est d’abord ton personnage : parle et agis comme lui. /me et /do décrivent tes actions.',
+    'Nouveau en ville ? Saisis un code promo à l’inscription pour recevoir un véhicule et un peu d’argent.',
+    'Pense à manger et à boire : la faim et la soif s’affichent autour de ta mini-carte, et ta santé en dépend.',
+    'Chaque heure passée en ville te rapporte de l’expérience. /niveau t’indique où tu en es.',
+    'Donne vie à ton personnage avec /apparence. Les autres joueurs le découvrent avec /examiner.',
+    'Un coup de chance ? Le loto de Crestwood se joue dans les supérettes 24/7 avec /loto.',
+    'Ta carte d’identité s’obtient à l’état civil. Tape /papiers : le GPS te guide jusqu’à l’accueil.',
+    'Tes véhicules t’attendent : retrouve-les avec /garage ou depuis la roue du HUD.',
+    'Une question, un souci ? /report prévient le staff et /aide liste les commandes utiles.',
+    'Les zones vertes sont protégées : aucune violence n’y est tolérée. Respecte-les.',
+    'Le respect avant tout : ici, on joue ensemble. Les insultes hors personnage ne sont pas tolérées.',
+    'Une belle scène vaut mieux qu’un duel : laisse toujours aux autres joueurs la possibilité de réagir.'
   ];
   const TIPS_I18N={
-    en:['Use /me and /do to describe your actions: the basis of roleplay.','New? Enter a promo code at sign-up to get a vehicle and money.',
-      'Eat and drink regularly: hunger and thirst are shown around your map.','Every hour played gives you XP. Type /niveau to see your progress.',
-      'Describe your character with /apparence: others see it with /examiner.','Try the Crestwood lottery in 24/7 stores: /loto.',
-      'Your ID card is made at the civil registry. Without it, /papiers guides you there.','Your vehicles wait for you everywhere: /garage or the HUD wheel.',
-      'Need help? /report reaches the staff, /aide lists the commands.','Green zones forbid any violence: respect them.'],
-    pt:['Use /me e /do para descrever suas ações: a base do roleplay.','Novo? Digite um código promocional no cadastro para ganhar veículo e dinheiro.',
-      'Coma e beba sempre: fome e sede aparecem em volta do mapa.','Cada hora de jogo dá XP. Digite /niveau para ver seu progresso.',
-      'Descreva seu personagem com /apparence: os outros veem com /examiner.','Tente a loteria de Crestwood nas lojas 24/7: /loto.',
-      'Sua identidade é feita no cartório. Sem ela, /papiers te guia até lá.','Seus veículos te esperam em todo lugar: /garage ou a roda do HUD.',
-      'Precisa de ajuda? /report chama a staff, /aide lista os comandos.','Zonas verdes proíbem qualquer violência: respeite.']
+    en:['Roleplay starts with your character: speak and act as they would. /me and /do describe your actions.',
+      'New in town? Enter a promo code at sign-up to receive a vehicle and some money.',
+      'Remember to eat and drink: hunger and thirst are shown around your minimap, and your health depends on them.',
+      'Every hour in the city earns you experience. /niveau shows how far you have come.',
+      'Bring your character to life with /apparence. Other players discover it with /examiner.',
+      'Feeling lucky? The Crestwood lottery is played in 24/7 stores with /loto.',
+      'Your ID card is issued at the civil registry. Type /papiers: the GPS guides you to the front desk.',
+      'Your vehicles are waiting for you: find them with /garage or from the HUD wheel.',
+      'A question or a problem? /report alerts the staff and /aide lists the useful commands.',
+      'Green zones are protected: no violence is tolerated there. Respect them.',
+      'Respect above all: we play together here. Out-of-character insults are not tolerated.',
+      'A good scene beats a fight: always give other players the chance to react.'],
+    pt:['O roleplay começa pelo seu personagem: fale e aja como ele. /me e /do descrevem suas ações.',
+      'Novo na cidade? Digite um código promocional no cadastro para receber um veículo e algum dinheiro.',
+      'Lembre-se de comer e beber: fome e sede aparecem ao redor do minimapa, e sua saúde depende disso.',
+      'Cada hora na cidade rende experiência. /niveau mostra o quanto você já avançou.',
+      'Dê vida ao seu personagem com /apparence. Os outros jogadores o descobrem com /examiner.',
+      'Quer tentar a sorte? A loteria de Crestwood é jogada nas lojas 24/7 com /loto.',
+      'Sua identidade é emitida no cartório. Digite /papiers: o GPS leva você até o balcão.',
+      'Seus veículos estão esperando: encontre-os com /garage ou pela roda do HUD.',
+      'Uma dúvida ou um problema? /report avisa a staff e /aide lista os comandos úteis.',
+      'Zonas verdes são protegidas: nenhuma violência é tolerada lá. Respeite-as.',
+      'Respeito acima de tudo: aqui jogamos juntos. Insultos fora do personagem não são tolerados.',
+      'Uma boa cena vale mais que uma briga: sempre dê aos outros jogadores a chance de reagir.']
   };
   const L=window.CwI18n&&window.CwI18n.lang;
   if(TIPS_I18N[L])TIPS.splice(0,TIPS.length,...TIPS_I18N[L]);

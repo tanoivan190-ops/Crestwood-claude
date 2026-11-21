@@ -61,6 +61,10 @@
     "Accepte le règlement pour créer ton compte.": ["Accept the rules to create your account.", "Aceite as regras para criar sua conta."],
     "Afficher le mot de passe": ["Show password", "Mostrar senha"],
     // ---- chargement / telechargement ----
+    "Roleplay · Los Santos": ["Roleplay · Los Santos", "Roleplay · Los Santos"],
+    "Bienvenue à Crestwood": ["Welcome to Crestwood", "Bem-vindo a Crestwood"],
+    "Ton histoire commence ici.": ["Your story starts here.", "Sua história começa aqui."],
+    "Touchez pour passer": ["Tap to skip", "Toque para pular"],
     "Astuce": ["Tip", "Dica"],
     "Préparation": ["Preparing", "Preparação"],
     "Téléchargement": ["Download", "Download"],

@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="loading.css">
   <link rel="stylesheet" href="../common/cw-perf.css">
   <link rel="stylesheet" href="v21.css">
+  <link rel="stylesheet" href="v22.css">
+  <link rel="stylesheet" href="splash.css">
   <script src="../common/i18n.js"></script>
 </head>
 <body>
@@ -28,6 +30,13 @@
     <header class="top">
       <img class="logo" src="../login/assets/images/cw-logo.png" alt="Crestwood Roleplay">
     </header>
+
+    <!-- [v22] accroche d'accueil -->
+    <section class="hero" aria-label="Bienvenue">
+      <p class="hero-eyebrow">Roleplay · Los Santos</p>
+      <h2 class="hero-title">Bienvenue à Crestwood</h2>
+      <p class="hero-sub">Ton histoire commence ici.</p>
+    </section>
 
     <!-- astuce RP tournante -->
     <aside class="tip" id="tip" aria-live="off">
@@ -91,7 +100,21 @@
       <input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume">
     </div>
   </div>
+  <!-- [v22] introduction animee (par-dessus tout, retiree apres ~5 s ou au toucher) -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <div class="sp-glow"></div>
+    <div class="sp-center">
+      <div class="sp-line"></div>
+      <h1 class="sp-word" aria-label="Crestwood"></h1>
+      <div class="sp-sub"><i></i><span>ROLEPLAY</span><i></i></div>
+      <div class="sp-line bot"></div>
+      <div class="sp-sweep"></div>
+    </div>
+    <div class="sp-grain"></div>
+    <span class="sp-skip">Touchez pour passer</span>
+  </div>
   <script src="loading.js"></script>
+  <script src="splash.js"></script>
   <script src="../common/cw-welcome.js"></script>
 </body>
 </html>

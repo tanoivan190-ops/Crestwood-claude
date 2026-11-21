@@ -1,0 +1,26 @@
+/* ==========================================================================
+   Crestwood RP v22 - ecran de chargement : accroche d'accueil + astuce "carte RP".
+   Charge APRES v21.css.
+   ========================================================================== */
+.hero{position:absolute;z-index:3;left:calc(var(--pad) + env(safe-area-inset-left));top:clamp(62px,24vh,120px);max-width:min(60vw,560px);
+  animation:cwHero 1s cubic-bezier(.2,.8,.2,1) .2s both}
+@keyframes cwHero{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.hero-eyebrow{display:flex;align-items:center;gap:10px;font:700 clamp(8.5px,2.6vh,11.5px)/1 CwMont,sans-serif;letter-spacing:.32em;
+  text-transform:uppercase;color:#9cc1ff}
+.hero-eyebrow::before{content:"";width:clamp(22px,6vw,42px);height:2px;background:linear-gradient(90deg,#3b82ff,rgba(59,130,255,0));border-radius:2px}
+.hero-title{margin-top:clamp(5px,1.6vh,10px);font:900 clamp(20px,8.4vh,44px)/1.05 CwMont,sans-serif;letter-spacing:-.01em;color:#fff;
+  text-shadow:0 4px 28px rgba(0,0,0,.65)}
+.hero-sub{margin-top:clamp(5px,1.6vh,9px);font:500 clamp(10px,3vh,14px)/1.4 CwMont,sans-serif;color:var(--soft);text-shadow:0 2px 12px rgba(0,0,0,.7)}
+
+/* l'astuce devient une carte numerotee, plus lisible */
+.tip{border-left:0 !important;border:1px solid rgba(255,255,255,.1) !important;
+  background:linear-gradient(180deg,rgba(20,24,31,.78),rgba(11,13,18,.82)) !important;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);max-width:min(52vw,520px) !important}
+.tip-tag{padding:3px 8px;border-radius:999px;background:rgba(59,130,255,.16);border:1px solid rgba(59,130,255,.45);
+  color:#cfe0ff !important;letter-spacing:.14em;text-transform:uppercase}
+.tip p{font-size:clamp(9.5px,2.9vh,13px) !important;color:#e6e9ee !important}
+
+@media (max-height:340px){ .hero-sub{display:none} .hero{top:60px} }
+@media (max-width:640px){ .hero{max-width:86vw} }
+body.dl-on .hero{opacity:.0}
+@media (prefers-reduced-motion:reduce){ .hero{animation:none} }

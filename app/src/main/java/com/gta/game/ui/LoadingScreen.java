@@ -24,6 +24,12 @@ public class LoadingScreen {
     // Filet de securite : si le jeu ne ferme pas l'ecran (dialogue, spawn...), on le ferme tout seul apres 30 s.
     private static final long MAX_WAIT_MS = 30_000L;
     private static final long FADE_MS = 350L;
+    // [v22] duree minimale d'affichage au demarrage : l'intro, le choix de langue, le diaporama et les astuces
+    // ont le temps de se derouler meme si le jeu est pret plus vite. Le bouton "Entrer en jeu" passe outre.
+    private static final long MIN_FIRST_SHOW_MS = 30_000L;
+    private final long firstShownAt = android.os.SystemClock.elapsedRealtime();
+    private boolean minShowElapsed;
+    private final Runnable delayedHide = this::hide;
 
     public LoadingScreen(Activity activity) {
         this.activity = activity;
@@ -113,7 +119,18 @@ public class LoadingScreen {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\"";
     }
 
-    public void hide() {
+    public void hide() { hide(false); }
+
+    private void hide(boolean force) {
+        if (!force && !minShowElapsed) {
+            final long remaining = MIN_FIRST_SHOW_MS - (android.os.SystemClock.elapsedRealtime() - firstShownAt);
+            if (remaining > 0 && mainLayout != null && mainLayout.getVisibility() == View.VISIBLE && handler != null) {
+                handler.removeCallbacks(delayedHide);
+                handler.postDelayed(delayedHide, remaining);
+                return;
+            }
+            minShowElapsed = true;
+        }
         if (handler != null) handler.removeCallbacksAndMessages(null);
         // Deja cache (ou en train de se cacher) : rien a faire
         if (mainLayout == null || mainLayout.getVisibility() != View.VISIBLE || hiding) return;
@@ -148,7 +165,7 @@ public class LoadingScreen {
     }
 
     public void destroy() {
-        hide();
+        hide(true);
         if (loadingWebView != null) {
             loadingWebView.stopLoading();
             loadingWebView.removeJavascriptInterface("AndroidLoading");
@@ -163,7 +180,7 @@ public class LoadingScreen {
         @JavascriptInterface public void start() { DataInstaller.prepare(activity); }
         @JavascriptInterface public void retry() { DataInstaller.repair(activity); }
         // Bouton "Entrer en jeu" de l'ecran de chargement : ferme l'ecran sur le thread UI
-        @JavascriptInterface public void skip() { runOnUiThread(LoadingScreen.this::hide); }
+        @JavascriptInterface public void skip() { runOnUiThread(() -> LoadingScreen.this.hide(true)); }
         // [v21] memoire native du premier lancement (cw.lang / cw.rules) : survit a tout
         @JavascriptInterface public String getPref(String key) {
             if (key == null || !key.matches("cw\\.[a-z]{1,12}")) return "";

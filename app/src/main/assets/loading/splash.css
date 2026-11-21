@@ -16,7 +16,7 @@
 /* vignette + leger grain pour un rendu "cinema" */
 .splash::before{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,.78) 100%)}
-.sp-grain{position:absolute;inset:-50%;pointer-events:none;opacity:.07;mix-blend-mode:screen;
+.sp-grain{display:none;position:absolute;inset:-50%;pointer-events:none;opacity:.07;mix-blend-mode:screen;
   background-image:repeating-radial-gradient(circle at 17% 32%,#fff 0 .5px,transparent .5px 3px),
                    repeating-radial-gradient(circle at 83% 68%,#fff 0 .5px,transparent .5px 4px);
   animation:spGrain .5s steps(4) infinite}

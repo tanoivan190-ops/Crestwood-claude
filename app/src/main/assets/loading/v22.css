@@ -44,3 +44,9 @@ body.dl-on .meta{display:flex}
 
 /* [v22] la musique joue en arriere-plan : plus de lecteur affiche sur l'ecran de chargement */
 .player{display:none !important}
+
+/* [v22] allegement pour les telephones modestes : moins de couches GPU et plus d'animation de fond permanente */
+.slide{will-change:auto !important}
+.slide.on{will-change:opacity,transform !important}
+.bar::after{animation:none !important;background:none !important}
+.tip{bottom:calc(var(--cardh,70px) + 4px) !important}

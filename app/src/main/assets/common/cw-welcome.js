@@ -111,7 +111,7 @@
     + "@media (prefers-reduced-motion:reduce){.cww.out{transition:none}}";
 
   var CSS2 = ""
-    + ".cww{background:radial-gradient(ellipse at 20% 30%,rgba(59,130,255,.16),transparent 55%),rgba(4,6,9,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}"
+    + ".cww{background:radial-gradient(ellipse at 20% 30%,rgba(59,130,255,.16),transparent 55%),rgba(4,6,9,.9)}"
     + ".cww-card{border-radius:16px;background:linear-gradient(180deg,rgba(59,130,255,.07),rgba(255,255,255,0) 30%),rgba(15,18,23,.96);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 26px 70px rgba(0,0,0,.6)}"
     + ".cww-plate{border-radius:50%;box-shadow:none}"
     + ".cww-btn{border-radius:12px;background:linear-gradient(180deg,#4b8fff,#2f74f0);box-shadow:0 6px 18px rgba(59,130,255,.3)}"

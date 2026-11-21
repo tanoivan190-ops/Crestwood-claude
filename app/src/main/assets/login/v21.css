@@ -37,3 +37,6 @@
 .cw-pbtn{ border-radius: 50% !important; }
 .cw-strength, .cw-strength *{ border-radius: 999px; }
 .sa-stack > *{ border-radius: 14px; }
+
+/* [v22] plus de lecteur de musique visible : la musique continue en arriere-plan */
+.cw-player{ display: none !important; }

@@ -374,6 +374,20 @@
     },6000);
   }
 
+
+  // [v22] l'astuce se cale toujours juste au-dessus de la barre, quelle que soit la hauteur de l'ecran
+  (function(){
+    const card=$('card');
+    if(!card)return;
+    const sync=()=>{
+      const pt=parseFloat(window.getComputedStyle(card).paddingTop)||0;
+      document.documentElement.style.setProperty('--cardh',Math.max(40,card.offsetHeight-pt*0.55)+'px');
+    };
+    sync();
+    if(window.ResizeObserver)new ResizeObserver(sync).observe(card);
+    window.addEventListener('resize',sync);
+  })();
+
   window.LoadingBridge={setProgress,ready,error,storageAccessRequired,storageAccessGranted,stopMusic,connecting};
   setSteps(1,false);
   if(window.AndroidLoading&&typeof window.AndroidLoading.start==='function')window.AndroidLoading.start();

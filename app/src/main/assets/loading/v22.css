@@ -41,3 +41,6 @@ body.dl-on .meta{display:flex}
 @media (max-height:340px){ .hero-sub{display:none} .hero{top:60px} }
 @media (max-width:640px){ .hero{max-width:86vw} }
 @media (prefers-reduced-motion:reduce){ .hero{animation:none} }
+
+/* [v22] la musique joue en arriere-plan : plus de lecteur affiche sur l'ecran de chargement */
+.player{display:none !important}

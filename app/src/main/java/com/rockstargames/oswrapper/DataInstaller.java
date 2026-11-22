@@ -185,6 +185,26 @@ public final class DataInstaller {
     // true apres repair() : le controle "data presente" tolerant est desactive, seul le controle strict compte.
     private static volatile boolean forceStrictCheck;
 
+    // [v22] service de premier plan : le telechargement continue en arriere-plan (notification de progression)
+    private static volatile Context appContext;
+    private static volatile boolean serviceStarted;
+
+    private static void keepAlive(int percent, String phase, long total) {
+        Context context = appContext;
+        if (context == null || percent >= 100) return;
+        if (!serviceStarted && (total > 0L || percent > 0)) {
+            serviceStarted = true;
+            DataDownloadService.start(context);
+        }
+        if (serviceStarted) DataDownloadService.update(context, percent, phase);
+    }
+
+    private static void releaseKeepAlive() {
+        Context context = appContext;
+        if (context != null && serviceStarted) DataDownloadService.stop(context);
+        serviceStarted = false;
+    }
+
     private DataInstaller() { }
 
     private static void ensurePRDownloaderInitialized(Context context) {
@@ -210,6 +230,7 @@ public final class DataInstaller {
         installing = true;
         success = false;
         errorMessage = "";
+        appContext = context.getApplicationContext();
         readyLatch = new CountDownLatch(1);
         ensurePRDownloaderInitialized(context);
         new Thread(() -> install(context.getApplicationContext()), "crestwood-data-installer").start();
@@ -1227,6 +1248,7 @@ public final class DataInstaller {
     private static void complete(File target, long extractedBytesTotal) {
         success = true;
         installing = false;
+        releaseKeepAlive();
         report(100, "Données installées", extractedBytesTotal, extractedBytesTotal);
         readyLatch.countDown();
         Listener current = listener;
@@ -1237,6 +1259,7 @@ public final class DataInstaller {
         errorMessage = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
         success = false;
         installing = false;
+        releaseKeepAlive();
         readyLatch.countDown();
         Listener current = listener;
         if (current != null) current.onError(errorMessage, error);
@@ -1249,6 +1272,7 @@ public final class DataInstaller {
 
     /** Progression limitee a ~4 fois/s (sauf changement de phase / 100%) pour ne pas inonder l'UI (WebView). */
     private static void report(int percent, String phase, long done, long total) {
+        keepAlive(Math.max(0, Math.min(100, percent)), phase, total);
         Listener current = listener;
         if (current == null) return;
         int clamped = Math.max(0, Math.min(100, percent));

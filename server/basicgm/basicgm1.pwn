@@ -7031,6 +7031,7 @@ stock Shop_Action(playerid, const params[])
 			g_ShopLast[playerid] = (now == 0 ? 1 : now);
 			Inv_SetQty(playerid, item, owned + qty);
 			Phone_AfterShopBuy(playerid, item);   // [v20] puce activee a l'achat / offerte avec un iPhone
+			if (!strcmp(item, "hamburger") || !strcmp(item, "eau_kirene") || !strcmp(item, "vody")) Missions_Event(playerid, MEV_BUY);   // [v30] mission 1
 			Bank_SavePlayer(playerid);
 			Gov_CollectTax(total);
 			format(msg, sizeof msg, "Achat effectue : -%d $", total);
@@ -7463,6 +7464,7 @@ stock Job_Sign(playerid, job, msg[], msgsize)
 	g_JobOf[playerid] = job;
 	Job_LoadXP(playerid, job, g_JobRoutes[playerid], g_JobEarned[playerid]);
 	format(msg, msgsize, "Contrat signe ! Bienvenue dans l'equipe.");
+	Missions_Event(playerid, MEV_JOB);   // [v30] mission 4
 	return 1;
 }
 
@@ -23581,6 +23583,7 @@ public OnGameModeInit()
 	Kit_OnInit();
 	Rp_OnInit();            // tablette RP
 	Promo_OnInit();         // codes promo
+	Missions_OnInit();      // [v30] missions d'arrivee, permis de conduire, plantations
 	Law_OnInit();           // centrale des forces de l ordre
 	Svc_OnInit();           // carburant + location
 	Rob_OnInit();
@@ -23666,6 +23669,7 @@ public OnPlayerConnect(playerid)
 	RpX_OnConnect(playerid);
 	Rp_OnConnect(playerid);
 	Promo_OnConnect(playerid);
+	Missions_OnConnect(playerid);   // [v30]
 	Law_OnConnect(playerid);
 	Svc_OnConnect(playerid);
 	Pts_OnConnect(playerid);
@@ -23732,6 +23736,7 @@ public OnPlayerSpawn(playerid)
 	Kit_OnSpawn(playerid);
 	RpX_OnSpawn(playerid);
 	Promo_OnSpawn(playerid);
+	Missions_OnSpawn(playerid);   // [v30]
 	Vie_OnSpawn(playerid);     // [v19] charge faim/soif/niveau (score)
 	Ville_OnSpawn(playerid);    // [v19b] charge l'epoux
 	Cw21_OnSpawn(playerid);     // [v21] camera remise derriere le joueur
@@ -23817,6 +23822,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Kit_OnCommand(playerid, cmdtext)) return 1;
 	if (Npc_OnCommand(playerid, cmdtext)) return 1;    // [v18] /quetes /abandonner /pnj
 	if (Cj_OnCommand(playerid, cmdtext)) return 1;     // [v18] /tablette /emploi /finemploi
+	if (Missions_OnCommand(playerid, cmdtext)) return 1;   // [v30] /mission /permis /plantation
 	if (Vie_OnCommand(playerid, cmdtext)) return 1;    // [v19] /besoins /niveau /apparence /examiner /loto
 	if (Ville_OnCommand(playerid, cmdtext)) return 1;  // [v19b] /course /mariage /oui /non /divorce
 	if (Cw21_OnCommand(playerid, cmdtext)) return 1;   // [v21] /cadeau /parrain /sondage /voter /meteo /afk
@@ -23979,6 +23985,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	if (Ui_OnDialog(playerid, dialogid, response, inputtext)) return 1;
 	if (Gar_OnDialog(playerid, dialogid, response)) return 1;   // [GARAGE PRO] vente entre joueurs
 	if (Npc_OnDialog(playerid, dialogid, response, listitem)) return 1;   // [v18] PNJ / quetes
+	if (Missions_OnDialog(playerid, dialogid, response, listitem)) return 1;   // [v30] quiz du permis de conduire
 	if (Gov_OnDialog(playerid, dialogid, response, listitem)) return 1;
 	if (FacX_OnDialog(playerid, dialogid, response)) return 1;
 	if (Kit_OnDialog(playerid, dialogid, response)) return 1;
@@ -24009,6 +24016,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #include <Cw21>              // [v21] camera selfie/drone, cadeau, parrainage, sondages, meteo, AFK
 #include <Cw22>              // [v22] hotbar Crestwood, prix de la boutique (panneau admin)
 #include <Cw23>
+#include <Missions>         // [v30] missions d'arrivee (6), permis de conduire, plantations
 #include <Cw25>              // [v25] location de velo, telephone en main
 #include <HopitalEMS>        // [v24] hopital EMS (pack MTA SAMU47), actif avec /mapdata hopital on              // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
 

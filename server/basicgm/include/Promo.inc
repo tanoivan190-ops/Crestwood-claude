@@ -176,6 +176,46 @@ stock Promo_Find(const code[], &pack, creator[], csize)
 }
 
 // active un code pour le joueur : 1 = ok (msg = resume), 0 = refuse (msg = raison)
+#define PROMO_WELCOME_MONEY   20000
+#define PROMO_WELCOME_MODEL   434        // Hotknife
+#define PROMO_WELCOME_LEVEL   5
+
+// [v30] Pack de bienvenue du code promo (le createur touche sa commission a part)
+stock Promo_WelcomePack(playerid, const name[])
+{
+	new q[220], f[32];
+	// argent
+	Promo_Give(playerid, PROMO_WELCOME_MONEY, "Code promo");
+	// Hotknife definitive dans le garage
+	format(q, sizeof q, "INSERT INTO vehicles (owner, model, c1, c2, price) VALUES ('%s', %d, 1, 1, 0)", name, PROMO_WELCOME_MODEL);
+	db_free_result(db_query(g_GarDB, q));
+	// carte d'identite (si le joueur n'en a pas deja une)
+	new age, origin[32];
+	if (!Ui_LoadId(playerid, age, origin, sizeof origin))
+	{
+		age = Vie_Age(playerid);
+		if (age < 16 || age > 90) age = 25;
+		if (g_IdOrigin[playerid][0]) format(origin, sizeof origin, "%s", g_IdOrigin[playerid]);
+		else format(origin, sizeof origin, "Los Santos");
+		format(q, sizeof q, "INSERT OR REPLACE INTO player_ids (name, age, origin, issued, signed) VALUES ('%s', %d, '%s', %d, 1)", name, age, origin, gettime());
+		db_free_result(db_query(g_JobDB, q));
+	}
+	// permis de conduire
+	Mis_GiveLicense(playerid);
+	Pol_SetLicense(playerid, 0, "Etat civil");
+	// niveau 5
+	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
+	if (g_VieLvl[playerid] < PROMO_WELCOME_LEVEL)
+	{
+		g_VieLvl[playerid] = PROMO_WELCOME_LEVEL;
+		g_VieXp[playerid] = 0;
+		Vie_Save(playerid);
+	}
+	f[0] = 0;
+	Missions_Check(playerid);   // etapes carte + permis validees d'office
+	return 1;
+}
+
 stock Promo_Redeem(playerid, const raw[], msg[], msize)
 {
 	if (!g_AuthLogged[playerid]) { format(msg, msize, "Connecte-toi d'abord."); return 0; }
@@ -199,29 +239,8 @@ stock Promo_Redeem(playerid, const raw[], msg[], msize)
 	r = db_query(g_PromoDB, q); used = 0;
 	if (r != DBResult:0) { used = db_num_rows(r) > 0; db_free_result(r); }
 	if (!used) { format(msg, msize, "Code promo deja utilise."); return 0; }
-	// 2) vehicule en location dans le garage
-	format(q, sizeof q, "INSERT INTO vehicles (owner, model, c1, c2, price) VALUES ('%s', %d, 1, 1, 0)", name, g_PromoModel[pack]);
-	db_free_result(db_query(g_GarDB, q));
-	r = db_query(g_GarDB, "SELECT last_insert_rowid()");
-	new vid = 0;
-	if (r != DBResult:0)
-	{
-		if (db_num_rows(r) > 0)
-		{
-			db_get_field(r, 0, f, sizeof f);
-			vid = strval(f);
-		}
-		db_free_result(r);
-	}
-	if (vid > 0)
-	{
-		format(q, sizeof q, "INSERT OR REPLACE INTO promo_rentals (vid, user, model, expires) VALUES (%d, '%s', %d, %d)", vid, name, g_PromoModel[pack], gettime() + g_PromoDays[pack] * 86400);
-		db_free_result(db_query(g_PromoDB, q));
-	}
-	// 3) argent
-	new why[48];
-	format(why, sizeof why, "Code promo %s", g_PromoName[pack]);
-	Promo_Give(playerid, g_PromoMoney[pack], why);
+	// 2) pack de bienvenue [v30] : 20 000 $, Hotknife (definitive), carte d'identite, permis, niveau 5
+	Promo_WelcomePack(playerid, name);
 	// 4) commission du createur
 	new com = g_PromoCommission[pack];
 	format(q, sizeof q, "UPDATE promo_codes SET uses = uses + 1, earned = earned + %d WHERE code = '%s'", com, code);
@@ -241,12 +260,8 @@ stock Promo_Redeem(playerid, const raw[], msg[], msize)
 		format(q, sizeof q, "UPDATE promo_pending SET amount = amount + %d WHERE creator = '%s'", com, creator);
 		db_free_result(db_query(g_PromoDB, q));
 	}
-	new money[16];
-	Cw_Fmt(g_PromoMoney[pack], money, sizeof money);
-	format(m, sizeof m, "Forfait %s active : %s %d jours (dans ton garage) + %s $ en banque.", g_PromoName[pack], g_PromoVeh[pack], g_PromoDays[pack], money);
-	SendClientMessage(playerid, 0x33CC33FF, m);
-	format(m, sizeof m, "Forfait ~g~%s~w~ active : ~y~%s~w~ pendant %d jours (dans ton ~b~/garage~w~) + ~g~%s $~w~ en banque.", g_PromoName[pack], g_PromoVeh[pack], g_PromoDays[pack], money);
-	Cw_Notify(playerid, "success", "Code promo", m, 9000);
+	SendClientMessage(playerid, 0x33CC33FF, "Code promo active : 20 000 $ + Hotknife (dans ton /garage) + carte d'identite + permis de conduire + niveau 5.");
+	Cw_Notify(playerid, "success", "Code promo", "~g~20 000 $~w~ en banque, une ~y~Hotknife~w~ dans ton ~b~/garage~w~, ta ~b~carte d'identite~w~, ton ~b~permis~w~ et le ~g~niveau 5~w~ !", 9000);
 	format(msg, msize, "Code promo active !");
 	return 1;
 }

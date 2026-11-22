@@ -18,7 +18,7 @@ jobs:
       - name: Construire pawncc 3.10.10 (sources officielles)
         run: |
           git clone --depth 1 --branch v3.10.10 https://github.com/pawn-lang/compiler.git /tmp/pawn
-          cmake -S /tmp/pawn/source/compiler -B /tmp/pawn-build -DCMAKE_BUILD_TYPE=Release
+          cmake -S /tmp/pawn/source/compiler -B /tmp/pawn-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           cmake --build /tmp/pawn-build --target pawncc -j 4
           ls -la /tmp/pawn-build
 

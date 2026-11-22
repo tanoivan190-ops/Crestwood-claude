@@ -204,13 +204,7 @@ stock Promo_WelcomePack(playerid, const name[])
 	Mis_GiveLicense(playerid);
 	Pol_SetLicense(playerid, 0, "Etat civil");
 	// niveau 5
-	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
-	if (g_VieLvl[playerid] < PROMO_WELCOME_LEVEL)
-	{
-		g_VieLvl[playerid] = PROMO_WELCOME_LEVEL;
-		g_VieXp[playerid] = 0;
-		Vie_Save(playerid);
-	}
+	Vie_SetMinLevel(playerid, PROMO_WELCOME_LEVEL);
 	f[0] = 0;
 	Missions_Check(playerid);   // etapes carte + permis validees d'office
 	return 1;

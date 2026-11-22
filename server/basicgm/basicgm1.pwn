@@ -6805,6 +6805,13 @@ stock FacX_OnCommand(playerid, const cmdtext[])
 #define LIC_BOAT              3
 #define LIC_COUNT             4
 
+// [v30] evenements des missions d'arrivee (include Missions.inc)
+#define MEV_BUY               1
+#define MEV_USE               2
+#define MEV_ID                3
+#define MEV_LICENSE           4
+#define MEV_JOB               5
+
 new g_LicKey[LIC_COUNT][14] = { "conduire", "armes", "poidslourds", "navire" };
 new g_LicName[LIC_COUNT][28] = { "Permis de conduire", "Permis port d'armes", "Permis poids lourds", "Permis navire" };
 

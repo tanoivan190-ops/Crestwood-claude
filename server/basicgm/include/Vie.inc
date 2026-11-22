@@ -237,6 +237,19 @@ stock Vie_Active(p)
 	return 0;
 }
 
+// [v30] fixe un niveau minimum (code promo : niveau 5)
+stock Vie_SetMinLevel(playerid, lvl)
+{
+	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
+	if (g_VieLvl[playerid] < lvl)
+	{
+		g_VieLvl[playerid] = lvl;
+		g_VieXp[playerid] = 0;
+		Vie_Save(playerid);
+	}
+	return 1;
+}
+
 stock Vie_Eat(playerid, amount)
 {
 	if (!g_VieLoaded[playerid]) Vie_Load(playerid);

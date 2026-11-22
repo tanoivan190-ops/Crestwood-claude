@@ -19,11 +19,7 @@
 #define MIS_PLANT_RANGE       30.0
 #define MIS_PLANT_MAX         12
 
-#define MEV_BUY               1
-#define MEV_USE               2
-#define MEV_ID                3
-#define MEV_LICENSE           4
-#define MEV_JOB               5
+// (MEV_BUY / MEV_USE / MEV_ID / MEV_LICENSE / MEV_JOB sont definis plus haut dans basicgm1.pwn, pres de LIC_DRIVE)
 
 new DB:g_MisDB;
 new g_MisStep[MAX_PLAYERS];

@@ -9,6 +9,9 @@ on:
       - 'server/basicgm/**'
       - '.github/workflows/pawn-build.yml'
 
+permissions:
+  contents: write
+
 jobs:
   pawn:
     runs-on: ubuntu-latest
@@ -39,3 +42,10 @@ jobs:
           path: |
             server/basicgm/basicgm1.amx
             server/basicgm/pawn.log
+
+      - name: Publier le .amx dans la release V22-corrige (lien de telechargement direct)
+        if: github.ref == 'refs/heads/v22'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload V22-corrige server/basicgm/basicgm1.amx --clobber --repo "$GITHUB_REPOSITORY"

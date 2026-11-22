@@ -50,3 +50,13 @@ body.dl-on .meta{display:flex}
 .slide.on{will-change:opacity,transform !important}
 .bar::after{animation:none !important;background:none !important}
 .tip{bottom:calc(var(--cardh,70px) + 4px) !important}
+
+/* [v22] en cas d'erreur ou d'autorisation requise, la raison (message) reste lisible au-dessus de la barre */
+.card[data-state="error"] .head,.card[data-state="permission"] .head{display:block !important;grid-column:1 / -1;grid-row:1;margin:0}
+.card[data-state="error"] .head .chip,.card[data-state="error"] .head h1,
+.card[data-state="permission"] .head .chip,.card[data-state="permission"] .head h1{display:none}
+.card[data-state="error"] .message,.card[data-state="permission"] .message{display:block;margin:0 0 2px;color:#ffb3bb;
+  font-size:clamp(10px,3vh,13px);line-height:1.35;text-shadow:0 2px 10px rgba(0,0,0,.85)}
+.card[data-state="error"] .foot,.card[data-state="permission"] .foot,
+.card[data-state="error"] .progress-row,.card[data-state="permission"] .progress-row{grid-row:2}
+.card[data-state="error"] .track,.card[data-state="permission"] .track{grid-row:3}

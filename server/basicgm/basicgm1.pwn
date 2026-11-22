@@ -6811,6 +6811,7 @@ stock FacX_OnCommand(playerid, const cmdtext[])
 #define MEV_ID                3
 #define MEV_LICENSE           4
 #define MEV_JOB               5
+#define RPX_COL_ME             0xC2A2DAFF
 
 new g_LicKey[LIC_COUNT][14] = { "conduire", "armes", "poidslourds", "navire" };
 new g_LicName[LIC_COUNT][28] = { "Permis de conduire", "Permis port d'armes", "Permis poids lourds", "Permis navire" };
@@ -24051,7 +24052,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #define RPX_OFFER_SECONDS      40
 #define RPX_MAX_PRICE          100000
 #define RPX_HOSPITAL_FEE       250
-#define RPX_COL_ME             0xC2A2DAFF
+// (RPX_COL_ME est defini plus haut, pres de LIC_DRIVE : Vie.inc / Ville.inc en ont besoin avant)
 #define RPX_COL_DO             0x9EC4E8FF
 #define RPX_COL_OOC            0xAFAFAFFF
 #define RPX_COL_INFO           0x33CCFFFF

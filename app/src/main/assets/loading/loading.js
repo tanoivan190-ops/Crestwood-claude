@@ -68,6 +68,11 @@
   setVolume(vol.value);
   loadTrack(trackIndex);
   playAudio();
+  // [v22] lecteur masque : si le systeme refuse quand meme la lecture automatique, le premier toucher sur l'ecran
+  // (ou le retour dans l'application) relance la musique.
+  const kickMusic=()=>{if(!stopped&&audio.paused)playAudio();};
+  ['pointerdown','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,kickMusic,{passive:true}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)kickMusic();});
 
   const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
   const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();

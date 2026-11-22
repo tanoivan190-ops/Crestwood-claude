@@ -139,6 +139,9 @@ public class MainActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);   // [v21] langue + reglement memorises
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(false);
+        // [v22] le lecteur de musique est masque : la musique doit demarrer toute seule (sinon Android la bloque
+        // tant que le joueur n'a pas appuye sur le bouton lecture, qui n'existe plus)
+        settings.setMediaPlaybackRequiresUserGesture(false);
         updateWebView.addJavascriptInterface(new LauncherUpdateBridge(), "AndroidLoading");
         updateWebView.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) { renderUpdateState(); }

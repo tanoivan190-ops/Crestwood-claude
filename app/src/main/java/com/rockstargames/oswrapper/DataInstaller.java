@@ -1043,9 +1043,19 @@ public final class DataInstaller {
         }
     }
 
+    /**
+     * [v22] La taille "extraite" du manifeste est parfois fausse (12 Go declares pour un zip de 1,86 Go), ce qui
+     * bloquait l'installation sur des telephones qui avaient assez de place. On borne l'estimation a 3x la taille
+     * compressee (rapport realiste des textures/modeles) ; si l'extraction manque vraiment de place, elle echoue proprement.
+     */
+    private static long estimatedExtractedBytes(UpdateManifest manifest) {
+        long cap = Math.max(1L, manifest.compressedBytes) * 3L;
+        return Math.min(manifest.extractedBytes, cap);
+    }
+
     private static void ensureDownloadAndExtractionSpace(File target, long existingDownload, UpdateManifest manifest) throws IOException {
         long remainingDownload = Math.max(0L, manifest.compressedBytes - Math.max(0L, existingDownload));
-        long required = remainingDownload + manifest.extractedBytes + STORAGE_MARGIN_BYTES;
+        long required = remainingDownload + estimatedExtractedBytes(manifest) + STORAGE_MARGIN_BYTES;
         long available = getUsableSpaceForTarget(target);
         if (available < required) {
             throw new IOException("Espace libre insuffisant pour télécharger et extraire les données. Libérez au moins " +
@@ -1054,7 +1064,7 @@ public final class DataInstaller {
     }
 
     private static void ensureExtractionSpace(File target, UpdateManifest manifest) throws IOException {
-        long required = manifest.extractedBytes + STORAGE_MARGIN_BYTES;
+        long required = estimatedExtractedBytes(manifest) + STORAGE_MARGIN_BYTES;
         long available = getUsableSpaceForTarget(target);
         if (available < required) {
             throw new IOException("Espace libre insuffisant pour extraire les données. Libérez au moins " +

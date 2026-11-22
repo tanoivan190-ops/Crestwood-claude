@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Button startButton;
-    private EditText nickInput;
+    private EditText firstInput;
+    private EditText lastInput;
     private TextView authorText;
     private TextView connectionStatus;
     private FrameLayout updateOverlay;
@@ -100,30 +101,57 @@ public class MainActivity extends AppCompatActivity {
 
     private void initViews() {
         startButton = findViewById(R.id.startButton);
-        nickInput = findViewById(R.id.nickInput);
+        firstInput = findViewById(R.id.firstInput);
+        lastInput = findViewById(R.id.lastInput);
         authorText = findViewById(R.id.authorText);
         connectionStatus = findViewById(R.id.connectionStatus);
         restoreAndPersistNickname();
         setStartEnabled(false);
     }
 
+    /** [v22] Prenom + Nom -> "Prenom_Nom" (lettres seulement, majuscule initiale, 24 car. max). */
+    private static String cleanPart(CharSequence v) {
+        if (v == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < v.length(); i++) {
+            char c = v.charAt(i);
+            if (Character.isLetter(c) && c < 0x250) sb.append(c);
+        }
+        if (sb.length() == 0) return "";
+        String t = sb.toString().toLowerCase(java.util.Locale.ROOT);
+        return Character.toUpperCase(t.charAt(0)) + t.substring(1);
+    }
+
+    private String buildNickname() {
+        String f = cleanPart(firstInput == null ? "" : firstInput.getText());
+        String l = cleanPart(lastInput == null ? "" : lastInput.getText());
+        if (f.isEmpty() || l.isEmpty()) return "";
+        String n = f + "_" + l;
+        return n.length() > 24 ? n.substring(0, 24) : n;
+    }
+
     private void restoreAndPersistNickname() {
-        if (nickInput == null) return;
+        if (firstInput == null || lastInput == null) return;
         SharedPreferences preferences = getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE);
         String saved = preferences.getString(SAVED_NICKNAME_KEY, "");
-        if (!TextUtils.isEmpty(saved)) {
-            nickInput.setText(saved);
-            nickInput.setSelection(saved.length());
+        int us = saved.indexOf('_');
+        if (us > 0 && us < saved.length() - 1) {
+            firstInput.setText(saved.substring(0, us));
+            lastInput.setText(saved.substring(us + 1).replace("_", ""));
         }
-        nickInput.addTextChangedListener(new TextWatcher() {
+        TextWatcher watcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence value, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence value, int start, int before, int count) { }
             @Override public void afterTextChanged(Editable value) {
-                getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
-                        .putString(SAVED_NICKNAME_KEY, value == null ? "" : value.toString().trim())
-                        .apply();
+                String n = buildNickname();
+                if (!n.isEmpty()) {
+                    getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
+                            .putString(SAVED_NICKNAME_KEY, n).apply();
+                }
             }
-        });
+        };
+        firstInput.addTextChangedListener(watcher);
+        lastInput.addTextChangedListener(watcher);
     }
 
     private void initializeUpdateScreen() {
@@ -321,9 +349,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            String nickname = nickInput == null ? "Nick_Name" : nickInput.getText().toString().trim();
-            if (TextUtils.isEmpty(nickname)) nickname = "Nick_Name";
-            if (nickname.length() > 24) nickname = nickname.substring(0, 24);
+            String nickname = buildNickname();
+            if (TextUtils.isEmpty(nickname)) {
+                Toast.makeText(this, "Entre ton prénom et ton nom (lettres uniquement)", Toast.LENGTH_LONG).show();
+                if (firstInput != null) firstInput.requestFocus();
+                return;
+            }
             getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
                     .putString(SAVED_NICKNAME_KEY, nickname).apply();
             writeServerSettings(nickname);

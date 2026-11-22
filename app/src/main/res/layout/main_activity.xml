@@ -124,7 +124,7 @@
     <!-- Pseudo -->
     <LinearLayout
         android:id="@+id/userCard"
-        android:layout_width="230dp"
+        android:layout_width="300dp"
         android:layout_height="44dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
@@ -142,15 +142,29 @@
             android:src="@drawable/ic_user_svg"
             android:contentDescription="Joueur" />
         <EditText
-            android:id="@+id/nickInput"
+            android:id="@+id/firstInput"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:background="@android:color/transparent"
-            android:hint="Prénom_Nom"
-            android:inputType="textPersonName"
-            android:maxLength="24"
+            android:hint="Prénom"
+            android:inputType="textPersonName|textCapWords|textNoSuggestions"
+            android:maxLength="11"
+            android:singleLine="true"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#80FFFFFF"
+            android:textSize="12sp" />
+        <EditText
+            android:id="@+id/lastInput"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:hint="Nom"
+            android:inputType="textPersonName|textCapWords|textNoSuggestions"
+            android:maxLength="11"
             android:singleLine="true"
             android:textColor="#FFFFFF"
             android:textColorHint="#80FFFFFF"

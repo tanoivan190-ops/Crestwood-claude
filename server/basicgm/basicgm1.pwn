@@ -15050,7 +15050,7 @@ stock MapObj_AppendBlips(json[], size, &n)
 // [v22] Interieurs GTA SA reels (coordonnees de la liste officielle des interieurs).
 //  ipX/Y/Z = interieur ; ipEX/EY/EZ = batiment suggere (vraie porte du jeu), 0 = a placer a la main ;
 //  ipBlip = icone de la carte (assets/hud/radar/blips). Panneau staff (onglet "Interieurs") ou /intlist /intpreset <n>.
-enum E_INTPRE { ipName[32], ipCat[10], ipInt, Float:ipX, Float:ipY, Float:ipZ, Float:ipEX, Float:ipEY, Float:ipEZ, ipBlip }
+enum E_INTPRE { ipName[32], ipCat[14], ipInt, Float:ipX, Float:ipY, Float:ipZ, Float:ipEX, Float:ipEY, Float:ipEZ, ipBlip }
 static const g_IntPre[][E_INTPRE] =
 {
 	{"Binco",                    "Vetements",  15,  207.5430, -109.0040, 1005.1330, 2244.47, -1665.36,  14.4839, 120},

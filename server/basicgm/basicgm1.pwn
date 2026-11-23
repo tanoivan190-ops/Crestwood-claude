@@ -23705,7 +23705,7 @@ public OnGameModeInit()
 	Rp_OnInit();            // tablette RP
 	Promo_OnInit();         // codes promo
 	SetTimer("Entry_AutoTick", 400, true);   // [v22] entree automatique dans le rond des portes
-	Shop_OnInit();          // [v22]
+	Ord_OnInit();           // [v22]
 	Missions_OnInit();      // [v30] missions d'arrivee, permis de conduire, plantations
 	Law_OnInit();           // centrale des forces de l ordre
 	Svc_OnInit();           // carburant + location
@@ -23792,7 +23792,7 @@ public OnPlayerConnect(playerid)
 	RpX_OnConnect(playerid);
 	Rp_OnConnect(playerid);
 	Promo_OnConnect(playerid);
-	Shop_OnConnect(playerid);       // [v22] argent des packs en attente
+	Ord_OnConnect(playerid);        // [v22] argent des packs en attente
 	Missions_OnConnect(playerid);   // [v30]
 	Law_OnConnect(playerid);
 	Svc_OnConnect(playerid);
@@ -23974,7 +23974,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Kit_OnCommand(playerid, cmdtext)) return 1;
 	if (Npc_OnCommand(playerid, cmdtext)) return 1;    // [v18] /quetes /abandonner /pnj
 	if (Cj_OnCommand(playerid, cmdtext)) return 1;     // [v18] /tablette /emploi /finemploi
-	if (Shop_OnCommand(playerid, cmdtext)) return 1;   // [v22] /livrer
+	if (Ord_OnCommand(playerid, cmdtext)) return 1;   // [v22] /livrer
 	if (Missions_OnCommand(playerid, cmdtext)) return 1;   // [v30] /mission /permis /plantation
 	if (Vie_OnCommand(playerid, cmdtext)) return 1;    // [v19] /besoins /niveau /apparence /examiner /loto
 	if (Ville_OnCommand(playerid, cmdtext)) return 1;  // [v19b] /course /mariage /oui /non /divorce
@@ -24169,7 +24169,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #include <Cw21>              // [v21] camera selfie/drone, cadeau, parrainage, sondages, meteo, AFK
 #include <Cw22>              // [v22] hotbar Crestwood, prix de la boutique (panneau admin)
 #include <Cw23>
-#include <Shop>             // [v22] boutique : packs achetes sur le site, /livrer (staff)
+#include <PackShop>         // [v22] boutique : packs achetes sur le site, /livrer (staff)
 #include <Missions>         // [v30] missions d'arrivee (6), permis de conduire, plantations
 #include <Cw25>              // [v25] location de velo, telephone en main
 #include <HopitalEMS>        // [v24] hopital EMS (pack MTA SAMU47), actif avec /mapdata hopital on              // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage

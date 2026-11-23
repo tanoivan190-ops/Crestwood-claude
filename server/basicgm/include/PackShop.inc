@@ -4,10 +4,10 @@
 //  Un meme code de reference ne peut etre livre qu'une seule fois. Joueur hors ligne : livre a sa connexion.
 //  ATTENTION : la liste des packs (prix / argent / vehicules) doit rester identique dans le Worker (worker.js, PACKS).
 
-#define SHOP_PACKS 13
+#define PACK_COUNT 13
 
-enum E_SHOPPACK { spFcfa, spMoney, spVeh1, spVeh2 }
-new const g_ShopPack[SHOP_PACKS][E_SHOPPACK] =
+enum E_PACKDEF { pdFcfa, pdMoney, pdVeh1, pdVeh2 }
+new const g_PackDef[PACK_COUNT][E_PACKDEF] =
 {
 	{   500,   25000,   0,   0},
 	{  1000,   55000,   0,   0},
@@ -24,7 +24,7 @@ new const g_ShopPack[SHOP_PACKS][E_SHOPPACK] =
 	{ 45000, 4000000, 411, 579}    // Infernus + Huntley (Aventador + Urus)
 };
 
-stock Shop_Esc(const src[], dst[], dsize)
+stock Ord_Esc(const src[], dst[], dsize)
 {
 	new j = 0;
 	for (new i = 0; src[i] && j < dsize - 1; i++) if ((src[i] >= 'a' && src[i] <= 'z') || (src[i] >= 'A' && src[i] <= 'Z') || (src[i] >= '0' && src[i] <= '9') || src[i] == '_' || src[i] == '-') dst[j++] = src[i];
@@ -32,7 +32,7 @@ stock Shop_Esc(const src[], dst[], dsize)
 	return j;
 }
 
-stock Shop_OnInit()
+stock Ord_OnInit()
 {
 	if (g_PromoDB == DB:0) return 0;
 	db_free_result(db_query(g_PromoDB, "CREATE TABLE IF NOT EXISTS shop_orders (ref TEXT PRIMARY KEY, name TEXT, pack INTEGER, money INTEGER DEFAULT 0, paid INTEGER DEFAULT 0, ts INTEGER)"));
@@ -40,13 +40,13 @@ stock Shop_OnInit()
 }
 
 // verse l'argent en attente (money > 0 et paid = 0) d'un joueur en ligne
-forward Shop_Deliver(playerid);
-public Shop_Deliver(playerid)
+forward Ord_Deliver(playerid);
+public Ord_Deliver(playerid)
 {
 	if (!IsPlayerConnected(playerid) || g_PromoDB == DB:0) return 0;
 	new nm[MAX_PLAYER_NAME], en[MAX_PLAYER_NAME * 2], q[200], f[24], total = 0;
 	GetPlayerName(playerid, nm, sizeof nm);
-	Shop_Esc(nm, en, sizeof en);
+	Ord_Esc(nm, en, sizeof en);
 	format(q, sizeof q, "SELECT SUM(money) FROM shop_orders WHERE name = '%s' COLLATE NOCASE AND paid = 0", en);
 	new DBResult:r = db_query(g_PromoDB, q);
 	if (r != DBResult:0) { if (db_num_rows(r) > 0) { db_get_field(r, 0, f, sizeof f); total = strval(f); } db_free_result(r); }
@@ -59,14 +59,14 @@ public Shop_Deliver(playerid)
 	return 1;
 }
 
-stock Shop_OnConnect(playerid)
+stock Ord_OnConnect(playerid)
 {
-	SetTimerEx("Shop_Deliver", 9000, false, "i", playerid);
+	SetTimerEx("Ord_Deliver", 9000, false, "i", playerid);
 	return 1;
 }
 
 // /livrer Prenom_Nom <pack 1..13> <reference>
-stock Shop_OnCommand(playerid, const cmdtext[])
+stock Ord_OnCommand(playerid, const cmdtext[])
 {
 	if (strcmp(cmdtext, "/livrer ", true, 8)) return 0;
 	if (Admin_Level(playerid) < 4) return 0;
@@ -75,9 +75,9 @@ stock Shop_OnCommand(playerid, const cmdtext[])
 	Bank_NextToken(cmdtext, idx, pk, sizeof pk);
 	Bank_NextToken(cmdtext, idx, rf, sizeof rf);
 	new pack = strval(pk), q[260], m[144], en[48], er[32];
-	if (!nm[0] || pack < 1 || pack > SHOP_PACKS || !rf[0]) { SendClientMessage(playerid, 0xFF4444FF, "Usage : /livrer Prenom_Nom <pack 1-13> <reference>"); return 1; }
-	Shop_Esc(nm, en, sizeof en);
-	Shop_Esc(rf, er, sizeof er);
+	if (!nm[0] || pack < 1 || pack > PACK_COUNT || !rf[0]) { SendClientMessage(playerid, 0xFF4444FF, "Usage : /livrer Prenom_Nom <pack 1-13> <reference>"); return 1; }
+	Ord_Esc(nm, en, sizeof en);
+	Ord_Esc(rf, er, sizeof er);
 	if (!er[0]) { SendClientMessage(playerid, 0xFF4444FF, "Reference invalide."); return 1; }
 	// deja livre ?
 	format(q, sizeof q, "SELECT 1 FROM shop_orders WHERE ref = '%s'", er);
@@ -85,12 +85,12 @@ stock Shop_OnCommand(playerid, const cmdtext[])
 	if (r != DBResult:0) { dup = (db_num_rows(r) > 0); db_free_result(r); }
 	if (dup) { SendClientMessage(playerid, 0xFF4444FF, "Cette commande a DEJA ete livree."); return 1; }
 	new p = pack - 1;
-	format(q, sizeof q, "INSERT INTO shop_orders (ref, name, pack, money, paid, ts) VALUES ('%s', '%s', %d, %d, 0, %d)", er, en, pack, g_ShopPack[p][spMoney], gettime());
+	format(q, sizeof q, "INSERT INTO shop_orders (ref, name, pack, money, paid, ts) VALUES ('%s', '%s', %d, %d, 0, %d)", er, en, pack, g_PackDef[p][pdMoney], gettime());
 	db_free_result(db_query(g_PromoDB, q));
 	// vehicules definitifs dans le garage (marche meme hors ligne)
 	for (new v = 0; v < 2; v++)
 	{
-		new model = (v == 0) ? g_ShopPack[p][spVeh1] : g_ShopPack[p][spVeh2];
+		new model = (v == 0) ? g_PackDef[p][pdVeh1] : g_PackDef[p][pdVeh2];
 		if (!model) continue;
 		format(q, sizeof q, "INSERT INTO vehicles (owner, model, c1, c2, price) VALUES ('%s', %d, 1, 1, 0)", en, model);
 		db_free_result(db_query(g_GarDB, q));
@@ -100,7 +100,7 @@ stock Shop_OnCommand(playerid, const cmdtext[])
 	for (new i = 0; i < MAX_PLAYERS; i++) if (IsPlayerConnected(i)) { GetPlayerName(i, pn, sizeof pn); if (!strcmp(pn, en, true)) { target = i; break; } }
 	if (target != INVALID_PLAYER_ID)
 	{
-		Shop_Deliver(target);
+		Ord_Deliver(target);
 		SendClientMessage(target, 0x66FF66FF, "Boutique Crestwood : ton pack est livre. Tes vehicules sont dans ton garage.");
 		format(m, sizeof m, "Pack %d livre a %s (en ligne). Ref %s.", pack, en, er);
 	}

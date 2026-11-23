@@ -8435,6 +8435,7 @@ enum E_ENTRY
 	Float:enOX, Float:enOY, Float:enOZ,            // entree (dehors) - posee en jeu
 	Float:enIX, Float:enIY, Float:enIZ, Float:enIA, // sortie (dans le mapping) - posee en jeu
 	enBlip,
+	enInt,                                          // [v22] numero d'interieur GTA SA (0 = monde normal)
 	enDb                                            // id en base (map_portals)
 }
 
@@ -8442,6 +8443,7 @@ enum E_ENTRY
 #define PORTAL_MAX            60
 new g_Entries[PORTAL_MAX][E_ENTRY];
 new g_EntryCount;
+new g_EntryColDone;
 
 new g_EntryPickupOut[PORTAL_MAX];
 new g_EntryPickupIn[PORTAL_MAX];
@@ -8500,10 +8502,10 @@ public Entry_Unfreeze(playerid)
 	return 1;
 }
 
-stock Entry_Teleport(playerid, Float:x, Float:y, Float:z, Float:a)
+stock Entry_Teleport(playerid, Float:x, Float:y, Float:z, Float:a, interior = 0)
 {
 	Streamer_UpdateEx(playerid, x, y, z);
-	SetPlayerInterior(playerid, 0);
+	SetPlayerInterior(playerid, interior);
 	SetPlayerPos(playerid, x, y, z);
 	SetPlayerFacingAngle(playerid, a);
 	SetCameraBehindPlayer(playerid);
@@ -8519,7 +8521,7 @@ stock Entry_Use(playerid)
 	if (f > 0)
 	{
 		new e = f - 1;
-		Entry_Teleport(playerid, g_Entries[e][enIX], g_Entries[e][enIY], g_Entries[e][enIZ] + 0.6, g_Entries[e][enIA]);
+		Entry_Teleport(playerid, g_Entries[e][enIX], g_Entries[e][enIY], g_Entries[e][enIZ] + 0.6, g_Entries[e][enIA], g_Entries[e][enInt]);
 		GameTextForPlayer(playerid, g_Entries[e][enName], 2500, 1);
 		return 1;
 	}
@@ -8537,7 +8539,8 @@ stock Entry_LoadDB()
 	g_EntryCount = 0;
 	if (g_JobDB == DB:0) return 0;
 	db_free_result(db_query(g_JobDB, "CREATE TABLE IF NOT EXISTS map_portals (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT 'Portail', ox REAL DEFAULT 0, oy REAL DEFAULT 0, oz REAL DEFAULT 0, ix REAL DEFAULT 0, iy REAL DEFAULT 0, iz REAL DEFAULT 0, ia REAL DEFAULT 0)"));
-	new DBResult:res = db_query(g_JobDB, "SELECT id, name, ox, oy, oz, ix, iy, iz, ia FROM map_portals ORDER BY id");
+	if (!g_EntryColDone) { g_EntryColDone = 1; db_free_result(db_query(g_JobDB, "ALTER TABLE map_portals ADD COLUMN interior INTEGER DEFAULT 0")); }   // [v22] ignore si deja presente
+	new DBResult:res = db_query(g_JobDB, "SELECT id, name, ox, oy, oz, ix, iy, iz, ia, interior FROM map_portals ORDER BY id");
 	if (res == DBResult:0) return 0;
 	new rows = db_num_rows(res), f[40];
 	for (new r = 0; r < rows && g_EntryCount < PORTAL_MAX; r++)
@@ -8552,6 +8555,7 @@ stock Entry_LoadDB()
 		db_get_field(res, 6, f, sizeof f); g_Entries[e][enIY] = floatstr(f);
 		db_get_field(res, 7, f, sizeof f); g_Entries[e][enIZ] = floatstr(f);
 		db_get_field(res, 8, f, sizeof f); g_Entries[e][enIA] = floatstr(f);
+		db_get_field(res, 9, f, sizeof f); g_Entries[e][enInt] = strval(f);
 		g_Entries[e][enBlip] = 0;
 		db_next_row(res);
 	}
@@ -15043,8 +15047,49 @@ stock MapObj_AppendBlips(json[], size, &n)
 	return 1;
 }
 
+// [v22] Interieurs GTA SA reels (coordonnees verifiees) : /intlist, /intpreset <n>
+//  Le staff se place devant la porte exterieure puis tape /intpreset <n> : le portail est cree (entree ici, sortie dans l'interieur).
+enum E_INTPRE { ipName[32], ipInt, Float:ipX, Float:ipY, Float:ipZ }
+static const g_IntPre[][E_INTPRE] =
+{
+	{"Superette 24/7",        4, -27.3769,  -27.6416, 1003.5570},
+	{"Binco (vetements)",    15,  207.5430, -109.0040, 1005.1330},
+	{"Zip (vetements)",      18,  161.4620,  -91.3940, 1001.8050},
+	{"Crack Den (drogue)",    5,  322.1117, 1119.3270, 1083.8830},
+	{"Maison de gang (Crack Palace)", 2, 2543.6610, -1303.9320, 1025.0700}
+};
+
+stock IntPre_OnCommand(playerid, const cmdtext[])
+{
+	if (!strcmp(cmdtext, "/intlist", true))
+	{
+		if (Admin_Level(playerid) < ADMIN_LVL_ADMIN) return 0;
+		new t[160];
+		for (new i = 0; i < sizeof(g_IntPre); i++) { format(t, sizeof t, "%d = %s (interieur %d)", i + 1, g_IntPre[i][ipName], g_IntPre[i][ipInt]); SendClientMessage(playerid, 0xFFCC33FF, t); }
+		SendClientMessage(playerid, 0xFFFFFFFF, "Place-toi devant la porte puis /intpreset <numero>");
+		return 1;
+	}
+	if (!strcmp(cmdtext, "/intpreset ", true, 11))
+	{
+		if (Admin_Level(playerid) < ADMIN_LVL_ADMIN) return 0;
+		new n = strval(cmdtext[11]) - 1;
+		if (n < 0 || n >= sizeof(g_IntPre)) { SendClientMessage(playerid, 0xFF4444FF, "Numero inconnu (/intlist)."); return 1; }
+		if (g_EntryCount >= PORTAL_MAX) { SendClientMessage(playerid, 0xFF4444FF, "Trop de portails."); return 1; }
+		new Float:x, Float:y, Float:z, q[320], m[96];
+		GetPlayerPos(playerid, x, y, z);
+		format(q, sizeof q, "INSERT INTO map_portals (name, ox, oy, oz, ix, iy, iz, ia, interior) VALUES ('%s', %f, %f, %f, %f, %f, %f, 0.0, %d)", g_IntPre[n][ipName], x, y, z - 0.6, g_IntPre[n][ipX], g_IntPre[n][ipY], g_IntPre[n][ipZ] - 0.6, g_IntPre[n][ipInt]);
+		db_free_result(db_query(g_JobDB, q));
+		Pts_ReloadPortals();
+		format(m, sizeof m, "Portail \"%s\" cree ici.", g_IntPre[n][ipName]);
+		SendClientMessage(playerid, 0x66FF66FF, m);
+		return 1;
+	}
+	return 0;
+}
+
 stock MapObj_OnCommand(playerid, const cmdtext[])
 {
+	if (IntPre_OnCommand(playerid, cmdtext)) return 1;
 	if (!strcmp(cmdtext, "/entrer", true) || !strcmp(cmdtext, "/sortir", true))
 	{
 		if (!Entry_Use(playerid)) SendClientMessage(playerid, 0xFF4444FF, "Il n'y a pas de porte ici.");
@@ -15062,7 +15107,7 @@ stock MapObj_OnCommand(playerid, const cmdtext[])
 		id -= sizeof(g_Places);
 		if (id >= 0 && id < g_EntryCount)
 		{
-			Entry_Teleport(playerid, g_Entries[id][enIX], g_Entries[id][enIY], g_Entries[id][enIZ] + 0.6, g_Entries[id][enIA]);
+			Entry_Teleport(playerid, g_Entries[id][enIX], g_Entries[id][enIY], g_Entries[id][enIZ] + 0.6, g_Entries[id][enIA], g_Entries[id][enInt]);
 			return 1;
 		}
 		SendClientMessage(playerid, 0xFF4444FF, "Lieu inconnu (/lieux).");

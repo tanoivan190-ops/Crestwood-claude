@@ -43,9 +43,9 @@ jobs:
             server/basicgm/basicgm1.amx
             server/basicgm/pawn.log
 
-      - name: Publier le .amx dans la release V22-corrige (lien de telechargement direct)
-        if: github.ref == 'refs/heads/v22'
+      - name: Publier le .amx dans une release a part (l'APK ne l'efface pas)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload V22-corrige server/basicgm/basicgm1.amx --clobber --repo "$GITHUB_REPOSITORY"
+          gh release view serveur --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create serveur --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Serveur (basicgm1.amx)" --notes "Dernier basicgm1.amx compile automatiquement. A mettre dans gamemodes/."
+          gh release upload serveur server/basicgm/basicgm1.amx --clobber --repo "$GITHUB_REPOSITORY"

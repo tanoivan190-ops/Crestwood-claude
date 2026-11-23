@@ -2283,7 +2283,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                 String t = type == null ? "" : type.replaceAll("[^a-z]", "");
                 switch (t) {
                     case "view": case "maptp": case "maparr": case "pnew": case "pout": case "pin": case "ptpout":
-                    case "ptpin": case "pdel": case "ptnew": case "ptdel": case "pttp":
+                    case "ptpin": case "pdel": case "ptnew": case "ptdel": case "pttp": case "ipre": case "ipgo": case "ipall":
                         break;
                     default:
                         return;

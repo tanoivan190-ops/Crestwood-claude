@@ -23792,8 +23792,36 @@ public OnPlayerText(playerid, text[])
 	return RpX_OnText(playerid, text);   // [Crestwood] chat de proximite RP
 }
 
+// ============================================================
+//  [v30] COMMANDES TAPEES AU CLAVIER : un joueur ne tape plus les actions de jeu
+//  Le client Crestwood ajoute un marqueur (octet 1) aux commandes TAPEES dans le chat.
+//  Les boutons du HUD et les pages n'en ajoutent pas : ils continuent de marcher.
+//  Les admins gardent toutes les commandes. Un ancien client (sans marqueur) n'est pas filtre.
+// ============================================================
+stock Cmd_TypedGate(playerid, cmdtext[])
+{
+	new len = strlen(cmdtext);
+	if (len < 2 || cmdtext[len - 1] != 1) return 0;
+	cmdtext[len - 1] = 0;                       // retire le marqueur avant tout autre traitement
+	if (!g_AuthLogged[playerid]) return 0;      // connexion / inscription
+	if (Admin_Level(playerid) > 0) return 0;
+	new w[20], i = 0;
+	while (cmdtext[i] > ' ' && i < 19) { w[i] = cmdtext[i]; i++; }
+	w[i] = 0;
+	new const ok[][14] = {
+		"/me", "/do", "/try", "/b", "/s", "/c", "/r", "/d", "/m", "/l", "/pm", "/ame", "/chuchoter", "/crier", "/megaphone",
+		"/aide", "/help", "/rpaide", "/cmds", "/commandes", "/report", "/afk", "/stopanim", "/oui", "/non", "/accepter", "/refuser",
+		"/interagir", "/menu", "/rp", "/gps", "/mission", "/missions", "/id", "/papiers", "/argent",
+		"/moteur", "/lock", "/ceinture", "/vmenu", "/vehmenu", "/clothes", "/vetements", "/tenues"
+	};
+	for (new k = 0; k < sizeof ok; k++) if (!strcmp(w, ok[k], true)) return 0;
+	SendClientMessage(playerid, 0xC9CED6FF, "Plus de commandes a taper : approche-toi du lieu (mairie, agence d'emploi, boutique, banque...) et appuie sur le bouton d'interaction.");
+	return 1;
+}
+
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+	if (Cmd_TypedGate(playerid, cmdtext)) return 1;   // [v30] commandes tapees
 	if (Auth_OnCommand(playerid, cmdtext)) return 1;
 	if (RpX_OnCommand(playerid, cmdtext)) return 1;
 	if (Rp_OnCommand(playerid, cmdtext)) return 1;     // tablette RP (/rp, /menu, /rpact)

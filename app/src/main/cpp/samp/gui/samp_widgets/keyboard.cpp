@@ -138,7 +138,10 @@ void Keyboard::send()
     const std::string input = this->input()->inputString();
 
     m_history->add(input);
-    if (m_caller) m_caller->keyboardEvent(input);
+    // [v30] commande tapee dans le chat : marqueur (octet 1) lu par le serveur (les boutons du HUD n'en ont pas)
+    std::string out = input;
+    if (!out.empty() && out[0] == '/' && pUI && pUI->chat() && m_caller == pUI->chat()) out += '\x01';
+    if (m_caller) m_caller->keyboardEvent(out);
     this->hide();
 }
 

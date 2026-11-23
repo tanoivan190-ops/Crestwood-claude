@@ -414,12 +414,6 @@ stock Missions_OnCommand(playerid, const cmdtext[])
 		Missions_Show(playerid);
 		return 1;
 	}
-	if (!strcmp(cmdtext, "/permis", true))
-	{
-		if (!IsPlayerInRangeOfPoint(playerid, 40.0, 1481.0, -1745.0, 13.5))
-			return Cw_Notify(playerid, "denied", "Permis de conduire", "Passe le permis a la ~b~mairie~w~ (/mairie pour le GPS).", 5000), 1;
-		return Mis_StartLicenseQuiz(playerid);
-	}
 	if ((a = Cw_Arg(cmdtext, "/plantation")) != -1)
 	{
 		if (Admin_Level(playerid) < 4) return 0;

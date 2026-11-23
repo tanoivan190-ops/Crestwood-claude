@@ -802,6 +802,8 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         chatInput.setVisibility(View.GONE);
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null) imm.hideSoftInputFromWindow(chatInput.getWindowToken(), 0);
+        // [v30] commande TAPEE au clavier : marqueur (octet 1) lu par le serveur (les boutons du HUD n'en ont pas)
+        if (value.startsWith("/")) value = value + "\u0001";
         if (!value.isEmpty()) sendChatInput(value);
     }
 

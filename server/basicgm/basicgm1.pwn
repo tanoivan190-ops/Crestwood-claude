@@ -8534,6 +8534,26 @@ stock Entry_Use(playerid)
 	return 0;
 }
 
+// [v22] Entree automatique : on marche dans le rond de la porte -> on entre / on sort (plus besoin de la touche).
+//  Anti-rebond : apres un passage il faut s'eloigner de toutes les portes avant que la suivante se declenche.
+new g_EntryArmed[MAX_PLAYERS];
+
+forward Entry_AutoTick();
+public Entry_AutoTick()
+{
+	for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (!IsPlayerConnected(i) || IsPlayerNPC(i)) continue;
+		if (GetPlayerState(i) != PLAYER_STATE_ONFOOT) continue;
+		new f = Entry_Find(i);
+		if (f == 0) { g_EntryArmed[i] = 1; continue; }
+		if (!g_EntryArmed[i]) continue;
+		g_EntryArmed[i] = 0;
+		Entry_Use(i);
+	}
+	return 1;
+}
+
 stock Entry_LoadDB()
 {
 	g_EntryCount = 0;
@@ -23684,6 +23704,7 @@ public OnGameModeInit()
 	Kit_OnInit();
 	Rp_OnInit();            // tablette RP
 	Promo_OnInit();         // codes promo
+	SetTimer("Entry_AutoTick", 400, true);   // [v22] entree automatique dans le rond des portes
 	Missions_OnInit();      // [v30] missions d'arrivee, permis de conduire, plantations
 	Law_OnInit();           // centrale des forces de l ordre
 	Svc_OnInit();           // carburant + location

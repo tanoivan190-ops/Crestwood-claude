@@ -2864,7 +2864,7 @@
     });
   }
   // [v18] rangée rapide : paramètres, téléphone
-  [["#cwQaSettings", "settings"], ["#cwQaPhone", "phone"]].forEach(([sel, action]) => {
+  [["#cwQaSettings", "settings"], ["#cwQaPhone", "phone"], ["#cwQaInv", "inventory"]].forEach(([sel, action]) => {
     const b = document.querySelector(sel);
     if (!b) return;
     ["pointerdown", "mousedown"].forEach((ev) => b.addEventListener(ev, holdHudTouch));

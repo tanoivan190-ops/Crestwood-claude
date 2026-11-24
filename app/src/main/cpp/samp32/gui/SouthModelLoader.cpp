@@ -251,11 +251,26 @@ static RpAtomic* FindHierCB(RpAtomic* atomic, void* data) {
     if (!r->hier) r->hier = RpSkinAtomicGetHAnimHierarchy(atomic);
     return atomic;
 }
+// [v22] Un DFF fraichement lu n'a PAS encore de hierarchie rattachee aux atomics : le moteur la
+// rattache plus tard dans CPedModelInfo::SetClump (SetHierarchyForSkinAtomic). La hierarchie existe
+// en revanche deja sur les frames (plugin HAnim). On la cherche donc aussi dans l'arbre des frames.
+static RpHAnimHierarchy* FindFrameHierarchy(RwFrame* frame, int depth) {
+    if (!frame || depth > 64) return nullptr;
+    if (RpHAnimHierarchy* h = RpHAnimFrameGetHierarchy(frame)) return h;
+    for (RwFrame* c = frame->child; c; c = c->next) {
+        if (RpHAnimHierarchy* h = FindFrameHierarchy(c, depth + 1)) return h;
+    }
+    return nullptr;
+}
 static RpHAnimHierarchy* FindAnimHierarchy(RpClump* clump, int* atomics, int* skinned) {
     HierSearch r;
     RpClumpForAllAtomics(clump, FindHierCB, &r);
     if (atomics) *atomics = r.atomics;
     if (skinned) *skinned = r.skinned;
+    if (!r.hier && r.skinned > 0) {
+        r.hier = FindFrameHierarchy(RpClumpGetFrame(clump), 0);
+        FLog("[clothes] hierarchie cherchee dans les frames : %s", r.hier ? "trouvee" : "absente");
+    }
     return r.hier;
 }
 

@@ -464,8 +464,10 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
         return false;
     }
 
-    // Release every existing instance BEFORE the clump under them is replaced.
-    std::vector<CPedGTA*> releasedPeds = ReleasePedsUsingModel(modelId);
+    // [v22] Les instances de peds ne sont liberees qu'APRES avoir verifie que le DFF est valide
+    // (hierarchie d'animation). Avant : un DFF sans hierarchie laissait les peds recrees dans un
+    // etat casse et le jeu plantait dans CPed::PlayFootSteps juste apres la connexion.
+    std::vector<CPedGTA*> releasedPeds;
 
     // RpClumpStreamRead resolves each material's texture BY NAME against the
     // *current* texture dictionary (same as MTA's ReadDFF). Without this the
@@ -491,14 +493,23 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     std::string dffErr;
     RpClump* source = LoadDffFile(dffPath, dffErr);
     if (!source) {
-        // ReleasePedsUsingModel() already removed the live instances.  Restore
-        // them even if the replacement DFF is corrupt/missing, otherwise the
-        // next render or ProcessControl pass dereferences a missing clump.
-        RecreateReleasedPeds(releasedPeds, modelId);
+        // (rien n'a encore ete libere ici)
         CTxdStore::PopCurrentTxd();
         err = std::string("dff load failed: ") + dffErr;
         return false;
     }
+
+    {
+        int chkAtomics = 0, chkSkinned = 0;
+        if (!FindAnimHierarchy(source, &chkAtomics, &chkSkinned)) {
+            FLog("[clothes] diag dff: %d atomic(s), %d avec skin, aucune hierarchie (modele %d laisse intact)", chkAtomics, chkSkinned, modelId);
+            CTxdStore::PopCurrentTxd();
+            RpClumpDestroy(source);
+            err = "no anim hierarchy on DFF (skin ignore, modele d'origine conserve)";
+            return false;
+        }
+    }
+    releasedPeds = ReleasePedsUsingModel(modelId);
 
     std::string replaceErr;
     if (!ReplacePedModel(modelInfo, source, replaceErr)) {

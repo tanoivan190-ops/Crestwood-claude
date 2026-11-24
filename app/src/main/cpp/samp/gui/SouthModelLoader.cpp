@@ -27,6 +27,7 @@
 #include "game/RW/rwcore.h"
 #include "game/RW/stream.h"
 #include "game/RW/RwHelper.h"
+#include "game/BrlTextureShader.h"
 #include "game/Streaming.h"
 #include "game/StreamingInfo.h"
 #include "game/TxdDef.h"
@@ -356,6 +357,7 @@ std::vector<CPedGTA*> ReleasePedsUsingModel(int modelId) {
 }
 
 void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
+    if (!released.empty()) BrlTextureShader::ResetLocalPlayer();   // anciens materiaux liberes
     size_t recreated = 0;
     for (CPedGTA* ped : released) {
         // The ped pool owns these objects; replacing model-info does not remove
@@ -364,9 +366,10 @@ void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
         if (!ped || (int)ped->m_nModelIndex != modelId) {
             continue;
         }
-        // CEntityGTA::DeleteRwObject uses slot 9; CreateRwObject is slot 8.
-        const auto table = *reinterpret_cast<uintptr_t**>(ped);
-        reinterpret_cast<void (*)(CPedGTA*)>(table[8])(ped);
+        // [v22] CreateRwObject (slot 8) seul ne reinitialise PAS les animations du ped
+        // (RpAnimBlendClumpInit) : CPed::ProcessControl/PlayFootSteps plantait ensuite (champ nul).
+        // On passe par le vrai SetModelIndex du jeu (dispatch virtuel), comme CPlayerPed::SetModelIndex.
+        ped->SetModelIndex((uint32_t)modelId);
         if (ped->m_pRwObject) {
             ++recreated;
         } else {

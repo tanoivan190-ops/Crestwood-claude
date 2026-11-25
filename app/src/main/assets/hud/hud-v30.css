@@ -49,10 +49,10 @@ body.cw-minimap-off .hud-root .quick-actions{top:calc(8px + env(safe-area-inset-
 .hud-root .vehicle-speedometer{
   left:50%!important;right:auto!important;
   bottom:max(4px,env(safe-area-inset-bottom))!important;
-  width:240px!important;height:290px!important;
-  transform:translateX(-50%) scale(.8)!important;transform-origin:bottom center!important;background:transparent!important}
-.hud-root .literal-speedometer-frame{width:240px!important;height:290px!important;background:transparent!important;color-scheme:dark}
-@media (max-height:500px){.hud-root .vehicle-speedometer{transform:translateX(-50%) scale(.68)!important}}
+  width:320px!important;height:100px!important;
+  transform:translateX(-50%) scale(.9)!important;transform-origin:bottom center!important;background:transparent!important}
+.hud-root .literal-speedometer-frame{width:320px!important;height:100px!important;background:transparent!important;color-scheme:dark}
+@media (max-height:500px){.hud-root .vehicle-speedometer{transform:translateX(-50%) scale(.8)!important}}
 
 /* ---- v31 : les 5 cases d'objets rapides restent en bas au centre (comme le compteur) ; en voiture elles s'effacent ---- */
 .cw-hotbar.cw22-hb{left:50%!important;right:auto!important;top:auto!important;

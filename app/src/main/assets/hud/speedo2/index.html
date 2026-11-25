@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle Speedometer - Crestwood RP</title>
+<style>
+:root {
+  --argent: #22c55e;
+  --essence: #eab308;
+  --moteur: #10b981;
+  --fond: rgba(10, 14, 28, 0.85);
+  --bord: rgba(255, 255, 255, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; }
+
+body {
+  background: transparent;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.veh-container {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 220px;
+  background: var(--fond);
+  border: 1px solid var(--bord);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.4s, opacity 0.35s;
+  transform: translateY(150px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.veh-container.active {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.veh-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 6px;
+}
+
+.veh-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #f8fafc;
+  text-transform: uppercase;
+}
+
+.veh-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.veh-icon-badge {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.25;
+  transition: opacity 0.3s, filter 0.3s, color 0.3s;
+}
+
+.veh-icon-badge svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.veh-icon-badge.on {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.circle-gauge {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle-gauge svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(135deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 12;
+  stroke-dasharray: 339.29;
+  stroke-dashoffset: 84.82;
+  stroke-linecap: round;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: url(#speedGradient);
+  stroke-width: 12;
+  stroke-dasharray: 339.29;
+  stroke-dashoffset: 339.29;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 8px rgba(77, 141, 255, 0.6));
+}
+
+.gauge-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.speed-num {
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+.speed-unit {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
+.veh-mini-stats {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: -5px;
+}
+
+.mini-stat-item {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.mini-stat-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.mini-stat-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.mini-stat-bar-bg {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mini-stat-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="veh-container" id="vehBox">
+  <div class="veh-header">
+    <span class="veh-name" id="vehNom">Infernus</span>
+    <div class="veh-icons">
+      <span class="veh-icon-badge on" id="badgeMoteur" style="color:#22c55e" title="Moteur">
+        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.12.34V17z"/></svg>
+      </span>
+      <span class="veh-icon-badge on" id="badgeCeinture" style="color:#f97316" title="Ceinture">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8m.5-13h-2v6l5.25 3.15.75-1.23-4-2.42z"/></svg>
+      </span>
+      <span class="veh-icon-badge on" id="badgeVerrou" style="color:#ef4444" title="Verrouillage">
+        <svg id="svgVerrou" viewBox="0 0 24 24"><path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4m6-6h-1V8a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2m-6-6a3 3 0 0 1 3 3v3H9V8a3 3 0 0 1 3-3z"/></svg>
+      </span>
+      <span class="veh-icon-badge on" id="badgePhare" style="color:#eab308" title="Phares">
+        <svg viewBox="0 0 24 24"><path d="M12 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6m-9 1h3v2H3V7m0 8h3v2H3v-2m-1-4h4v2H2v-2z"/></svg>
+      </span>
+    </div>
+  </div>
+
+  <div class="circle-gauge">
+    <svg viewBox="0 0 120 120">
+      <defs><linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4d8dff"/><stop offset="60%" stop-color="#9b6bff"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs>
+      <circle class="circle-bg" cx="60" cy="60" r="54"></circle>
+      <circle class="circle-progress" id="circleProgress" cx="60" cy="60" r="54"></circle>
+    </svg>
+    <div class="gauge-center">
+      <span class="speed-num" id="valVitesse">0</span>
+      <span class="speed-unit">KM/H</span>
+    </div>
+  </div>
+
+  <div class="veh-mini-stats">
+    <div class="mini-stat-item">
+      <span class="mini-stat-icon" style="color:#eab308">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-2 10h-2v4h-2v-4H9V7h8v6z"/></svg>
+      </span>
+      <div class="mini-stat-bar-bg"><div class="mini-stat-bar-fill" id="barEssence" style="width:80%;background:#eab308"></div></div>
+    </div>
+    <div class="mini-stat-item">
+      <span class="mini-stat-icon" style="color:#22c55e">
+        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.12.34V17z"/></svg>
+      </span>
+      <div class="mini-stat-bar-bg"><div class="mini-stat-bar-fill" id="barMoteur" style="width:95%;background:#22c55e"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const SVG_LOCK_CLOSED = '<path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4m6-6h-1V8a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2m-6-6a3 3 0 0 1 3 3v3H9V8a3 3 0 0 1 3-3z"/>';
+const SVG_LOCK_OPEN = '<path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4m6-6h-7V8a3 3 0 0 1 6 0h2a5 5 0 0 0-10 0v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>';
+
+const MAX_S = 240, MAX_O = 84.82, MIN_O = 339.29;
+function setVitesseCirculaire(v) {
+  const x = Math.min(MAX_S, Math.max(0, v));
+  document.getElementById('valVitesse').textContent = x;
+  document.getElementById('circleProgress').style.strokeDashoffset = MIN_O - ((x / MAX_S) * (MIN_O - MAX_O));
+}
+
+function majVehicule(d) {
+  const b = document.getElementById('vehBox');
+  if (!d || !d.enVoiture) { b.classList.remove('active'); return; }
+  b.classList.add('active');
+  
+  document.getElementById('vehNom').textContent = d.nom || 'Véhicule';
+  if (d.vitesse !== undefined) setVitesseCirculaire(d.vitesse);
+  if (d.essence !== undefined) document.getElementById('barEssence').style.width = Math.min(100, Math.max(0, d.essence)) + '%';
+  if (d.moteur !== undefined) document.getElementById('barMoteur').style.width = Math.min(100, Math.max(0, d.moteur)) + '%';
+
+  const s = (i, e) => { const el = document.getElementById(i); if (e) el.classList.add('on'); else el.classList.remove('on'); };
+  s('badgeMoteur', d.moteurAllume);
+  s('badgePhare', d.pharesAllumes);
+
+  const badgeCeinture = document.getElementById('badgeCeinture');
+  if(d.ceinture){
+    badgeCeinture.style.color = '#22c55e';
+    badgeCeinture.classList.add('on');
+  } else {
+    badgeCeinture.style.color = '#f97316';
+    badgeCeinture.classList.add('on');
+  }
+
+  const badgeVerrou = document.getElementById('badgeVerrou');
+  const svgVerrou = document.getElementById('svgVerrou');
+  if (d.verrouille) {
+    svgVerrou.innerHTML = SVG_LOCK_CLOSED;
+    badgeVerrou.style.color = '#ef4444';
+    badgeVerrou.classList.add('on');
+  } else {
+    svgVerrou.innerHTML = SVG_LOCK_OPEN;
+    badgeVerrou.style.color = '#22c55e';
+    badgeVerrou.classList.add('on');
+  }
+}
+
+window.addEventListener('message', function(e){
+  const m = e.data;
+  if (!m || !m.hud) return;
+  majVehicule({
+    enVoiture: !!m.vehicle,
+    nom: m.name || '',
+    vitesse: Number(m.speed) || 0,
+    essence: m.fuel,
+    moteur: m.engine,
+    moteurAllume: !!m.engineOn,
+    ceinture: !!m.seatbelt,
+    verrouille: !!m.locked,
+    pharesAllumes: !!m.lights
+  });
+});
+</script>
+</body>
+</html>

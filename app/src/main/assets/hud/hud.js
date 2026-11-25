@@ -337,6 +337,8 @@
       oxigen: 0,
       showbelt: state.inVehicle,
       seatbelt: state.belt,
+      engineOn: state.engineOn,
+      locked: state.vehicleKeyLocked,
       direction: "",
       street: ""
     }, "*");

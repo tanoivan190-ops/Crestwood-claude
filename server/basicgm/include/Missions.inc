@@ -258,13 +258,13 @@ stock Mis_Advance(playerid)
 	if (step == MIS_STEPS)
 	{
 		SendClientMessage(playerid, 0x3B82FFFF, "Bonne arrivee dans Crestwood RP ! Impose-toi et vis ton RP.");
-		Cw_Notify(playerid, "success", "Crestwood RP", "Bonne arrivee dans ~b~Crestwood RP~w~ !~n~Impose-toi et vis ton RP.", 9000);
+		Cw_Notify(playerid, "success", "Crestwood RP", "Bienvenue a Crestwood RP !", 3500);
 		Obj_Hide(playerid);
 		return 1;
 	}
 	format(t, sizeof t, "Mission %d terminee", step);
-	format(m, sizeof m, "Bien joue ! Prochaine mission : %d/%d. Ouvre le panneau avec ~b~/mission~w~.", step + 1, MIS_STEPS);
-	Cw_Notify(playerid, "success", t, m, 6000);
+	format(m, sizeof m, "Suite : %d/%d (~b~/mission~w~)", step + 1, MIS_STEPS);
+	Cw_Notify(playerid, "success", t, m, 3500);
 	Mis_Gps(playerid);
 	return 1;
 }

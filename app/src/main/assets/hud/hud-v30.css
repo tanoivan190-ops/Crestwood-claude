@@ -44,3 +44,12 @@ body.cw-minimap-off .hud-root .quick-actions{top:calc(8px + env(safe-area-inset-
 .hud-root .obj-head small{font-size:7px!important}
 .hud-root .obj-list li{font-size:8px!important;line-height:1.15!important}
 .hud-root .obj-list{gap:1px!important}
+
+/* ---- v31 : nouveau compteur voiture (speedo2), en bas a droite ---- */
+.hud-root .vehicle-speedometer{
+  left:auto!important;right:max(8px,env(safe-area-inset-right))!important;
+  bottom:max(6px,env(safe-area-inset-bottom))!important;
+  width:240px!important;height:290px!important;
+  transform:scale(.8)!important;transform-origin:bottom right!important}
+.hud-root .literal-speedometer-frame{width:240px!important;height:290px!important}
+@media (max-height:500px){.hud-root .vehicle-speedometer{transform:scale(.68)!important}}

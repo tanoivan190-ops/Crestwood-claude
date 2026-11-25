@@ -315,9 +315,9 @@ void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
     }
     WidgetIDs widgetType = GetWidgetTypeFromWidget(pWidget);
 
-    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {
-        CWidget__SetEnabled(pWidget, true);
-        pWidget->m_bEnabled = true;
+    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {   // [v31] bouton "changer de vue" : toujours masque
+        CWidget__SetEnabled(pWidget, false);
+        pWidget->m_bEnabled = false;
         return;
     }
 
@@ -342,11 +342,8 @@ void CWidgetButton__Update_hook(CWidgetButton* thiz) {
     }
     WidgetIDs widgetType = GetWidgetTypeFromWidget(thiz);
 
-    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {
-        if (!thiz->m_bEnabled) {
-            thiz->SetEnabled(true);
-        }
-        CWidgetButton__Update(thiz);
+    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {   // [v31] masque
+        thiz->m_bEnabled = false;
         return;
     }
 
@@ -404,8 +401,8 @@ eWidgetState ProcessFixedWidgetFromId(int iWidgetId)
 int (*CTouchInterface__IsTouched)(int iWidgetId, CVector2D *pVecOut, int nFrameCount);
 int CTouchInterface__IsTouched_hook(int iWidgetId, CVector2D *pVecOut, int nFrameCount)
 {
-    if(iWidgetId == WIDGET_CAM_TOGGLE) {
-        return CTouchInterface__IsTouched(iWidgetId, pVecOut, nFrameCount);
+    if(iWidgetId == WIDGET_CAM_TOGGLE) {   // [v31] masque
+        return 0;
     }
 
     if(pNetGame)

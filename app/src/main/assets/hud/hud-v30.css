@@ -62,7 +62,7 @@ body.cw-minimap-off .hud-root .quick-actions{top:calc(8px + env(safe-area-inset-
 .hud-root.vehicle-hud-active .cw-hotbar{display:none!important}
 
 /* ---- v31 : suivi de mission plus bas (ne cache plus l'argent), micro plus bas ---- */
-.hud-root .obj-tracker{top:32vh!important}
+.hud-root .obj-tracker{top:38vh!important;right:auto!important;left:max(10px,env(safe-area-inset-left))!important;align-items:flex-start!important;text-align:left!important}
 .hud-root .voice-talk-button{top:56vh!important}
 /* ---- v31 : suivi de mission en petit HUD ---- */
 .hud-root .obj-tracker{max-width:min(170px,24vw)!important;gap:1px!important}

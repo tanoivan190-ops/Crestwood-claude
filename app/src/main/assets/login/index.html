@@ -74,7 +74,14 @@
         <h1>Créer ton compte</h1>
         <p>Ton pseudo de jeu devient ton identité en ville.</p>
       </header>
-      <form id="registerForm" autocomplete="off" novalidate>
+      <div class="cw-choice" id="regChoice">
+        <button class="cw-provider google" id="btnGoogle" type="button"><i class="gg" aria-hidden="true">G</i><span>Continuer avec Google</span></button>
+        <div class="cw-or"><span>ou</span></div>
+        <button class="cw-provider cwood" id="btnCrestwood" type="button"><img src="assets/images/cw-logo.png" alt=""><span>Continuer avec Crestwood</span></button>
+        <p class="cw-foot">Déjà un compte ? <button class="cw-link" type="button" data-go="login">Connecte-toi</button></p>
+      </div>
+      <form id="registerForm" autocomplete="off" novalidate hidden>
+        <p class="cw-foot cw-back"><button class="cw-link" type="button" id="regBack">‹ Autres choix</button></p>
         <div class="cw-grid">
           <label class="cw-field">
             <i class="ic ic-user"></i>

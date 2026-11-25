@@ -103,9 +103,15 @@
     document.querySelectorAll(".cw-screen").forEach((s) => s.classList.toggle("active", s === next));
     document.querySelectorAll(".cw-tab").forEach((t) => t.classList.toggle("active", t.dataset.screen === name));
     if (name !== "identity") tabsBox.dataset.active = name;
+    if (name === "register" && !$("registerUsername").value) regStep(false);
     card.classList.toggle("identity", name === "identity");
     card.scrollTop = 0;
   }
+  // Inscription : choix Google / Crestwood avant le formulaire
+  function regStep(form) { $("regChoice").hidden = !!form; $("registerForm").hidden = !form; card.scrollTop = 0; }
+  $("btnCrestwood").addEventListener("click", () => regStep(true));
+  $("regBack").addEventListener("click", () => regStep(false));
+  $("btnGoogle").addEventListener("click", () => notify(T("Connexion Google bientôt disponible. Utilise « Continuer avec Crestwood » pour l'instant."), "info"));
   document.querySelectorAll(".cw-tab").forEach((t) => t.addEventListener("click", () => showScreen(t.dataset.screen)));
   document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => showScreen(b.dataset.go)));
   document.querySelectorAll("[data-eye]").forEach((b) => b.addEventListener("click", () => {

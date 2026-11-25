@@ -45,11 +45,29 @@ body.cw-minimap-off .hud-root .quick-actions{top:calc(8px + env(safe-area-inset-
 .hud-root .obj-list li{font-size:8px!important;line-height:1.15!important}
 .hud-root .obj-list{gap:1px!important}
 
-/* ---- v31 : nouveau compteur voiture (speedo2), en bas a droite ---- */
+/* ---- v31 : compteur voiture (speedo2) au milieu en bas ---- */
 .hud-root .vehicle-speedometer{
-  left:auto!important;right:max(8px,env(safe-area-inset-right))!important;
-  bottom:max(6px,env(safe-area-inset-bottom))!important;
+  left:50%!important;right:auto!important;
+  bottom:max(4px,env(safe-area-inset-bottom))!important;
   width:240px!important;height:290px!important;
-  transform:scale(.8)!important;transform-origin:bottom right!important}
-.hud-root .literal-speedometer-frame{width:240px!important;height:290px!important}
-@media (max-height:500px){.hud-root .vehicle-speedometer{transform:scale(.68)!important}}
+  transform:translateX(-50%) scale(.8)!important;transform-origin:bottom center!important;background:transparent!important}
+.hud-root .literal-speedometer-frame{width:240px!important;height:290px!important;background:transparent!important;color-scheme:dark}
+@media (max-height:500px){.hud-root .vehicle-speedometer{transform:translateX(-50%) scale(.68)!important}}
+
+/* ---- v31 : les 5 cases d'objets rapides restent en bas au centre (comme le compteur) ; en voiture elles s'effacent ---- */
+.cw-hotbar.cw22-hb{left:50%!important;right:auto!important;top:auto!important;
+  bottom:max(22px,calc(env(safe-area-inset-bottom) + 18px))!important;transform:translateX(-50%)!important}
+.cw22-hb-tab{display:none!important}
+.cw22-hb-slots,.cw22-hb.open .cw22-hb-slots{max-width:90vw!important;opacity:1!important}
+.hud-root.vehicle-hud-active .cw-hotbar{display:none!important}
+
+/* ---- v31 : suivi de mission plus bas (ne cache plus l'argent), micro plus bas ---- */
+.hud-root .obj-tracker{top:32vh!important}
+.hud-root .voice-talk-button{top:56vh!important}
+/* ---- v31 : suivi de mission en petit HUD ---- */
+.hud-root .obj-tracker{max-width:min(170px,24vw)!important;gap:1px!important}
+.hud-root .obj-head{padding:2px 8px 2px 12px!important}
+.hud-root .obj-head strong{font-size:10px!important}
+.hud-root .obj-head small{font-size:7px!important}
+.hud-root .obj-list li{font-size:8px!important;line-height:1.15!important}
+.hud-root .obj-list{gap:1px!important}

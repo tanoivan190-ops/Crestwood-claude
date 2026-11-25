@@ -1112,7 +1112,7 @@ stock Veh_OnDeath(vehicleid)
 // [v20] rappel : les vehicules apparaissent moteur coupe
 stock Veh_EngineHint(playerid)
 {
-	return Cw_Notify(playerid, "info", "Vehicule", "Moteur ~r~coupe~w~. Demarre avec le ~b~bouton moteur~w~ ou ~b~/moteur~w~. A pied : touche le vehicule pour ouvrir sa ~y~roue~w~.", 8000);
+	return Cw_Notify(playerid, "info", "Moteur", "Coupe : touche le bouton moteur.", 3000);
 }
 
 // Vehicule vise par /moteur et /lock : celui ou se trouve le joueur

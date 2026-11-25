@@ -17,34 +17,36 @@
 </head>
 <body>
 <main class="iv" id="iv">
-  <aside class="iv-left">
-    <div class="iv-me">
-      <div class="iv-av" id="ivAv">?</div>
-      <b id="ivName">—</b>
-      <small id="ivId">#00000</small>
-      <div class="iv-money"><span class="iv-coin">$</span><b id="ivCash">0 $</b></div>
-      <small class="iv-wt">Poids total <b id="ivWtTotal">0 kg</b></small>
-    </div>
-    <div class="iv-quick">
-      <span class="iv-vlabel">Raccourcis</span>
-      <div class="iv-qslots" id="ivQuick"></div>
-    </div>
-  </aside>
-
-  <section class="iv-center">
-    <header class="iv-tabs">
-      <button type="button" class="iv-tab on" data-tab="bag">Sac</button>
-      <button type="button" class="iv-tab" data-tab="ground">Sol <span class="iv-badge" id="ivGroundN">0</span></button>
-      <div class="iv-weight"><div class="iv-bar"><i id="ivBar"></i></div><b id="ivW">0</b><small id="ivWmax">/50 kg</small></div>
+  <section class="pn pn-inv">
+    <header class="pn-h">
+      <span class="pn-ico"><svg viewBox="0 0 24 24"><path d="M8 7V5.5a4 4 0 0 1 8 0V7"/><path d="M5 9.2A2.2 2.2 0 0 1 7.2 7h9.6A2.2 2.2 0 0 1 19 9.2V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2Z"/></svg></span>
+      <b>MON INVENTAIRE</b>
+      <span class="pn-meta"><span id="ivCash">0 $</span></span>
     </header>
+    <div class="wt"><div class="iv-bar"><i id="ivBar"></i></div><span><b id="ivW">0</b><small id="ivWmax">/50 kg</small></span></div>
     <div class="iv-grid" id="ivGrid"></div>
-    <p class="iv-note" id="ivNote"></p>
+    <header class="pn-h pn-h2"><span class="pn-ico"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v6c0 4 3.4 7 8 8 4.6-1 8-4 8-8V7z"/></svg></span><b>POCHES</b><small>touche un objet puis un numéro</small></header>
+    <div class="iv-pockets" id="ivQuick"></div>
   </section>
 
-  <aside class="iv-right">
-    <button class="iv-close" id="ivClose" type="button" aria-label="Fermer">&#10005;</button>
-    <div class="iv-detail" id="ivDetail"></div>
-  </aside>
+  <section class="pn-mid">
+    <header class="pn-h mid-h"><span class="pn-ico"><svg viewBox="0 0 24 24"><path d="M8 4 3 7l2 4 2-1v10h10V10l2 1 2-4-5-3a4 4 0 0 1-8 0Z"/></svg></span><b>MES VÊTEMENTS</b></header>
+    <div class="slots slots-l" id="ivSlotsL"></div>
+    <div class="slots slots-r" id="ivSlotsR"></div>
+    <div class="me"><b id="ivName">—</b><small id="ivId">#00000</small></div>
+  </section>
+
+  <section class="pn pn-drop">
+    <header class="pn-h">
+      <span class="pn-ico"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>
+      <b>SOL</b><span class="iv-badge" id="ivGroundN">0</span>
+      <button class="iv-close" id="ivClose" type="button" aria-label="Fermer">&#10005;</button>
+    </header>
+    <div class="iv-grid g4" id="ivGround"></div>
+    <p class="iv-note" id="ivNote">Objets posés autour de toi (10 min).</p>
+  </section>
+
+  <div class="pop" id="ivPop" hidden></div>
   <div class="iv-toast" id="ivToast" role="status"></div>
 </main>
 <script src="inventory.js"></script>

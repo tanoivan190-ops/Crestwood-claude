@@ -219,6 +219,7 @@ bool Crestwood_IsReplacedWidget(const void* pWidget)
         case WIDGET_VEHICLE_SHOOT_RIGHT:
         case WIDGET_HYDRAULICS:
         case WIDGET_AUTO_HYDRAULICS:
+        case WIDGET_CAM_TOGGLE:   // [v31] bouton "changer de vue" retire
             return true;
         default:
             return false;

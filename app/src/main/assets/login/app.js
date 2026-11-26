@@ -222,8 +222,10 @@
     if (last.length < 2 || last.length > 12) return bad(cLast, "Nom : 2 à 12 lettres.");
     const id = readIdentity(cDay, cMonth, cYear, cOrigin, cOther);
     if (id.err) return notify(T(id.err), "error");
+    const cp = $("cPass").value;
+    if (cp.length < 4 || /\s/.test(cp)) return bad($("cPass"), "Mot de passe : 4 caractères minimum, sans espace.");
     setBusy(true);
-    emit("create", { name: first + "_" + last, birth: id.birth, gender: cGender, origin: id.origin, promo: cleanPromo(cPromo.value) });
+    emit("preg", { name: first + "_" + last, birth: id.birth, gender: cGender, origin: id.origin, password: cp, promo: cleanPromo(cPromo.value) });
   });
   $("suggestBox").addEventListener("click", () => { $("lName").value = $("suggestName").textContent; show("link"); setTimeout(() => $("lPass").focus(), 200); });
 
@@ -233,9 +235,9 @@
     const n = $("lName"), p = $("lPass");
     const user = n.value.trim(), pass = p.value;
     if (!/^[A-Za-z0-9_\[\]\.$@=()]{3,24}$/.test(user)) return bad(n, "Pseudo invalide.");
-    if (!pass || /\s/.test(pass)) return bad(p, "Entre ton ancien mot de passe.");
+    if (!pass || /\s/.test(pass)) return bad(p, "Entre ton mot de passe.");
     setBusy(true);
-    emit("link", { username: user, password: pass });
+    emit("plogin", { username: user, password: pass });
   });
 
   // identite (ancien compte)
@@ -368,8 +370,7 @@
     }
     if (s === "identity") { show("identity"); return; }
     if (s === "link") { show("link"); return; }
-    show("google");
-    googleStart(false);
+    show("link");
   }
 
   // ---------------------------------------------------------------- musique

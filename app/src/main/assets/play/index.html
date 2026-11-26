@@ -80,7 +80,11 @@
     busy(false);
     let a = {};
     try { a = B && B.account ? JSON.parse(B.account() || "{}") || {} : {}; } catch (_) { a = {}; }
-    render(a.email || "", a.name || "");
+    // [v52] SANS Google : le bouton JOUER est toujours disponible, la connexion se fait en jeu (pseudo + mot de passe)
+    render("local@crestwood", "");
+    $("acct").hidden = true;
+    $("accSwitch").hidden = true;
+    const nt = $("note"); if (nt) nt.textContent = T("Tu te connectes en jeu avec ton pseudo et ton mot de passe.");
   }
   $("signIn").addEventListener("click", () => {
     if (waiting) return;

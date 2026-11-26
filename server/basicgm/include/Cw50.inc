@@ -372,18 +372,21 @@ stock Gg_ParseBirth(const birth[], &d, &mo, &y)
 }
 
 // /authact create <Prenom_Nom> <jj/mm/aaaa> <0|1> <Origine> [PROMO]
-stock Gg_Create(playerid, const params[])
+stock Gg_Create(playerid, const params[], pw = 0)
 {
-	if (g_AuthLogged[playerid] || !g_GgPendUid[playerid][0]) return Auth_Reply(playerid, "error", "Personnage", "Connecte-toi d'abord avec Google.");
+	// [v52] pw = 1 : creation SANS Google (pseudo + mot de passe choisis dans la page)
+	if (g_AuthLogged[playerid] || (!pw && !g_GgPendUid[playerid][0])) return Auth_Reply(playerid, "error", "Personnage", "Connecte-toi d'abord avec Google.");
 	new now = GetTickCount();
 	if (g_GgCreateTick[playerid] && now - g_GgCreateTick[playerid] < 1500) return 1;
 	g_GgCreateTick[playerid] = now;
-	new idx = 0, name[32], birth[16], gtok[4], origin[32], promo[24];
+	new idx = 0, name[32], birth[16], gtok[4], origin[32], promo[24], pass[128];
 	Bank_NextToken(params, idx, name, sizeof name);
 	Bank_NextToken(params, idx, birth, sizeof birth);
 	Bank_NextToken(params, idx, gtok, sizeof gtok);
 	Bank_NextToken(params, idx, origin, sizeof origin);
+	if (pw) Bank_NextToken(params, idx, pass, sizeof pass);
 	Bank_NextToken(params, idx, promo, sizeof promo);
+	if (pw && !Auth_IsValidPass(pass)) return Auth_Reply(playerid, "error", "Mot de passe", "Mot de passe invalide (4 a 100 caracteres, sans espace).");
 	if (!Gg_ValidName(name)) return Auth_Reply(playerid, "error", "Nom du personnage", "Prenom et nom : 2 a 12 lettres chacun, sans chiffres ni accents.");
 	if ((gtok[0] != '0' && gtok[0] != '1') || gtok[1] != 0) return Auth_Reply(playerid, "error", "Genre", "Choisis Homme ou Femme.");
 	new d, mo, y;
@@ -410,6 +413,7 @@ stock Gg_Create(playerid, const params[])
 	}
 	new email[68], q[400];
 	format(email, sizeof email, "%s", g_GgPendEmail[playerid]);
+	if (pw) email[0] = 0;
 	if (email[0])
 	{
 		format(q, sizeof q, "SELECT name FROM accounts WHERE email = '%s' LIMIT 1", email);
@@ -420,7 +424,7 @@ stock Gg_Create(playerid, const params[])
 	new salt[24], hash[24], rnd[24];
 	Auth_MakeSalt(salt, sizeof salt);
 	format(rnd, sizeof rnd, "G%08x%08x", random(2147483647), random(2147483647));
-	Auth_Hash(rnd, salt, hash, sizeof hash);
+	if (pw) Auth_Hash(pass, salt, hash, sizeof hash); else Auth_Hash(rnd, salt, hash, sizeof hash);
 	g_IdGender[playerid] = strval(gtok);
 	format(g_IdBirth[playerid], 12, "%02d/%02d/%04d", d, mo, y);
 	format(g_IdOrigin[playerid], 26, "%s", clean);
@@ -428,9 +432,9 @@ stock Gg_Create(playerid, const params[])
 		name, email, salt, hash, gettime(), g_IdBirth[playerid], g_IdOrigin[playerid], g_IdGender[playerid]);
 	db_free_result(db_query(g_AuthDB, q));
 	if (!Auth_Exists(name)) return Auth_Reply(playerid, "error", "Personnage", "Creation impossible. Previens un admin.");
-	Gg_Link(g_GgPendUid[playerid], name, email);
+	if (!pw) Gg_Link(g_GgPendUid[playerid], name, email);
 	if (promoCode[0]) Promo_SignupStore(name, promoCode);
-	printf("[gauth] personnage cree : %s (%s)", name, email[0] ? email : g_GgPendUid[playerid]);
+	printf("[gauth] personnage cree : %s (%s)", name, pw ? "mot de passe" : (email[0] ? email : g_GgPendUid[playerid]));
 	g_GgPendUid[playerid][0] = 0;
 	g_GgPendEmail[playerid][0] = 0;
 	g_GgStage[playerid] = 0;
@@ -443,9 +447,10 @@ stock Gg_Create(playerid, const params[])
 }
 
 // /authact link <pseudo> <mot_de_passe> : recupere un ancien personnage (une seule fois)
-stock Gg_LinkOld(playerid, const params[])
+stock Gg_LinkOld(playerid, const params[], pw = 0)
 {
-	if (g_AuthLogged[playerid] || !g_GgPendUid[playerid][0]) return Auth_Reply(playerid, "error", "Ancien personnage", "Connecte-toi d'abord avec Google.");
+	// [v52] pw = 1 : simple connexion pseudo + mot de passe (sans Google)
+	if (g_AuthLogged[playerid] || (!pw && !g_GgPendUid[playerid][0])) return Auth_Reply(playerid, "error", "Ancien personnage", "Connecte-toi d'abord avec Google.");
 	if (GetTickCount() < g_AuthLockUntil[playerid]) return Auth_Reply(playerid, "warning", "Patiente", "Trop d'essais. Reessaie dans une minute.");
 	new idx = 0, user[32], pass[128];
 	Bank_NextToken(params, idx, user, sizeof user);
@@ -464,7 +469,7 @@ stock Gg_LinkOld(playerid, const params[])
 	r = db_query(g_AuthDB, q);
 	new taken = db_num_rows(r);
 	db_free_result(r);
-	if (taken > 0) return Auth_Reply(playerid, "error", "Ancien personnage", "Ce personnage est deja relie a un compte Google.");
+	if (!pw && taken > 0) return Auth_Reply(playerid, "error", "Ancien personnage", "Ce personnage est deja relie a un compte Google.");
 	Auth_Hash(pass, salt, check, sizeof check);
 	if (strcmp(check, hash, false) != 0)
 	{
@@ -482,13 +487,16 @@ stock Gg_LinkOld(playerid, const params[])
 	new res = Gg_BecomeCharacter(playerid, real);
 	if (res == -2) return Auth_Reply(playerid, "error", "Ancien personnage", "Ce personnage est deja en jeu.");
 	if (res < 0) return Auth_Reply(playerid, "error", "Ancien personnage", "Reessaie dans quelques secondes.");
-	Gg_Link(g_GgPendUid[playerid], real, g_GgPendEmail[playerid]);
-	printf("[gauth] ancien personnage %s relie a %s", real, g_GgPendEmail[playerid][0] ? g_GgPendEmail[playerid] : g_GgPendUid[playerid]);
-	g_GgPendUid[playerid][0] = 0;
-	g_GgPendEmail[playerid][0] = 0;
+	if (!pw)
+	{
+		Gg_Link(g_GgPendUid[playerid], real, g_GgPendEmail[playerid]);
+		printf("[gauth] ancien personnage %s relie a %s", real, g_GgPendEmail[playerid][0] ? g_GgPendEmail[playerid] : g_GgPendUid[playerid]);
+		g_GgPendUid[playerid][0] = 0;
+		g_GgPendEmail[playerid][0] = 0;
+		SetTimerEx("Gg_LinkedMsg", 2500, false, "i", playerid);
+	}
 	g_GgStage[playerid] = 0;
 	g_AuthFails[playerid] = 0;
-	SetTimerEx("Gg_LinkedMsg", 2500, false, "i", playerid);
 	return Auth_LoginOk(playerid, real, "");
 }
 
@@ -695,6 +703,8 @@ stock Gg_Action(playerid, const action[], const params[])
 {
 	if (!strcmp(action, "create", true)) return Gg_Create(playerid, params);
 	if (!strcmp(action, "link", true)) return Gg_LinkOld(playerid, params);
+	if (!strcmp(action, "plogin", true)) return Gg_LinkOld(playerid, params, 1);   // [v52] mode sans Google
+	if (!strcmp(action, "preg", true)) return Gg_Create(playerid, params, 1);       // [v52] mode sans Google
 	if (!strcmp(action, "introskip", true))
 	{
 		if (!g_AuthLogged[playerid] && g_GgStage[playerid] == 3) Gg_IntroEnd(playerid);

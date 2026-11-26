@@ -4432,6 +4432,25 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                         command = "/authact create " + nm + " " + birth + " " + g + " " + origin + (promo.length() >= 3 ? " " + promo : "");
                         break;
                     }
+                    // [v52] mode SANS Google : connexion / creation par pseudo + mot de passe
+                    case "plogin":
+                        command = "/authact plogin " + user + " " + cleanAuthToken(o.optString("password", ""), 80);
+                        break;
+                    case "preg": {
+                        String nm = o.optString("name", "").replaceAll("[^A-Za-z_]", "");
+                        if (nm.length() > 24) nm = nm.substring(0, 24);
+                        String birth = o.optString("birth", "").replaceAll("[^0-9/]", "");
+                        if (birth.length() > 10) birth = birth.substring(0, 10);
+                        int g = o.optInt("gender", 0) == 1 ? 1 : 0;
+                        String origin = o.optString("origin", "").replaceAll("[^A-Za-z_-]", "");
+                        if (origin.length() > 22) origin = origin.substring(0, 22);
+                        String promo = o.optString("promo", "").toUpperCase().replaceAll("[^A-Z0-9]", "");
+                        if (promo.length() > 15) promo = promo.substring(0, 15);
+                        String pw = cleanAuthToken(o.optString("password", ""), 80);
+                        if (nm.length() < 5 || birth.isEmpty() || origin.isEmpty() || pw.length() < 4) return;
+                        command = "/authact preg " + nm + " " + birth + " " + g + " " + origin + " " + pw + (promo.length() >= 3 ? " " + promo : "");
+                        break;
+                    }
                     case "link":
                         command = "/authact link " + user + " " + cleanAuthToken(o.optString("password", ""), 80);
                         break;

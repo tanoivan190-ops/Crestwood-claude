@@ -77,21 +77,22 @@
           <button class="cw-ghost" type="button" id="cPromoCheck">OK</button>
         </div>
       </div>
+      <label class="cw-in"><span>Mot de passe (4 caractères minimum)</span><input id="cPass" type="password" maxlength="80" autocomplete="off"></label>
       <label class="cw-in" id="cOtherWrap" hidden><span>Ton pays / ta région</span><input id="cOther" type="text" maxlength="22" autocomplete="off"></label>
       <p class="cw-reward" id="cPromoReward" hidden></p>
       <button class="cw-cta" type="submit"><span>Créer mon personnage</span><i></i></button>
-      <button class="cw-text" type="button" data-go="link">J’ai déjà un personnage à Crestwood</button>
+      <button class="cw-text" type="button" data-go="link">J’ai déjà un personnage</button>
     </form>
   </section>
 
   <!-- ===== ANCIEN PERSONNAGE ===== -->
   <section class="cw-screen cw-side cw-form-side" id="screen-link">
-    <h1 class="cw-title">Récupérer mon personnage</h1>
-    <p class="cw-lead">Une seule fois : ton ancien mot de passe relie ton personnage à ton compte Google. Ensuite, plus jamais de mot de passe.</p>
+    <h1 class="cw-title">Connexion</h1>
+    <p class="cw-lead">Entre le pseudo (Prénom_Nom) et le mot de passe de ton personnage.</p>
     <form id="linkForm" autocomplete="off" novalidate>
       <label class="cw-in"><span>Pseudo (Prénom_Nom)</span><input id="lName" type="text" maxlength="24" autocomplete="off" spellcheck="false"></label>
-      <label class="cw-in"><span>Ancien mot de passe</span><input id="lPass" type="password" maxlength="80" autocomplete="off"></label>
-      <button class="cw-cta" type="submit"><span>Relier à Google</span><i></i></button>
+      <label class="cw-in"><span>Mot de passe</span><input id="lPass" type="password" maxlength="80" autocomplete="off"></label>
+      <button class="cw-cta" type="submit"><span>Se connecter</span><i></i></button>
       <button class="cw-text" type="button" data-go="create">Créer un nouveau personnage</button>
     </form>
   </section>

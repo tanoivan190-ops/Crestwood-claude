@@ -486,13 +486,7 @@ public class MainActivity extends AppCompatActivity {
         }
         @JavascriptInterface public void play() {
             runOnUiThread(() -> {
-                try {
-                    org.json.JSONObject a = new org.json.JSONObject(com.crestwood.ui.CwGoogleAuth.currentAccount(MainActivity.this));
-                    if (a.optInt("ready") == 1 && a.optString("email", "").isEmpty()) {
-                        playJs("window.PlayPage&&PlayPage.onError(" + quoteJs("Connecte-toi avec Google pour jouer.") + ",false)");
-                        return;
-                    }
-                } catch (Exception ignored) { }
+                // [v52] SANS Google : plus de verification du compte Google
                 startGame();
             });
         }

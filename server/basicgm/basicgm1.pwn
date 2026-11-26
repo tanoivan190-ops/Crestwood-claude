@@ -1693,7 +1693,7 @@ stock Auth_Open(playerid)
 	printf("[AUTH] ouverture de l'ecran de connexion pour %s (id %d)", name, playerid);
 	// [v50] "gp" : port du service Node (connexion Google) = IG_PORT de include/Insta.inc
 	// [v51] connexion Google UNIQUEMENT : la page se connecte toute seule avec le compte Google du telephone
-	format(json, sizeof json, "{\"screen\":\"google\",\"name\":\"%s\",\"gp\":7790}", name);
+	format(json, sizeof json, "{\"screen\":\"link\",\"name\":\"%s\",\"gp\":7790}", name);
 	return Auth_Send(playerid, AUTH_DIALOG_OPEN, json);
 }
 

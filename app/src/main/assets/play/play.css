@@ -1,0 +1,91 @@
+/* Hallmark · checked · built: the project · redesign: polish · shape: app screen · genre: atmospheric · theme: brand (Crestwood) · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, polish garde le look d'origine (demande d'Anzo) ; on retire seulement les tics */
+/* Crestwood RP v51 · ecran JOUER (meme langage que la page d'arrivee en ville) */
+@font-face{font-family:"CwMont";src:url("../common/fonts/montserrat_medium.ttf");font-weight:500}
+@font-face{font-family:"CwMont";src:url("../common/fonts/montserrat_bold.ttf");font-weight:700}
+@font-face{font-family:"CwMont";src:url("../common/fonts/montserrat_black.ttf");font-weight:900}
+@font-face{font-family:"CwDin";src:url("../common/fonts/din_pro_black.ttf");font-weight:900}
+:root{
+  /* [Hallmark polish] couleurs et polices de la page (valeurs d'origine, inchangees) */
+  --c-focus: var(--amber);
+  --c-disabled-ink: #5f5f66;
+  --c-000000-a86: rgba(0,0,0,.86);
+  --c-08080a-a0: rgba(8,8,10,0);
+  --c-08080a-a55: rgba(8,8,10,.55);
+  --c-08080a-a6: rgba(8,8,10,.6);
+  --c-08080a-a8: rgba(8,8,10,.8);
+  --c-08080a-a88: rgba(8,8,10,.88);
+  --c-0a0a0c: #0a0a0c;
+  --c-1f1f1f: #1f1f1f;
+  --c-34c77b-a18: rgba(52,199,123,.18);
+  --c-e2484c: #e2484c;
+  --c-e9e9ec: #e9e9ec;
+  --c-fff: #fbfaf8;
+  --font-1: "CwDin","CwMont",sans-serif;
+  --ink:#0a0a0c;--soft:#c9c9cf;--muted:#8e8e97;--line:rgba(255,255,255,.16);--amber:#f5a524;--ok:#34c77b;
+  --pad:clamp(16px,3.6vw,44px);--fs:clamp(11px,3.1vh,13.5px);font-family:"CwMont",Montserrat,"Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:clip;background:var(--c-0a0a0c);color:var(--c-fff)}
+body{-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+.pl{position:fixed;inset:0;overflow:hidden}
+
+/* illustrations en fondu lent */
+.pl-art{position:absolute;inset:0;background:center 25%/cover no-repeat;opacity:0;animation:plFade 27s infinite,plZoom 27s ease-in-out infinite;will-change:opacity,transform}
+.pl-art-a{background-image:url("../loading/scenes/cw19-b.jpg");animation-delay:0s}
+.pl-art-b{background-image:url("../loading/scenes/cw19-c.jpg");animation-delay:9s}
+.pl-art-c{background-image:url("../loading/scenes/cw19-d.jpg");animation-delay:18s}
+@keyframes plFade{0%{opacity:0}4%,33%{opacity:1}38%,100%{opacity:0}}
+@keyframes plZoom{0%{transform:scale(1.04)}38%{transform:scale(1.12)}100%{transform:scale(1.12)}}
+.pl-veil{position:absolute;inset:0;background:
+  linear-gradient(270deg,var(--c-08080a-a88) 0%,var(--c-08080a-a6) 30%,var(--c-08080a-a0) 58%),
+  linear-gradient(0deg,var(--c-08080a-a8) 0%,var(--c-08080a-a0) 42%),
+  linear-gradient(180deg,var(--c-08080a-a55) 0%,var(--c-08080a-a0) 22%)}
+
+.pl-top{position:absolute;z-index:2;left:calc(var(--pad) + env(safe-area-inset-left));right:calc(var(--pad) + env(safe-area-inset-right));top:clamp(12px,4vh,24px);
+  display:flex;align-items:center;justify-content:space-between}
+.pl-logo{height:clamp(30px,11vh,52px);width:auto}
+.pl-live{display:flex;align-items:center;gap:8px;font-size:clamp(9px,2.5vh,11px);color:var(--soft);font-weight:500}
+.pl-live b{color:var(--c-fff);font-weight:700}
+.pl-live{gap:14px}
+
+.pl-hero{position:absolute;z-index:2;left:calc(var(--pad) + env(safe-area-inset-left));bottom:clamp(16px,6vh,36px);animation:plRise .8s .1s cubic-bezier(.2,.75,.2,1) both}
+.pl-title{display:flex;flex-direction:column;font-family:var(--font-1);font-weight:900;text-transform:uppercase;
+  font-size:clamp(30px,min(6.4vw,15vh),70px);line-height:.98;color:var(--c-fff)}
+.pl-title span:last-child{color:transparent;-webkit-text-stroke:1.5px var(--c-fff)}
+
+.pl-panel{position:absolute;z-index:2;right:calc(var(--pad) + env(safe-area-inset-right));bottom:clamp(16px,6vh,36px);width:clamp(260px,34vw,360px);
+  display:flex;flex-direction:column;gap:clamp(8px,2.4vh,12px);animation:plRise .8s .2s cubic-bezier(.2,.75,.2,1) both}
+@keyframes plRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.g-logo{width:18px;height:18px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center/contain no-repeat}
+.pl-account{display:flex;align-items:center;gap:12px;padding:clamp(9px,2.6vh,12px) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pl-acc-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pl-acc-text small{font-size:clamp(8.5px,2.4vh,10.5px);font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-acc-text b{font-size:var(--fs);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-account:not(.on) b{color:var(--muted)}
+.pl-switch{height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);font-size:clamp(9px,2.5vh,10.5px);font-weight:700;color:var(--soft)}
+.pl-google{display:flex;align-items:center;justify-content:center;gap:10px;height:clamp(40px,12vh,52px);border-radius:10px;background:var(--c-fff);color:var(--c-1f1f1f);font-weight:700;font-size:var(--fs)}
+.pl-google:active{background:var(--c-e9e9ec)}
+.pl-play{display:flex;align-items:center;justify-content:space-between;height:clamp(46px,14vh,62px);padding:0 18px 0 22px;border-radius:10px;background:var(--c-fff);color:var(--ink);
+  font-family:var(--font-1);font-weight:900;font-size:clamp(17px,5.2vh,23px);transition:transform .12s,background .12s}
+.pl-play i{width:20px;height:20px;background:var(--ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat}
+.pl-play:active{transform:scale(.985);background:var(--c-e9e9ec)}
+.pl-play[disabled],.pl-google[disabled]{background:var(--c-e9e9ec);color:var(--c-disabled-ink);cursor:default}
+.pl-play[disabled] i{background:var(--c-disabled-ink)}
+.pl-note{font-size:clamp(8.5px,2.4vh,10.5px);line-height:1.45;color:var(--muted);font-weight:500}
+.pl-busy{position:fixed;z-index:5;left:0;right:0;top:0;height:2px;overflow:hidden}
+.pl-busy span{position:absolute;top:0;bottom:0;left:0;width:30%;background:var(--c-fff);animation:plSlide 1s linear infinite}
+@keyframes plSlide{from{transform:translateX(-100%)}to{transform:translateX(334%)}}
+.pl-toast{position:fixed;z-index:6;left:50%;top:clamp(12px,4vh,24px);transform:translateX(-50%);max-width:70vw;padding:10px 14px;border-radius:10px;
+  background:var(--c-000000-a86);border:1px solid var(--c-e2484c);font-size:clamp(10px,2.9vh,12.5px);font-weight:700}
+.pl-toast.on{animation:plRise .3s both}
+@media (max-aspect-ratio:4/3){
+  .pl-hero{display:none}
+  .pl-panel{left:50%;right:auto;transform:translateX(-50%);width:min(90vw,380px);animation:none}
+}
+
+/* [Hallmark polish] focus visible, mouvement reduit */
+:where(button,a,input,select,textarea,summary,[role="button"],[tabindex]):focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

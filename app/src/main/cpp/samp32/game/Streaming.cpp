@@ -1008,9 +1008,10 @@ static size_t Crestwood_StreamingBudget()
     static size_t s_budget = 0;
     if (!s_budget) {
         const long pages = sysconf(_SC_PHYS_PAGES), psize = sysconf(_SC_PAGESIZE);
-        size_t ram = (pages > 0 && psize > 0) ? (size_t)pages * (size_t)psize : (size_t)2048 * 1024 * 1024;
-        size_t b = ram / 4;
-        if (b > (size_t)512 * 1024 * 1024) b = (size_t)512 * 1024 * 1024;
+        // [v32] budget d'origine (RAM / 4, 512 Mo max) ; seul le calcul est fait en 64 bits (pas de
+        //       debordement en 32 bits sur un telephone de 4 Go).
+        const unsigned long long ram64 = (pages > 0 && psize > 0) ? (unsigned long long)pages * (unsigned long long)psize : 2048ULL * 1024ULL * 1024ULL;
+        size_t b = (ram64 / 4ULL > 512ULL * 1024ULL * 1024ULL) ? (size_t)512 * 1024 * 1024 : (size_t)(ram64 / 4ULL);
         if (b < (size_t)160 * 1024 * 1024) b = (size_t)160 * 1024 * 1024;
         s_budget = b;
     }

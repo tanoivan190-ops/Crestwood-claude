@@ -149,7 +149,7 @@ stock Cj_Visual(i)
 	g_CjPickup[i] = CreatePickup(1210, 1, g_CjHq[i][0], g_CjHq[i][1], g_CjHq[i][2], 0);
 	new t[160];
 	format(t, sizeof t, "{3B82FF}EMPLOI · %s\n{F3F4F6}%s · %d $ / arret\n{9AA0A8}/emploi ou tablette job pour commencer", g_CjName[i], g_CjTypeName[g_CjType[i]], g_CjPay[i]);
-	g_CjLabel[i] = Create3DTextLabel(t, 0xFFFFFFFF, g_CjHq[i][0], g_CjHq[i][1], g_CjHq[i][2] + 0.6, 18.0, 0, 1);
+	g_CjLabel[i] = Create3DTextLabel(t, 0xFFFFFFFF, g_CjHq[i][0], g_CjHq[i][1], g_CjHq[i][2] + 0.6, 6.0, 0, 1);   // [v30] visible seulement tout pres
 	return 1;
 }
 

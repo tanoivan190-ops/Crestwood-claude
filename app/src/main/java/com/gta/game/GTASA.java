@@ -45,7 +45,7 @@ public abstract class GTASA extends GameActivityBase {
             once = true;
         }
         System.out.println("GTASA onCreate");
-        // [v22d] journal des plantages aussi en 64 bits : Android/data/com.crestwood.rp/files/crestwood_log.txt
+        // [v22d] journal des plantages aussi en 64 bits : Android/data/com.crestwoodroleplay/files/crestwood_log.txt
         try {
             com.gta.game32.CrashLog.bind(this);
             com.gta.game32.CrashLog.startSession("jeu 64 bits");

@@ -34,6 +34,8 @@ public:
 	OBJECTID FindIDFromGtaPtr(CPhysical* pGtaObject);
 
 	CObject* FindObjectFromGtaPtr(CPhysical* pGtaObject);
+    // [v51] meme resultat, en O(1) la plupart du temps (cache valide a chaque appel) : appele au rendu de CHAQUE objet
+    CObject* FindObjectFromGtaPtrFast(const void* pGtaObject);
 
 	void ProcessMaterialText();
 

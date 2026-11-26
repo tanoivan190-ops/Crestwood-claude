@@ -11,7 +11,7 @@
   "use strict";
   const B = window.SampPhone || null;
   const ST = { num: "", me: "", own: 1, has: 1, unread: 0, cash: 0, bank: 0, contacts: [], convs: [], recents: [], conv: { num: "", msgs: [] }, waveLog: [], taxi: null };
-  const SVC_NUM = { "17": ["police", "Police secours"], "15": ["medic", "SAMU · Médecins"], "18": ["mech", "Dépannage · Mécano"] };
+  const SVC_NUM = { "17": ["police", "Police secours"], "15": ["medic", "SAMU · Médecins"], "18": ["fire", "Pompiers"], "112": ["mech", "Dépannage · Mécano"] };
 
   function send(type, o) {
     if (!B || typeof B.action !== "function") { console.log("[phone]", type, o || {}); return; }
@@ -214,7 +214,13 @@
     clearInterval(phoneCallTimerInt);
     phoneRender();
   };
+  // [v46] sonnerie de Crestwood (fichier du HUD) pendant un appel entrant
+  const cwRing = new Audio("../hud/assets/ringtone.mp3");
+  cwRing.loop = true;
+  window.cwRingStart = function () { try { cwRing.currentTime = 0; const p = cwRing.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} };
+  window.cwRingStop = function () { try { cwRing.pause(); } catch (e) {} };
   window.phoneAcceptIncoming = function () {
+    window.cwRingStop();
     const p = phonePendingIncoming;
     document.getElementById("incomingCallOverlay").style.display = "none";
     phonePendingIncoming = null;
@@ -225,6 +231,7 @@
     phoneRender();
   };
   window.phoneDeclineIncoming = function () {
+    window.cwRingStop();
     document.getElementById("incomingCallOverlay").style.display = "none";
     phonePendingIncoming = null;
     send("decline");
@@ -263,6 +270,8 @@
       const open = (curChat && curChat.appId === app) ? list.find((c) => c.id === curChat.id) : null;
       list.length = 0;
       ST.convs.forEach((c) => { const e = convEntry(c[0], c[1], c[3]); e.unread = c[4]; list.push(e); WA_TIMES[c[0]] = when(c[2]); });
+      // [v45] WhatsApp : les contacts enregistres restent dans la liste meme sans message (avant : ils "partaient")
+      if (app === "whatsapp") ST.contacts.forEach((ct) => { if (!list.some((c) => c.id === ct[2])) { const e = convEntry(ct[2], "", false); e.msgs = []; list.push(e); } });
       if (open && !list.some((c) => c.id === open.id)) list.unshift(open);
       CHAT[app].replies = [];
     });
@@ -351,15 +360,22 @@
     el.innerHTML = `<div style="width:100%;max-height:75%;overflow:auto;background:#1c1c1e;border-radius:22px 22px 0 0;padding:16px 14px 24px;color:#fff">
       <div style="font-size:18px;font-weight:800;margin-bottom:10px">Nouveau message</div>
       <div style="display:flex;gap:8px"><input id="pnCompNum" type="tel" placeholder="Numéro (9 chiffres)" style="flex:1;background:#2c2c2e;border:none;color:#fff;padding:12px;border-radius:12px;font-size:14px;outline:none;min-width:0">
-      <button class="btn" style="width:auto;padding:0 16px;background:#0a84ff" id="pnCompGo">OK</button></div>
+      <button class="btn" style="width:auto;padding:0 16px;background:${app === "whatsapp" ? "#00a884" : "#0a84ff"}" id="pnCompGo">OK</button></div>
+      <input id="pnCompName" type="text" maxlength="24" placeholder="Nom (pour l'enregistrer dans tes contacts)" style="width:100%;margin-top:8px;background:#2c2c2e;border:none;color:#fff;padding:12px;border-radius:12px;font-size:14px;outline:none">
       <div style="color:#8e8e93;font-size:12px;margin:12px 0 6px">CONTACTS</div>
       ${ST.contacts.length ? ST.contacts.map((c) => `<div data-n="${esc(c[2])}" style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer">${avatar(esc((c[1][0] || "#").toUpperCase()), colorOf(c[2]))}<div><div style="font-weight:700">${esc(c[1])}</div><div style="color:#8e8e93;font-size:12px">${fmt(c[2])}</div></div></div>`).join("") : `<div style="color:#8e8e93;font-size:13px">Aucun contact enregistré.</div>`}
       <button class="btn" style="margin-top:12px;background:#3a3a3c" id="pnCompNo">Annuler</button></div>`;
     (document.getElementById("screen") || document.body).appendChild(el);
-    const go = (n) => { n = digits(n); if (n.length < 2) { toast("Numéro invalide"); return; } el.remove(); window.openChat(app, n); };
+    const go = (n, fromList) => {
+      n = digits(n); if (n.length < 2) { toast("Numéro invalide"); return; }
+      // [v45] un nom = contact enregistre sur le serveur (il ne disparait plus)
+      const nm = fromList ? "" : String((el.querySelector("#pnCompName") || {}).value || "").trim();
+      if (nm && !ST.contacts.some((c) => c[2] === n)) { send("addc", { num: n, name: nm }); toast("Contact enregistré"); }
+      el.remove(); window.openChat(app, n);
+    };
     el.querySelector("#pnCompGo").onclick = () => go(el.querySelector("#pnCompNum").value);
     el.querySelector("#pnCompNo").onclick = () => el.remove();
-    el.querySelectorAll("[data-n]").forEach((r) => (r.onclick = () => go(r.dataset.n)));
+    el.querySelectorAll("[data-n]").forEach((r) => (r.onclick = () => go(r.dataset.n, true)));
   };
 
   /* ---------------- Écran verrouillé : vrais messages non lus ---------------- */
@@ -444,6 +460,7 @@
         ST.cash = Number(d.cash) || 0; ST.bank = Number(d.bank) || 0;
         ST.contacts = Array.isArray(d.contacts) ? d.contacts : [];
         syncPhoneData();
+        syncChats();   // [v45] contacts visibles dans WhatsApp
         renderNoPhone();
         if (document.getElementById("scr-call")) phoneRender();
         renderWave();
@@ -483,6 +500,9 @@
         break;
       case "call": onCall(d); break;
       case "sos": onSos(d); break;
+      case "ig": if (window.CwIg) window.CwIg.onToken(d); break;        // [v31] Instagram
+      case "pos": if (window.CwUber) window.CwUber.onPos(d); break;     // [v31] carte Uber
+      case "uber": if (window.CwUberApp) window.CwUberApp.onEvent(d); break;   // [v32] Uber passager / chauffeur
       case "wave":
         ST.bank = Number(d.bank) || ST.bank;
         ST.waveLog.unshift({ in: d.st === "in", who: d.name || fmt(d.num), amount: Number(d.amount) || 0, ts: Date.now() / 1000 });
@@ -517,6 +537,7 @@
       return;
     }
     if (d.st === "incall") {
+      window.cwRingStop();
       document.getElementById("incomingCallOverlay").style.display = "none";
       phonePendingIncoming = null;
       phoneCallActive = { name, number: fmt(num), raw: num, seconds: 0, status: "connected" };
@@ -526,6 +547,7 @@
       return;
     }
     if (d.st === "ended") {
+      window.cwRingStop();
       document.getElementById("incomingCallOverlay").style.display = "none";
       phonePendingIncoming = null;
       phoneCallActive = null;
@@ -537,7 +559,7 @@
   }
 
   function onSos(d) {
-    const names = { police: "la police", medic: "le SAMU", mech: "un dépanneur", taxi: "un taxi" };
+    const names = { police: "la police", medic: "le SAMU", fire: "les pompiers", mech: "un dépanneur", taxi: "un taxi" };
     if (d.svc === "taxi" && typeof uberState !== "undefined" && uberState !== "idle") {
       if (d.st === "sent" && !Number(d.n)) toast("Aucun chauffeur en service : ta demande reste en attente");
       if (d.st === "taken") {
@@ -553,6 +575,7 @@
   }
 
   window.PhoneNet.onNative = onNative;
+  window.PhoneNet.send = send;   // [v31] utilise par apps-v31.js
 
   /* ---------------- Démarrage ---------------- */
   if (B && typeof B.ready === "function") {

@@ -115,8 +115,10 @@
     i.setAttribute("inputmode", "none"); i.autocomplete = "off";
     i.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (window.CwKb?.openFor) window.CwKb.openFor(i, () => onDone && onDone(i.value.trim()));
-      else { i.readOnly = false; i.focus(); }
+      if (window.CwKb?.openFor && window.CwKb.openFor(i, () => onDone && onDone(i.value.trim()))) return;
+      // [v31] clavier du telephone (Android)
+      i.readOnly = false; i.removeAttribute("inputmode"); i.focus(); window.SampHud?.showAndroidKeyboard?.();
+      i.addEventListener("keydown", (k) => { if (k.key === "Enter") { onDone && onDone(i.value.trim()); i.blur(); window.SampHud?.hideAndroidKeyboard?.(); } }, { once: false });
     });
     i.addEventListener("change", () => onDone && onDone(i.value.trim()));
     return i;

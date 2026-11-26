@@ -48,7 +48,7 @@ public class NativeJobTablet extends FrameLayout {
         this.cb = cb;
         setClickable(true);
         setVisibility(GONE);
-        setBackgroundColor(0x8C050608);
+        setBackgroundColor(0x66050608);   // [v58] fond plus leger
         build();
     }
 
@@ -63,18 +63,18 @@ public class NativeJobTablet extends FrameLayout {
         FrameLayout bezel = new FrameLayout(c);
         GradientDrawable bz = new GradientDrawable();
         bz.setColor(0xF2050608);
-        bz.setCornerRadius(dp(16));
+        bz.setCornerRadius(dp(20));
         bz.setStroke(Math.max(1, dp(1)), 0x33FFFFFF);
         bezel.setBackground(bz);
         bezel.setPadding(dp(10), dp(10), dp(10), dp(10));
         bezel.setClickable(true);
-        LayoutParams blp = new LayoutParams(Math.min(dp(860), Math.round(sw * 0.9f)), Math.min(dp(520), Math.round(sh * 0.9f)), Gravity.CENTER);
+        LayoutParams blp = new LayoutParams(Math.min(dp(760), Math.round(sw * 0.8f)), Math.min(dp(470), Math.round(sh * 0.86f)), Gravity.CENTER);   // [v58] plus compacte
         addView(bezel, blp);
 
         LinearLayout screen = new LinearLayout(c);
         screen.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable sc = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0xF20D1017, 0xF2080A0E});
-        sc.setCornerRadius(dp(8));
+        sc.setCornerRadius(dp(12));
         screen.setBackground(sc);
         screen.setClipToOutline(true);
         bezel.addView(screen, new LayoutParams(-1, -1));
@@ -133,7 +133,7 @@ public class NativeJobTablet extends FrameLayout {
             t.setClickable(true);
             t.setOnClickListener(v -> { tab = k; render(); });
             tabs[i] = t;
-            LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(0, dp(32), 1f);
+            LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(0, dp(30), 1f);
             if (i > 0) tl.leftMargin = dp(6);
             tabRow.addView(t, tl);
         }
@@ -151,7 +151,9 @@ public class NativeJobTablet extends FrameLayout {
         toast = CwUi.text(c, "", 11f, 0xFFFFFFFF, CwUi.bold(c));
         toast.setPadding(dp(14), dp(8), dp(14), dp(8));
         toast.setVisibility(GONE);
-        screen.addView(toast, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(-1, -2);
+        tlp.setMargins(dp(10), 0, dp(10), dp(10));   // [v58] bulle arrondie, pas une barre collee au bord
+        screen.addView(toast, tlp);
     }
 
     // ---------------- donnees ----------------
@@ -182,7 +184,10 @@ public class NativeJobTablet extends FrameLayout {
         String msg = data.optString("msg", "");
         if (!msg.isEmpty()) {
             toast.setText(msg);
-            toast.setBackgroundColor(data.optInt("ok", 0) == 1 ? 0xE61E4FA8 : 0xE6A3242D);
+            GradientDrawable tg = new GradientDrawable();
+            tg.setColor(data.optInt("ok", 0) == 1 ? 0xE61E4FA8 : 0xE6A3242D);
+            tg.setCornerRadius(dp(8));
+            toast.setBackground(tg);
             toast.setVisibility(VISIBLE);
             toast.removeCallbacks(hideToast);
             toast.postDelayed(hideToast, 3200);
@@ -221,8 +226,9 @@ public class NativeJobTablet extends FrameLayout {
             boolean on = i == tab;
             tabs[i].setTextColor(on ? 0xFFFFFFFF : CwUi.MUTED);
             GradientDrawable g = new GradientDrawable();
-            g.setColor(on ? CwUi.ACCENT : 0x14FFFFFF);
-            g.setCornerRadius(dp(3));
+            g.setColor(on ? CwUi.ACCENT : 0x00000000);   // [v58] seul l'onglet actif est colore
+            g.setCornerRadius(dp(8));
+            if (!on) g.setStroke(Math.max(1, dp(1)), 0x1FFFFFFF);
             tabs[i].setBackground(g);
         }
         list.removeAllViews();
@@ -236,10 +242,10 @@ public class NativeJobTablet extends FrameLayout {
         LinearLayout l = new LinearLayout(c);
         l.setOrientation(LinearLayout.HORIZONTAL);
         l.setGravity(Gravity.CENTER_VERTICAL);
-        l.setPadding(dp(10), dp(9), dp(10), dp(9));
+        l.setPadding(dp(10), dp(8), dp(10), dp(8));
         GradientDrawable g = new GradientDrawable();
         g.setColor(0x0FFFFFFF);
-        g.setCornerRadius(dp(3));
+        g.setCornerRadius(dp(10));   // [v58] coins arrondis
         g.setStroke(Math.max(1, dp(1)), 0x1AFFFFFF);
         l.setBackground(g);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2);
@@ -260,7 +266,7 @@ public class NativeJobTablet extends FrameLayout {
         FrameLayout f = new FrameLayout(c);
         GradientDrawable g = new GradientDrawable();
         g.setColor(0x1A3B82FF);
-        g.setCornerRadius(dp(3));
+        g.setCornerRadius(dp(8));
         f.setBackground(g);
         if (model >= 400) {
             VehicleSilhouetteView v = new VehicleSilhouetteView(c);
@@ -298,7 +304,7 @@ public class NativeJobTablet extends FrameLayout {
         b.setTextSize(10.5f);
         b.setPadding(dp(12), 0, dp(12), 0);
         b.setOnClickListener(v -> send(cmd));
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-2, dp(32));
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-2, dp(30));
         p.leftMargin = dp(6);
         parent.addView(b, p);
     }
@@ -308,7 +314,7 @@ public class NativeJobTablet extends FrameLayout {
         t.setPadding(dp(8), dp(4), dp(8), dp(4));
         GradientDrawable g = new GradientDrawable();
         g.setColor(0x14FFFFFF);
-        g.setCornerRadius(dp(2));
+        g.setCornerRadius(dp(6));
         t.setBackground(g);
         parent.addView(t);
     }
@@ -322,7 +328,7 @@ public class NativeJobTablet extends FrameLayout {
             if (r == null) continue;
             int id = r.optInt(0), model = r.optInt(2), bonus = r.optInt(3), d = r.optInt(4, -1);
             LinearLayout k = card(c);
-            k.addView(icon(c, model), new LinearLayout.LayoutParams(dp(54), dp(40)));
+            k.addView(icon(c, model), new LinearLayout.LayoutParams(dp(46), dp(36)));
             texts(c, k, r.optString(1), (model >= 400 ? "Véhicule de service" : "À pied") + " · prime " + money(bonus) + (id == myJob ? " · TON CONTRAT" : ""));
             badge(c, k, dist(d));
             btn(c, k, "GPS", false, "bgps " + id);
@@ -342,7 +348,7 @@ public class NativeJobTablet extends FrameLayout {
             int id = r.optInt(0), type = r.optInt(2), model = r.optInt(3), pay = r.optInt(4), d = r.optInt(5, -1), stops = r.optInt(6), runs = r.optInt(7);
             int lvl = Math.min(5, runs / 5) + 1;
             LinearLayout k = card(c);
-            k.addView(icon(c, model), new LinearLayout.LayoutParams(dp(54), dp(40)));
+            k.addView(icon(c, model), new LinearLayout.LayoutParams(dp(46), dp(36)));
             texts(c, k, r.optString(1), TYPES[Math.max(0, Math.min(3, type))] + " · " + stops + " arrêts · " + money(pay) + "/arrêt · niv. " + lvl);
             badge(c, k, dist(d));
             btn(c, k, "GPS", false, "sgps " + id);
@@ -387,9 +393,15 @@ public class NativeJobTablet extends FrameLayout {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setPadding(dp(2), dp(8), dp(2), 0);
         FrameLayout bar = new FrameLayout(c);
-        bar.setBackgroundColor(0x1AFFFFFF);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0x1AFFFFFF);
+        bg.setCornerRadius(dp(2));
+        bar.setBackground(bg);
         View fill = new View(c);
-        fill.setBackgroundColor(CwUi.ACCENT);
+        GradientDrawable fg = new GradientDrawable();
+        fg.setColor(CwUi.ACCENT);
+        fg.setCornerRadius(dp(2));
+        fill.setBackground(fg);
         bar.addView(fill, new LayoutParams(0, -1));
         bar.post(() -> { LayoutParams lp = (LayoutParams) fill.getLayoutParams(); lp.width = Math.round(bar.getWidth() * Math.max(0f, Math.min(1f, f))); fill.setLayoutParams(lp); });
         box.addView(bar, new LinearLayout.LayoutParams(-1, dp(4)));

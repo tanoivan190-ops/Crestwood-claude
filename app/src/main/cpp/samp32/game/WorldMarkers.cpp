@@ -29,10 +29,11 @@ namespace
         char  label[32] = { 0 };
     };
 
-    constexpr float kMaxDist   = 60.0f;   // [v22f] au-dela : invisible (moins de travail par image)
-    constexpr float kFadeFrom  = 45.0f;   // fondu entre 45 et 60 m
-    constexpr float kLabelDist = 32.0f;   // [v22f] nom + distance seulement a moins de 32 m
-    constexpr int   kMaxLabels = 6;       // et au plus 6 etiquettes par image
+    // [v30] marqueurs visibles seulement tout pres (avant 60 m / noms a 32 m : trop gros, trop loin)
+    constexpr float kMaxDist   = 22.0f;   // [v42] plus grand et visible de plus loin (Anzo : "tout est petit")   // au-dela : invisible
+    constexpr float kFadeFrom  = 16.0f;   // fondu entre 8 et 12 m
+    constexpr float kLabelDist = 9.0f;    // nom + distance seulement a moins de 5 m
+    constexpr int   kMaxLabels = 3;       // et au plus 3 etiquettes par image
     constexpr size_t kMaxMarkers = 512;
 
     std::mutex          s_mutex;
@@ -290,6 +291,14 @@ namespace
             dl->AddLine(P(2.6f, -2.2f), P(2.2f, -4.2f), w, th);
             dl->AddLine(P(1.4f, -4.2f), P(3.2f, -4.2f), w, th);
             break;
+        case 20: // [v44] casino : de
+            dl->AddRect(P(-6.0f, -6.0f), P(6.0f, 6.0f), w, 2.0f * u, ImDrawCornerFlags_All, th);
+            dl->AddCircleFilled(P(-3.0f, -3.0f), 1.3f * u, wf, 10);
+            dl->AddCircleFilled(P(3.0f, 3.0f), 1.3f * u, wf, 10);
+            dl->AddCircleFilled(P(0.0f, 0.0f), 1.3f * u, wf, 10);
+            dl->AddCircleFilled(P(3.0f, -3.0f), 1.3f * u, wf, 10);
+            dl->AddCircleFilled(P(-3.0f, 3.0f), 1.3f * u, wf, 10);
+            break;
         default: // epingle
             dl->AddCircleFilled(c, 2.6f * u, wf, 16);
             break;
@@ -306,6 +315,7 @@ namespace
             case 11: return "Maison";        case 12: return "Braquage";     case 13: return "Accessoires";
             case 14: return "Barbier";       case 15: return "Tatouage";     case 16: return "Station-service";
             case 17: return "Location";      case 18: return "PNJ";           case 19: return "Location de vélo";
+            case 20: return "Casino";
         }
         return "Point d'intérêt";
     }
@@ -324,13 +334,13 @@ namespace
         Glyph(dl, renderer, type, c, r * 0.80f, alpha);
         if (!renderer || !name || !name[0]) return;
         const float fs = UISettings::fontSize();
-        const float lf = std::fmax(fs * 0.62f, std::fmin(r * 0.82f, fs * 0.9f)), df = lf * 0.78f;
+        const float lf = fs * 0.42f, df = lf * 0.85f;   // [v42] noms plus grands
         const std::string nm(name);
         char d[16];
         if (dist >= 1000.0f) snprintf(d, sizeof(d), "%.1f km", dist / 1000.0f); else snprintf(d, sizeof(d), "%d m", (int)(dist + 0.5f));
         const std::string ds(d);
         const ImVec2 ns = renderer->calculateTextSize(nm, lf);
-        const float tx = c.x + r * 1.32f, ty = c.y - ns.y * 0.92f;
+        const float tx = c.x + r * 1.6f + 2.0f, ty = c.y - ns.y * 0.92f;
         const int a = (int)(255.0f * alpha);
         renderer->drawText(ImVec2(tx + 1.0f, ty + 1.0f), ImColor(0, 0, 0, (int)(a * 0.7f)), nm, false, lf);
         renderer->drawText(ImVec2(tx, ty), ImColor(255, 255, 255, a), nm, false, lf);
@@ -629,7 +639,7 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
                     handM = &m;
                     handShown = true;
                     handX = hc.x; handY = hc.y;
-                    handR = std::fmax(UISettings::fontSize() * 1.25f, std::fmin(ppmH * 0.26f, UISettings::fontSize() * 2.6f));
+                    handR = std::fmax(UISettings::fontSize() * 0.40f, std::fmin(ppmH * 0.09f, UISettings::fontSize() * 0.55f));   // [v42] main plus grande   // [v30b] main -80 %
                 }
             }
         }
@@ -670,8 +680,8 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
         {
             // icone 3D : pastille qui flotte a ~1 m du sol + anneau au sol
             const float pulse = 0.5f + 0.5f * std::sin(t * 3.0f);
-            GroundRing(dl, m, 0.55f, Col(255, 255, 255, 0.75f * alpha), std::fmax(1.5f, ppm * 0.04f));
-            GroundRing(dl, m, 0.55f + 0.25f * pulse, Col(59, 130, 255, 0.4f * (1.0f - pulse) * alpha), std::fmax(1.0f, ppm * 0.03f));
+            GroundRing(dl, m, 0.45f, Col(255, 255, 255, 0.80f * alpha), std::fmax(1.5f, ppm * 0.025f));   // [v42] rond au sol plus grand   // [v30b] -80 %
+            GroundRing(dl, m, 0.45f + 0.18f * pulse, Col(59, 130, 255, 0.4f * (1.0f - pulse) * alpha), std::fmax(1.0f, ppm * 0.03f));
             ImVec2 c;
             float dc;
             const float bob = std::sin(t * 2.0f) * 0.06f;
@@ -680,7 +690,7 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
             float dist = depth;
             if (onFoot) { const float ex = me.x - m.x, ey = me.y - m.y, ez = me.z - m.z; dist = std::sqrt(ex * ex + ey * ey + ez * ez); }
             const float fsz = UISettings::fontSize();
-            const float br = std::fmax(fsz * 0.85f, std::fmin(ppm * 0.26f, fsz * 1.5f));
+            const float br = std::fmax(fsz * 0.18f, std::fmin(ppm * 0.07f, fsz * 0.30f));   // [v42] pastille plus grande   // [v30b] pastille -80 %
             const bool withName = dist <= kLabelDist && labels < kMaxLabels;
             if (withName) labels++;
             Badge(dl, renderer, m.type, c, br, alpha, withName ? (m.label[0] ? m.label : TypeName(m.type)) : nullptr, dist);
@@ -707,9 +717,9 @@ void WorldMarkers::Render(ImGuiRenderer* renderer)
                 const std::string nm(handM->label[0] ? handM->label : TypeName(handM->type));
                 const std::string hint("Toucher pour interagir");
                 const float fs = UISettings::fontSize();
-                const float lf = std::fmax(fs * 0.7f, std::fmin(handR * 0.62f, fs * 1.0f)), hf = lf * 0.74f;
+                const float lf = fs * 0.44f, hf = lf * 0.85f;   // [v42]   // [v30b] texte minimum lisible
                 const ImVec2 ns = renderer->calculateTextSize(nm, lf);
-                const float tx = handX + handR * 1.35f, ty = handY - ns.y * 0.95f;
+                const float tx = handX + handR * 1.6f + 3.0f, ty = handY - ns.y * 0.95f;
                 renderer->drawText(ImVec2(tx + 1.0f, ty + 1.0f), ImColor(0, 0, 0, 180), nm, false, lf);
                 renderer->drawText(ImVec2(tx, ty), ImColor(255, 255, 255, 255), nm, false, lf);
                 renderer->drawText(ImVec2(tx + 1.0f, ty + ns.y * 1.05f + 1.0f), ImColor(0, 0, 0, 170), hint, false, hf);
@@ -731,7 +741,7 @@ bool WorldMarkers::OnTouch(int type, int finger, int x, int y)
         if (type == 2)
         {
             if (!h.visible || h.down) return false;
-            if (std::hypot(fx - h.x, fy - h.y) > h.r * 1.35f) return false;
+            if (std::hypot(fx - h.x, fy - h.y) > std::fmax(h.r * 1.6f, UISettings::fontSize() * 1.3f)) return false;   // [v30] main plus petite : zone de toucher gardee
             h.down = true;
             h.finger = finger;
             h.downX = fx; h.downY = fy;

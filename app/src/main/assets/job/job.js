@@ -26,9 +26,21 @@
          missions: ["Conduire la benne à ordures de l'entreprise.", "S'arrêter à chaque point de collecte.", "Vider la benne à la décharge de Willowfield."] },
     5: { name: "Livreur de pizzas", company: "Well Stacked Pizza Co.", place: "Idlewood", blip: 139,
          desc: "Livre des pizzas bien chaudes aux habitants de Grove Street et d'Idlewood.",
-         missions: ["Prendre le scooter de la pizzeria.", "Livrer chaque client indiqué par le GPS.", "Revenir à la pizzeria pour la commande suivante."] }
+         missions: ["Prendre le scooter de la pizzeria.", "Livrer chaque client indiqué par le GPS.", "Revenir à la pizzeria pour la commande suivante."] },
+    6: { name: "Agent de propreté", company: "Propreté de Los Santos", place: "Willowfield", blip: 75,
+         desc: "Nettoie les rues de Ganton et d'Idlewood avec la balayeuse de la ville.",
+         missions: ["Prendre la balayeuse au dépôt.", "Nettoyer chaque rue indiquée par le GPS.", "Ramener la balayeuse au dépôt."] },
+    7: { name: "Routier", company: "Crestwood Fret", place: "Ocean Docks", blip: 51,
+         desc: "Grandes livraisons dans tout Los Santos : commerces, marché, bars. Mieux payé, plus long.",
+         missions: ["Conduire le camion de fret.", "Livrer chaque commerce indiqué par le GPS.", "Ramener le camion aux docks."] },
+    8: { name: "Convoyeur de fonds", company: "Atlas Sécurité", place: "Unity Station", blip: 52,
+         desc: "Collecte les caisses des commerces et de la mairie en fourgon blindé.",
+         missions: ["Prendre le fourgon blindé.", "Collecter les fonds à chaque arrêt.", "Ramener les fonds au dépôt sans te faire braquer."] },
+    9: { name: "Facteur", company: "La Poste de Crestwood", place: "Idlewood", blip: 42,
+         desc: "Distribue le courrier aux habitants de Grove Street et de Ganton en scooter.",
+         missions: ["Prendre le scooter de la poste.", "Déposer le courrier à chaque adresse.", "Revenir au bureau de poste."] }
   };
-  const VEHICLES = { 0: "À pied (outils fournis)", 414: "Camion Mule", 431: "Bus", 408: "Benne à ordures", 448: "Scooter Pizzaboy" };
+  const VEHICLES = { 0: "À pied (outils fournis)", 414: "Camion Mule", 431: "Bus", 408: "Benne à ordures", 448: "Scooter Pizzaboy", 574: "Balayeuse", 499: "Camion Benson", 428: "Fourgon blindé", 462: "Scooter Faggio" };
 
   const $ = (id) => document.getElementById(id);
   const money = (v) => (Number(v) || 0).toLocaleString("fr-FR").replace(/ | /g, " ") + " $";

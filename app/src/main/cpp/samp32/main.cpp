@@ -388,6 +388,7 @@ void HudPad_SetStick(int x, int y, bool active);    // game/pad.cpp
 // [v15] game/CwSettings.cpp
 void Crestwood_ApplyGameSetting(int key, int value);
 void Crestwood_SetHiddenPlayers(const char* csv);
+void Crestwood_SetPlayerTags(const char* data);   // [v46]
 void Crestwood_ProcessHiddenPlayers();
 
 extern "C" {
@@ -430,7 +431,15 @@ extern "C" {
 		Crestwood_SetHiddenPlayers(text);
 		if (text) pEnv->ReleaseStringUTFChars(data, text);
 	}
-	JNIEXPORT void JNICALL Java_com_gta_game32_SAMP_setVoiceTalk(JNIEnv *pEnv, jobject thiz, jboolean talk)
+	// [v46] identifiants du jour au-dessus des tetes : "1|3:4821,7:1290" (dialogue serveur "@tags" 9518)
+		JNIEXPORT void JNICALL Java_com_gta_game32_SAMP_setPlayerTags(JNIEnv *pEnv, jobject thiz, jstring data)
+		{
+			if (!data) { Crestwood_SetPlayerTags(nullptr); return; }
+			const char* text = pEnv->GetStringUTFChars(data, nullptr);
+			Crestwood_SetPlayerTags(text);
+			if (text) pEnv->ReleaseStringUTFChars(data, text);
+		}
+		JNIEXPORT void JNICALL Java_com_gta_game32_SAMP_setVoiceTalk(JNIEnv *pEnv, jobject thiz, jboolean talk)
 	{
 		g_bHudVoiceTalk.store(talk == JNI_TRUE);
 	}
@@ -695,7 +704,7 @@ void FLog(const char* fmt, ...)
 
 	// Journal natif du client 32 bits : TOUJOURS dans le dossier propre a l'appli (ecriture sans permission,
 	// et pas melange avec les samp_log.txt d'autres clients SA-MP installes sur le telephone).
-	//   /storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_samp_log.txt
+	//   /storage/emulated/0/Android/data/com.crestwoodroleplay/files/crestwood_samp_log.txt
 	// (a cote de crestwood_32_log.txt, le journal Java du chargement). Dernier recours : dossier des donnees.
 	(void)pszStorage;
 	static int tries = 0;
@@ -704,9 +713,9 @@ void FLog(const char* fmt, ...)
 		tries++;
 		static char path[256];
 		static const char* kPaths[] = {
-			"/storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_samp_log.txt",
-			"/sdcard/Android/data/com.crestwood.rp/files/crestwood_samp_log.txt",
-			"/data/data/com.crestwood.rp/files/crestwood_samp_log.txt",
+			"/storage/emulated/0/Android/data/com.crestwoodroleplay/files/crestwood_samp_log.txt",
+			"/sdcard/Android/data/com.crestwoodroleplay/files/crestwood_samp_log.txt",
+			"/data/data/com.crestwoodroleplay/files/crestwood_samp_log.txt",
 		};
 		for (const char* f : kPaths)
 		{

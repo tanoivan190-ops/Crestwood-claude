@@ -1,0 +1,33 @@
+# id;distance;nom;x,y;x,y...  (genere par tools/mta/mta_vers_apk.py) - une ligne par modele
+# sans position : le jeu cherche les batiments / objets qui l utilisent. Supprimer une ligne = modele d origine.
+941;0;EC-ModelLabo;-2532,43
+1492;0;EC-Fleeca;1927,-1774;562,-1508;2139,-1742
+1577;0;EC-ModelLabo;-2533,36
+2039;150;EC-Beach;
+2400;0;EC-ModelLabo;-2532,46
+2949;0;EC-Fleeca;
+2952;0;EC-Fleeca;
+3853;0;Objic_poto;2282,-1753;1694,-1741;1524,-1723;1865,-1748;2032,-1747
+3980;0;EC-Cityhall;
+4006;0;EC-Fleeca;
+4552;0;EC-Ammu;
+5392;1500;EC-GleenPark;
+5407;0;EC-Mason1;
+5409;0;EC-Igs;
+5410;500;EC-Weed;2141,-1735
+5414;1500;EC-SubUrban;
+5443;1500;EC-GleenPark;
+5457;1500;EC-GleenPark;
+5489;0;EC-Igs;
+5507;0;EC-mason2;
+5708;0;47-Hopital2;-2681,-371
+5774;0;EC-Mecano;1053,-1010
+6280;250;EC-Beach;
+6297;180;EC-Beach;
+6340;500;EC-Binco3;588,-1530
+7950;999;EC-Park2;1759,-1840
+13761;0;EC-Tequilala;
+14581;0;EC-Igs;1921,-1775
+14814;0;EC-Igs;1924,-1775
+17563;300;gs-wattspark;
+17625;300;gs-wattspark;

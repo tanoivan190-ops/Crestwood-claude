@@ -297,7 +297,7 @@ public class NativeClothesPanel extends FrameLayout {
         head.addView(closeX, new LinearLayout.LayoutParams(dp(38), dp(38)));
         panel.addView(head);
 
-        creationBanner = CwUi.text(c, "CRÉATION DU PERSONNAGE — choisis ta tenue de départ, puis enregistre.", 10.5f, 0xFFFFFFFF, CwUi.bold(c));
+        creationBanner = CwUi.text(c, "CRÉATION DU PERSONNAGE — choisis ton visage et tes cheveux. Les vêtements s’achètent en magasin.", 10.5f, 0xFFFFFFFF, CwUi.bold(c));
         creationBanner.setBackground(CwUi.box(c, CwUi.ACCENT, 0));
         creationBanner.setPadding(dp(10), dp(7), dp(10), dp(7));
         creationBanner.setVisibility(GONE);
@@ -469,7 +469,14 @@ public class NativeClothesPanel extends FrameLayout {
     // =====================================================================
     // Logique (identique a l'ancien clothes.js)
     // =====================================================================
+    // [v30] creation du personnage : on part en sous-vetements, seulement le corps (visage, cheveux).
+    //       Les vetements s'achetent ensuite dans un magasin de vetements.
+    private static boolean creationTab(String tab) {
+        return "visage".equals(tab) || "cheveux".equals(tab);
+    }
+
     private boolean hasTab(String tab) {
+        if (creation && !creationTab(tab)) return false;
         for (Field f : fields) if (tab.equals(f.tab)) return true;
         return false;
     }
@@ -570,7 +577,10 @@ public class NativeClothesPanel extends FrameLayout {
 
     private void render() {
         Context c = getContext();
-        if (!fields.isEmpty() && !hasTab(active)) active = fields.get(0).tab;
+        if (!fields.isEmpty() && !hasTab(active)) {
+            active = fields.get(0).tab;
+            for (Field f : fields) if (hasTab(f.tab)) { active = f.tab; break; }   // [v30]
+        }
 
         // rail
         rail.removeAllViews();
@@ -753,7 +763,7 @@ public class NativeClothesPanel extends FrameLayout {
         final Context app = getContext().getApplicationContext();
         new Thread(() -> {
             List<Group> out = new ArrayList<>();
-            try (InputStream in = app.getAssets().open("clothes/south/catalogue.json")) {
+            try (InputStream in = com.crestwood.ui.CwAssets.open(app, "clothes/south/catalogue.json")) {
                 ByteArrayOutputStream buf = new ByteArrayOutputStream();
                 byte[] b = new byte[16384];
                 int n;

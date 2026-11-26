@@ -52,12 +52,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String LAUNCHER_PREFERENCES = "crestwood_launcher";
     private static final String SAVED_NICKNAME_KEY = "saved_nickname";
     private static final String LOADING_URL = "file:///android_asset/loading/index.html";
+    // [v51] ecran JOUER en page (connexion Google une fois par telephone, le compte Google = le compte du joueur)
+    private static final String PLAY_URL = "file:///android_asset/play/index.html";
+    private boolean playPageShown;
     private static int sRenderGoneCount = 0;   // [v19] recreations apres perte du moteur de rendu WebView
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Button startButton;
-    private EditText firstInput;
-    private EditText lastInput;
+    private EditText nickInput;
     private TextView authorText;
     private TextView connectionStatus;
     private FrameLayout updateOverlay;
@@ -101,57 +103,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void initViews() {
         startButton = findViewById(R.id.startButton);
-        firstInput = findViewById(R.id.firstInput);
-        lastInput = findViewById(R.id.lastInput);
+        nickInput = findViewById(R.id.nickInput);
         authorText = findViewById(R.id.authorText);
         connectionStatus = findViewById(R.id.connectionStatus);
         restoreAndPersistNickname();
         setStartEnabled(false);
     }
 
-    /** [v22] Prenom + Nom -> "Prenom_Nom" (lettres seulement, majuscule initiale, 24 car. max). */
-    private static String cleanPart(CharSequence v) {
-        if (v == null) return "";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < v.length(); i++) {
-            char c = v.charAt(i);
-            if (Character.isLetter(c) && c < 0x250) sb.append(c);
-        }
-        if (sb.length() == 0) return "";
-        String t = sb.toString().toLowerCase(java.util.Locale.ROOT);
-        return Character.toUpperCase(t.charAt(0)) + t.substring(1);
-    }
-
-    private String buildNickname() {
-        String f = cleanPart(firstInput == null ? "" : firstInput.getText());
-        String l = cleanPart(lastInput == null ? "" : lastInput.getText());
-        if (f.isEmpty() || l.isEmpty()) return "";
-        String n = f + "_" + l;
-        return n.length() > 24 ? n.substring(0, 24) : n;
-    }
-
     private void restoreAndPersistNickname() {
-        if (firstInput == null || lastInput == null) return;
+        if (nickInput == null) return;
         SharedPreferences preferences = getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE);
         String saved = preferences.getString(SAVED_NICKNAME_KEY, "");
-        int us = saved.indexOf('_');
-        if (us > 0 && us < saved.length() - 1) {
-            firstInput.setText(saved.substring(0, us));
-            lastInput.setText(saved.substring(us + 1).replace("_", ""));
+        if (!TextUtils.isEmpty(saved)) {
+            nickInput.setText(saved);
+            nickInput.setSelection(saved.length());
         }
-        TextWatcher watcher = new TextWatcher() {
+        nickInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence value, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence value, int start, int before, int count) { }
             @Override public void afterTextChanged(Editable value) {
-                String n = buildNickname();
-                if (!n.isEmpty()) {
-                    getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
-                            .putString(SAVED_NICKNAME_KEY, n).apply();
-                }
+                getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
+                        .putString(SAVED_NICKNAME_KEY, value == null ? "" : value.toString().trim())
+                        .apply();
             }
-        };
-        firstInput.addTextChangedListener(watcher);
-        lastInput.addTextChangedListener(watcher);
+        });
     }
 
     private void initializeUpdateScreen() {
@@ -167,12 +142,19 @@ public class MainActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);   // [v21] langue + reglement memorises
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(false);
-        // [v22] le lecteur de musique est masque : la musique doit demarrer toute seule (sinon Android la bloque
-        // tant que le joueur n'a pas appuye sur le bouton lecture, qui n'existe plus)
-        settings.setMediaPlaybackRequiresUserGesture(false);
         updateWebView.addJavascriptInterface(new LauncherUpdateBridge(), "AndroidLoading");
+        updateWebView.addJavascriptInterface(new PlayBridge(), "AndroidPlay");   // [v51]
         updateWebView.setWebViewClient(new WebViewClient() {
-            @Override public void onPageFinished(WebView view, String url) { renderUpdateState(); }
+            // [v47] pages protegees : HTML/JS/CSS/JSON chiffres dans l'APK, dechiffres ici (com.crestwood.ui.CwAssets)
+            @Override public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, android.webkit.WebResourceRequest request) {
+                android.webkit.WebResourceResponse cwr = com.crestwood.ui.CwAssets.intercept(view.getContext(), request);
+                return cwr != null ? cwr : super.shouldInterceptRequest(view, request);
+            }
+            @Override public void onPageFinished(WebView view, String url) {
+                com.crestwood.ui.CwAssets.checkPage(view, url);   // [v60] page restee chiffree -> reconstruite en clair
+                if (url != null && url.contains("/play/")) return;   // [v51] ecran JOUER
+                renderUpdateState();
+            }
             // [v19] moteur de rendu perdu : on recree l'ecran (2 fois max) au lieu de laisser Android fermer l'appli
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
                 Log.e("Launcher", "[webview] moteur de rendu perdu");
@@ -237,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadLoadingPage() {
         if (loadingPageLoaded || updateWebView == null) return;
         loadingPageLoaded = true;
-        updateWebView.loadUrl(LOADING_URL);
+        com.crestwood.ui.CwAssets.load(updateWebView, LOADING_URL);
     }
 
     private void initializeStorageAccessLaunchers() {
@@ -300,13 +282,20 @@ public class MainActivity extends AppCompatActivity {
         setStartEnabled(false);
         if (connectionStatus != null) connectionStatus.setText("Installation interrompue. Réparez les données pour continuer.");
         if (updateOverlay != null) updateOverlay.setVisibility(View.VISIBLE);
+        if (playPageShown) { playPageShown = false; loadingPageLoaded = false; loadLoadingPage(); }   // [v51]
         evaluateUpdate("window.LoadingBridge&&LoadingBridge.error(" + quoteJs(message) + ")");
     }
 
     private void hideUpdateScreen() {
         if (!dataReady || !DataInstaller.isInstallReady(this)) return;
-        if (updateOverlay != null) updateOverlay.setVisibility(View.GONE);
         setStartEnabled(true);
+        // [v51] la page JOUER (Google + JOUER) remplace l'ancien ecran avec le pseudo a taper
+        if (updateWebView != null && updateOverlay != null) {
+            updateOverlay.setVisibility(View.VISIBLE);
+            if (!playPageShown) { playPageShown = true; com.crestwood.ui.CwAssets.load(updateWebView, PLAY_URL); }
+            return;
+        }
+        if (updateOverlay != null) updateOverlay.setVisibility(View.GONE);
     }
 
     private void beginDataRepair(String message) {
@@ -327,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
         setStartEnabled(false);
         if (connectionStatus != null) connectionStatus.setText("Réparation des données du jeu...");
         if (updateOverlay != null) updateOverlay.setVisibility(View.VISIBLE);
+        if (playPageShown) { playPageShown = false; loadingPageLoaded = false; loadLoadingPage(); }   // [v51]
         DataInstaller.repair(this);
     }
 
@@ -349,11 +339,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            String nickname = buildNickname();
-            if (TextUtils.isEmpty(nickname)) {
-                Toast.makeText(this, "Entre ton prénom et ton nom (lettres uniquement)", Toast.LENGTH_LONG).show();
-                if (firstInput != null) firstInput.requestFocus();
-                return;
+            // [v51] plus de pseudo a taper : nom du personnage memorise (donne par le serveur au salon),
+            //       sinon un nom provisoire ; le serveur donne au joueur le nom de SON personnage Google.
+            String nickname = getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).getString(SAVED_NICKNAME_KEY, "");
+            if (nickname == null || !nickname.matches("[A-Za-z0-9_\\[\\]\\.$@=()]{3,24}")) {
+                nickname = "Citoyen_" + (1000 + new java.util.Random().nextInt(9000));
             }
             getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit()
                     .putString(SAVED_NICKNAME_KEY, nickname).apply();
@@ -468,6 +458,48 @@ public class MainActivity extends AppCompatActivity {
     @Override protected void onResume() {
         super.onResume();
         if (introOverlay != null) introOverlay.resume();
+        if (playPageShown && updateWebView != null) updateWebView.evaluateJavascript("window.PlayPage&&PlayPage.refresh()", null);
+    }
+
+    // [v51] ecran JOUER : connexion Google (une fois) et lancement du jeu
+    private final class PlayBridge {
+        @JavascriptInterface public String account() {
+            return com.crestwood.ui.CwGoogleAuth.currentAccount(MainActivity.this);
+        }
+        @JavascriptInterface public void signIn(boolean choose) {
+            if (choose) {
+                // autre compte Google = autre personnage : on oublie le nom memorise
+                getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit().remove(SAVED_NICKNAME_KEY).apply();
+            }
+            com.crestwood.ui.CwGoogleAuth.signIn(MainActivity.this, choose, new com.crestwood.ui.CwGoogleAuth.SignInCallback() {
+                @Override public void onSignedIn(String email, String name) {
+                    playJs("window.PlayPage&&PlayPage.onSignedIn(" + quoteJs(email) + "," + quoteJs(name) + ")");
+                }
+                @Override public void onError(String message, boolean cancelled) {
+                    playJs("window.PlayPage&&PlayPage.onError(" + quoteJs(message) + "," + cancelled + ")");
+                }
+            });
+        }
+        @JavascriptInterface public void signOut() {
+            getSharedPreferences(LAUNCHER_PREFERENCES, MODE_PRIVATE).edit().remove(SAVED_NICKNAME_KEY).apply();
+            com.crestwood.ui.CwGoogleAuth.signOut(MainActivity.this);
+        }
+        @JavascriptInterface public void play() {
+            runOnUiThread(() -> {
+                try {
+                    org.json.JSONObject a = new org.json.JSONObject(com.crestwood.ui.CwGoogleAuth.currentAccount(MainActivity.this));
+                    if (a.optInt("ready") == 1 && a.optString("email", "").isEmpty()) {
+                        playJs("window.PlayPage&&PlayPage.onError(" + quoteJs("Connecte-toi avec Google pour jouer.") + ",false)");
+                        return;
+                    }
+                } catch (Exception ignored) { }
+                startGame();
+            });
+        }
+    }
+
+    private void playJs(final String js) {
+        runOnUiThread(() -> { if (updateWebView != null) updateWebView.evaluateJavascript(js, null); });
     }
 
     @Override protected void onDestroy() {

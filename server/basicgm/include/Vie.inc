@@ -237,24 +237,10 @@ stock Vie_Active(p)
 	return 0;
 }
 
-// [v30] fixe un niveau minimum (code promo : niveau 5)
-stock Vie_SetMinLevel(playerid, lvl)
-{
-	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
-	if (g_VieLvl[playerid] < lvl)
-	{
-		g_VieLvl[playerid] = lvl;
-		g_VieXp[playerid] = 0;
-		Vie_Save(playerid);
-	}
-	return 1;
-}
-
 stock Vie_Eat(playerid, amount)
 {
 	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
 	g_VieHunger[playerid] += amount;
-	Missions_Event(playerid, MEV_USE);   // [v30] mission 1 : utiliser de la nourriture
 	if (g_VieHunger[playerid] > 100) g_VieHunger[playerid] = 100;
 	if (g_VieHunger[playerid] > VIE_WARN_AT) g_VieWarned[playerid] &= ~1;
 	Cw_HudPush(playerid, 1);
@@ -265,7 +251,6 @@ stock Vie_Drink(playerid, amount)
 {
 	if (!g_VieLoaded[playerid]) Vie_Load(playerid);
 	g_VieThirst[playerid] += amount;
-	Missions_Event(playerid, MEV_USE);   // [v30] mission 1 : utiliser une boisson
 	if (g_VieThirst[playerid] > 100) g_VieThirst[playerid] = 100;
 	if (g_VieThirst[playerid] > VIE_WARN_AT) g_VieWarned[playerid] &= ~2;
 	Cw_HudPush(playerid, 1);

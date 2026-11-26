@@ -1,0 +1,5 @@
+/* [v47] polices "jeu" pour les styles perso des pages */
+@font-face { font-family: "CwDin"; src: url("fonts/din_pro_black.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "CwWide"; src: url("fonts/actaywidebold.otf") format("opentype"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "CwAkro"; src: url("fonts/akrobat_bold.otf") format("opentype"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "CwRound"; src: url("fonts/visby_round_cf_extra_bold.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }

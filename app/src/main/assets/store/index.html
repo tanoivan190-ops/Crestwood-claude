@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" data-color>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Crestwood Store</title>
+<link rel="stylesheet" href="store.css">
+<link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="ccFace" cx="34%" cy="28%" r="85%"><stop offset="0" stop-color="#dff6ff"/><stop offset=".42" stop-color="#3d8bff"/><stop offset="1" stop-color="#0c2a7a"/></radialGradient>
+    <linearGradient id="ccRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0fbff"/><stop offset=".45" stop-color="#3a78e8"/><stop offset="1" stop-color="#061848"/></linearGradient>
+    <radialGradient id="usdFace" cx="34%" cy="28%" r="85%"><stop offset="0" stop-color="#e8fff1"/><stop offset=".45" stop-color="#2fcf7c"/><stop offset="1" stop-color="#0b5a31"/></radialGradient>
+    <linearGradient id="usdRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2fff7"/><stop offset=".5" stop-color="#1e9d5b"/><stop offset="1" stop-color="#063a20"/></linearGradient>
+  </defs>
+  <symbol id="cc" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="23.5" fill="url(#ccRim)"/>
+    <circle cx="24" cy="24" r="19.5" fill="url(#ccFace)"/>
+    <circle cx="24" cy="24" r="16.8" fill="none" stroke="#111" stroke-opacity=".35" stroke-width="1" stroke-dasharray="1.6 2"/>
+    <path d="M24 11l9 3.2v6.9c0 6.3-3.9 10.7-9 12.3-5.1-1.6-9-6-9-12.3v-6.9z" fill="#0b2a7a" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>
+    <text x="24" y="26.6" text-anchor="middle" font-family="CwGame,Arial,sans-serif" font-style="italic" font-weight="900" font-size="9.5" fill="#fff">CC</text>
+  </symbol>
+  <symbol id="usd" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="23.5" fill="url(#usdRim)"/>
+    <circle cx="24" cy="24" r="19.5" fill="url(#usdFace)"/>
+    <text x="24" y="33" text-anchor="middle" font-family="CwGame,Arial,sans-serif" font-weight="900" font-size="26" fill="#fff" stroke="#064a28" stroke-width="1.3" paint-order="stroke">$</text>
+  </symbol>
+</svg>
+
+<div class="overlay" id="overlay">
+  <div class="st" id="st">
+    <header class="bar">
+      <div class="logo">
+        <svg viewBox="0 0 44 50" aria-hidden="true"><path d="M22 1 42 8v15c0 13-8.6 22.5-20 26C10.6 45.5 2 36 2 23V8z" fill="#0e1420" stroke="#7fd3ff" stroke-width="2.4"/><text x="22" y="30" text-anchor="middle" font-family="CwGame,Arial,sans-serif" font-style="italic" font-weight="900" font-size="16" fill="#7fd3ff">CR</text></svg>
+        <b>CRESTWOOD <i>STORE</i></b>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="wallet">
+        <button class="pill" id="wCC" onclick="go('coins')" aria-label="Mes CrestCoins"><svg class="coin"><use href="#cc"/></svg><span id="balCC">0</span></button>
+        <div class="pill usd" id="wUSD"><svg class="coin"><use href="#usd"/></svg><span id="balUSD">0 $</span></div>
+      </div>
+      <button class="x" onclick="Store.close()" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </header>
+    <main class="content" id="content"></main>
+    <div class="mbg" id="mbg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+    <div class="toasts" id="toasts"></div>
+  </div>
+</div>
+<script src="store.js"></script>
+</body>
+</html>

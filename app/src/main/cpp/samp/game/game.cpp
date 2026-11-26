@@ -161,6 +161,9 @@ void CGame::PreloadObjectsAnims()
 
 	// special action object
 	if(!IsModelLoaded(331)) RequestModel(331);
+	// [v32] corps Crestwood (South) : charges des le depart, installes par SouthModelLoader::PreloadBodies
+	if(!IsModelLoaded(7)) RequestModel(7);
+	if(!IsModelLoaded(12)) RequestModel(12);
 	if(!IsModelLoaded(OBJECT_PARACHUTE)) RequestModel(OBJECT_PARACHUTE);
 	if(!IsModelLoaded(OBJECT_CJ_CIGGY)) RequestModel(OBJECT_CJ_CIGGY);
 	if(!IsModelLoaded(OBJECT_DYN_BEER_1)) RequestModel(OBJECT_DYN_BEER_1);

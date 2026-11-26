@@ -1066,6 +1066,7 @@ stock Cw_OnCommand(playerid, const cmdtext[])
 		RpX_Name(t, tn, sizeof tn);
 		format(msg, sizeof msg, "* %s pratique les premiers secours sur %s, qui reprend connaissance.", name, tn);
 		RpX_Near(playerid, CW_CHAT_DIST, CW_COL_ME, msg);
+		Cw46_OnRevive(playerid);   // [v46] stats
 		if (Fac_Type(playerid) == FACTION_MEDIC && g_BankLoaded[playerid])
 		{
 			g_BankBalance[playerid] += 750;
@@ -1108,3 +1109,6 @@ stock Cw_OnCommand(playerid, const cmdtext[])
 	}
 	return 0;
 }
+
+// [v38] ceinture attachee ? (roue du vehicule, basicgm1.pwn)
+stock Cw_BeltOn(playerid) return (playerid >= 0 && playerid < MAX_PLAYERS) ? g_CwBelt[playerid] : 0;

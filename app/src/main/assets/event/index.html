@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Événements</title>
+<!--
+  [v44] Evenements du staff. Serveur : include/Cw44.inc (Ev_*).
+  st : 0 aucun, 1 inscriptions, 2 en cours. me : 0 non inscrit, 1 inscrit, 2 en jeu, 3 elimine.
+  Page -> serveur : join | leave | refresh | create <type 1-3> <recompense> | start | stop (staff)
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #ff7a1a; --a2: #ffb020; }
+.left { width: 54%; } .right { flex: 1; }
+.hero { padding: 12px; border-radius: 14px; background: linear-gradient(140deg, rgba(255,122,26,.2), rgba(255,176,32,.06)); border: 1px solid rgba(255,176,32,.25); }
+.hero h3 { font-size: 18px; font-weight: 900; }
+.hero p { font-size: 11px; color: var(--soft); margin-top: 4px; line-height: 1.45; }
+.big { display: flex; gap: 8px; margin-top: 10px; }
+.big div { flex: 1; padding: 8px; border-radius: 10px; background: rgba(0,0,0,.25); font-size: 9.5px; color: var(--soft); text-transform: uppercase; letter-spacing: .8px; }
+.big b { display: block; font-size: 15px; color: #fff; letter-spacing: 0; text-transform: none; margin-top: 2px; }
+.types { display: flex; gap: 6px; }
+.types button { flex: 1; padding: 8px 4px; border-radius: 10px; font-size: 10.5px; font-weight: 900; background: var(--glass2); border: 1px solid var(--line); }
+.types button.on { border-color: var(--a2); background: rgba(255,176,32,.16); }
+.prizes { display: flex; gap: 5px; flex-wrap: wrap; }
+.prizes button { padding: 6px 9px; border-radius: 99px; font-size: 10px; font-weight: 900; background: var(--glass2); border: 1px solid var(--line); }
+.prizes button.on { border-color: var(--a2); color: #ffd58a; }
+.adm { display: flex; flex-direction: column; gap: 6px; padding: 9px; border-radius: 12px; border: 1px dashed rgba(255,176,32,.35); }
+</style>
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg></div>
+      <div class="ttl"><b>Événements</b><small>Organisés par le staff de Crestwood</small></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="col left" id="main"></div>
+      <div class="col right">
+        <div class="lbl" id="plbl">Participants</div>
+        <div class="scroll" id="list"></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="sum" id="sum"></div>
+      <div id="acts" style="display:flex;gap:8px"></div>
+    </div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var Cw = window.CwPage, $ = Cw.$;
+  var DESC = { 1: "Le staff réunit tout le monde à un point de rendez-vous (soirée, rassemblement de voitures, cérémonie…).",
+               2: "Chacun reçoit une voiture sur l'aéroport de Los Santos. Percute les autres : la dernière voiture en état gagne.",
+               3: "Tous à pied avec un Desert Eagle et un fusil à pompe. Le dernier debout remporte la récompense." };
+  var ST = ["Aucun événement", "Inscriptions ouvertes", "En cours"];
+  var st = { d: {}, type: 2, prize: 25000, endAt: 0 };
+
+  function btn(t, cls, fn, dis) { var b = Cw.el("button", "btn " + (cls || ""), t); if (dis) b.disabled = true; b.addEventListener("click", fn); return b; }
+  function render() {
+    var d = st.d, main = $("main"), acts = $("acts"); main.innerHTML = ""; acts.innerHTML = "";
+    var hero = Cw.el("div", "hero");
+    if (d.st) {
+      hero.innerHTML = "<h3>" + (d.name || "") + "</h3><p>" + (DESC[d.type] || "") + "</p>";
+      var big = Cw.el("div", "big");
+      big.innerHTML = "<div>État<b>" + ST[d.st] + "</b></div><div>Récompense<b class='money'>" + (d.prize ? Cw.money(d.prize) : "—") + "</b></div><div>" + (d.st === 1 ? "Départ dans" : "Fin dans") + "<b id='cd'>—</b></div>";
+      hero.appendChild(big);
+      hero.appendChild(Cw.el("p", null, "Organisé par " + String(d.by || "").replace(/_/g, " ")));
+    } else hero.innerHTML = "<h3>Aucun événement</h3><p>Quand le staff lance un événement, tu reçois une notification. Reviens ici pour t'inscrire.</p>";
+    main.appendChild(hero);
+    if (d.adm) {
+      var a = Cw.el("div", "adm");
+      a.appendChild(Cw.el("div", "lbl", "Staff · créer un événement"));
+      var ty = Cw.el("div", "types");
+      [[1, "Rassemblement"], [2, "Derby"], [3, "Survie"]].forEach(function (t) { var b = Cw.el("button", st.type === t[0] ? "on" : "", t[1]); b.addEventListener("click", function () { st.type = t[0]; render(); }); ty.appendChild(b); });
+      a.appendChild(ty);
+      if (st.type !== 1) {
+        var pz = Cw.el("div", "prizes");
+        [0, 10000, 25000, 50000, 100000, 250000].forEach(function (p) { var b = Cw.el("button", st.prize === p ? "on" : "", p ? Cw.money(p) : "Sans prix"); b.addEventListener("click", function () { st.prize = p; render(); }); pz.appendChild(b); });
+        a.appendChild(pz);
+      }
+      var row = Cw.el("div", null); row.style.display = "flex"; row.style.gap = "6px";
+      row.appendChild(btn("Créer", "", function () { Cw.send("create", st.type + " " + (st.type === 1 ? 0 : st.prize)); }, !!d.st));
+      row.appendChild(btn("Lancer maintenant", "ghost", function () { Cw.send("start", ""); }, d.st !== 1));
+      row.appendChild(btn("Arrêter", "red", function () { Cw.send("stop", ""); }, !d.st));
+      a.appendChild(row);
+      main.appendChild(a);
+    }
+    var list = $("list"); list.innerHTML = "";
+    var L = d.list || [];
+    $("plbl").textContent = "Participants (" + L.length + ")";
+    if (!L.length) { var e = Cw.el("div", "empty"); e.innerHTML = '<span class="ic">🏁</span>Personne pour le moment.'; list.appendChild(e); }
+    L.forEach(function (p, i) {
+      var c = Cw.el("div", "card"); c.style.animationDelay = (i * 0.03) + "s";
+      c.appendChild(Cw.el("div", "av", Cw.initials(String(p[0]).replace(/_/g, " "))));
+      var m = Cw.el("div", "meta"); m.appendChild(Cw.el("b", null, String(p[0]).replace(/_/g, " "))); c.appendChild(m);
+      c.appendChild(Cw.el("span", "tag " + (p[1] === 2 ? "ok" : p[1] === 3 ? "bad" : "warn"), p[1] === 2 ? "En jeu" : p[1] === 3 ? "Éliminé" : "Inscrit"));
+      list.appendChild(c);
+    });
+    if (d.st === 1) {
+      if (d.me === 1) acts.appendChild(btn("Se désinscrire", "ghost", function () { Cw.send("leave", ""); }));
+      else acts.appendChild(btn("Je participe", "", function () { Cw.send("join", ""); }));
+    } else if (d.st === 2 && d.me === 2) acts.appendChild(btn("Abandonner", "red", function () { Cw.send("leave", ""); }));
+    acts.appendChild(btn("Actualiser", "ghost", function () { Cw.send("refresh", ""); }));
+    $("sum").innerHTML = d.st ? "<b>" + (d.name || "") + "</b> · " + ST[d.st] : "Les gains sont versés sur ton compte bancaire.";
+    tick();
+  }
+  function tick() {
+    var el = document.getElementById("cd"); if (!el) return;
+    var left = Math.max(0, Math.round((st.endAt - Date.now()) / 1000));
+    el.textContent = Math.floor(left / 60) + ":" + ("0" + left % 60).slice(-2);
+  }
+  setInterval(tick, 1000);
+  Cw.boot(function (d) { st.d = d; st.endAt = Date.now() + (d.left || 0) * 1000; render(); });
+  if (!window.SampPage) window.PageApp.openFromNative({ st: 1, type: 2, name: "Derby", prize: 25000, by: "Anzo", left: 95, me: 0, adm: 1, list: [["Marc_Kone", 1], ["Awa_Diallo", 1]] });
+})();
+</script>
+</body>
+</html>

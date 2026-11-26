@@ -1,115 +1,80 @@
-/* Vestiaire de faction Crestwood : meme charte bleue que le panneau admin (ink / royal / sky). */
+/* Hallmark · checked · built: the project · redesign: polish · shape: app screen · genre: atmospheric · theme: brand (Crestwood) · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, polish garde le look d'origine (demande d'Anzo) ; on retire seulement les tics */
+/* [v56] Vestiaire : menu compact a gauche (facon GTA V). Leger : pas d'image, pas de flou, pas d'ombre. */
+@font-face{font-family:"CwMont";src:url("../common/fonts/montserrat_medium.ttf");font-weight:500}
+@font-face{font-family:"CwMont";src:url("../common/fonts/montserrat_bold.ttf");font-weight:700}
+@font-face{font-family:"CwDin";src:url("../common/fonts/din_pro_black.ttf");font-weight:900}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:clip;background:transparent;color:var(--c-fff);font-family:var(--font-1);-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+
+.lk{position:fixed;left:calc(14px + env(safe-area-inset-left));top:14px;width:clamp(230px,30vw,290px);max-height:calc(100vh - 28px);
+  display:flex;flex-direction:column;animation:lkIn .2s cubic-bezier(.2,.75,.2,1) both}
+@keyframes lkIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+
+.lk-head{display:flex;align-items:center;justify-content:space-between;gap:8px;height:clamp(46px,13vh,58px);padding:0 6px 0 14px;
+  background:var(--c-0b0b0d);border-radius:10px 10px 0 0;border-bottom:2px solid var(--c-f5a524)}
+.lk-head div{display:flex;flex-direction:column;min-width:0}
+.lk-head b{font-family:var(--font-2);font-weight:900;text-transform:uppercase;font-size:clamp(18px,6vh,24px);line-height:1}
+.lk-head small{margin-top:3px;font-size:clamp(9px,2.6vh,11px);font-weight:500;color:var(--c-9a9aa2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-x{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:8px}
+.lk-x::before{content:"";width:13px;height:13px;background:var(--c-c9c9cf);-webkit-mask:var(--x) center/contain no-repeat;mask:var(--x) center/contain no-repeat}
+.lk-x:active{background:var(--c-ffffff-a1)}
+
+.lk-sub{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--c-000000-a9);font-size:clamp(9px,2.6vh,11px);font-weight:700;color:var(--c-c9c9cf)}
+#lkState.on{color:var(--c-34c77b)}
+
+.lk-list{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;background:var(--c-0a0a0c-a8)}
+.lk-list::-webkit-scrollbar{display:none}
+.lk-sec{padding:10px 12px 4px;font-size:clamp(9px,2.5vh,10.5px);font-weight:700;color:var(--c-f5a524)}
+.lk-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;height:clamp(30px,9vh,36px);padding:0 12px;text-align:left;
+  font-size:clamp(10.5px,3vh,12.5px);font-weight:700;color:var(--c-f0f0f2);transition:background .1s}
+.lk-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-row em{flex:none;font-style:normal;font-size:.9em;font-weight:500;color:var(--c-a8a8b0)}
+.lk-row em.on{color:var(--c-34c77b);font-weight:700}
+.lk-row em.arrows::before{content:"‹  "}
+.lk-row em.arrows::after{content:"  ›"}
+.lk-row.sel{background:var(--c-fff);color:var(--c-0b0b0d)}
+.lk-row.sel em{color:var(--c-4a4a52)}
+.lk-row.sel em.on{color:var(--c-11804a)}
+.lk-row.off{opacity:.38}
+.lk-row:active{background:var(--c-ffffff-a14)}
+.lk-row.sel:active{background:var(--c-e6e6ea)}
+.lk-row:disabled{color:var(--c-a8a8b0);background:transparent;cursor:default}
+
+.lk-desc{padding:8px 12px 10px;background:var(--c-000000-a9);border-radius:0 0 10px 10px;font-size:clamp(9px,2.6vh,11px);line-height:1.4;color:var(--c-c9c9cf);min-height:2.6em;font-weight:500}
+
+.lk-toast{position:fixed;left:calc(14px + env(safe-area-inset-left) + clamp(230px,30vw,290px) + 10px);top:14px;max-width:min(40vw,340px);padding:9px 12px 10px 13px;border-radius:8px;
+  background:var(--c-000000-a84);font: 700 clamp(10px,3vh,12.5px)/1.35 var(--font-3);border:1px solid var(--c-5cc85f);animation:lkIn .2s both}
+.lk-toast.err{border-color:var(--c-e2484c)}
+
 :root{
-    --ink:#03060d; --night:rgba(0,0,0,0.624); --deep:rgba(0,0,0,0.624);
-    --royal:#676767; --blue:#858585; --sky:#bababa;
-    --text:#eeeeee; --soft:#d0d0d0; --muted:#b0b0b0;
-    --line:rgba(186,186,186,0.16); --line-strong:rgba(186,186,186,0.38);
-    --danger:#ff6b72; --ok:#5fdca0; --gold:#ffb454;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;
-    font-family:"Inter","Segoe UI",Roboto,Arial,sans-serif;color:var(--text);user-select:none}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-.hidden{display:none!important}
+  /* [Hallmark polish] couleurs et polices de la page (valeurs d'origine, inchangees) */
+  --c-focus: var(--c-f5a524);
+  --c-000000-a84: rgba(0,0,0,.84);
+  --c-000000-a9: rgba(0,0,0,.9);
+  --c-0a0a0c-a8: rgba(10,10,12,.8);
+  --c-0b0b0d: #0b0b0d;
+  --c-11804a: #11804a;
+  --c-34c77b: #34c77b;
+  --c-4a4a52: #4a4a52;
+  --c-5cc85f: #5cc85f;
+  --c-9a9aa2: #9a9aa2;
+  --c-a8a8b0: #a8a8b0;
+  --c-c9c9cf: #c9c9cf;
+  --c-e2484c: #e2484c;
+  --c-e6e6ea: #e6e6ea;
+  --c-f0f0f2: #f0f0f2;
+  --c-f5a524: #f5a524;
+  --c-fff: #fbfaf8;
+  --c-ffffff-a1: rgba(255,255,255,.1);
+  --c-ffffff-a14: rgba(255,255,255,.14);
+  --font-1: "CwMont",Montserrat,Roboto,Arial,sans-serif;
+  --font-2: "CwDin","CwMont",sans-serif;
+  --font-3: "Roboto Condensed","sans-serif-condensed",Arial,sans-serif;
+--x:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E")}
 
-.lk{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(3,6,13,0.496);padding:env(safe-area-inset-top,0) 2vw env(safe-area-inset-bottom,0)}
-.lk-panel{position:relative;width:min(94vw,860px);height:min(90vh,500px);display:flex;flex-direction:column;
-    background:linear-gradient(180deg,rgba(0,0,0,0.599),rgba(0,0,0,0.606));
-    border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;
-    box-shadow:0 18px 60px rgba(0,0,0,0.48),0 0 0 1px rgba(103,103,103,0.12)}
-
-.lk-head{display:flex;align-items:center;gap:10px;padding:1.4vh 16px;border-bottom:1px solid var(--line)}
-.lk-title{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.lk-dot{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px var(--blue);flex:none}
-.lk-title h1{margin:0;font-size:clamp(14px,3.6vh,20px);letter-spacing:.02em;text-transform:uppercase;
-    font-family:"Oxanium","Arial Narrow","Roboto Condensed",Arial,sans-serif}
-.lk-period{color:var(--blue)}
-.lk-title p{margin:2px 0 0;font-size:clamp(10px,2.4vh,12px);color:var(--muted)}
-.lk-state{font-size:clamp(10px,2.4vh,12px);font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-    padding:.6vh 11px;border-radius:3px;border:1px solid var(--line-strong);color:var(--sky);background:rgba(133,133,133,0.1)}
-.lk-state.on{color:var(--ok);border-color:rgba(95,220,160,.5);background:rgba(95,220,160,.1)}
-.lk-close{width:clamp(30px,7vh,38px);height:clamp(30px,7vh,38px);border-radius:50%;flex:none;
-    background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:16px}
-.lk-close:active{background:rgba(255,107,114,.35)}
-
-.lk-body{flex:1;min-height:0;display:flex;gap:14px;padding:12px 16px 14px}
-.lk-preview{width:30%;min-width:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-    border-radius:4px;background:radial-gradient(circle at 50% 35%,rgba(133,133,133,0.22),rgba(255,255,255,.02) 70%);
-    border:1px solid var(--line);padding:8px}
-.lk-preview svg{height:100%;max-height:100%;width:auto;min-height:0;flex:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
-.lk-preview-note{margin:0;font-size:clamp(9px,2.3vh,11px);color:var(--muted);text-align:center}
-.lk-part{transition:opacity .15s}
-.lk-part.off{opacity:0}
-
-.lk-options{flex:1;min-width:0;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
-.lk-card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:4px;padding:1.4vh 14px}
-.lk-card h3{margin:0 0 8px;font-size:clamp(11px,2.7vh,13px);color:var(--sky);text-transform:uppercase;letter-spacing:.07em}
-
-.lk-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lk-seg-btn{padding:1.2vh 12px;border-radius:4px;font-weight:700;font-size:clamp(11px,2.8vh,13px);
-    background:rgba(255,255,255,.06);border:1px solid var(--line)}
-.lk-seg-btn.on{background:var(--royal);border-color:var(--blue);color:#fff}
-
-.lk-toggles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.lk-toggle{display:flex;flex-direction:column;align-items:center;gap:2px;padding:1.2vh 8px;border-radius:4px;
-    background:rgba(255,255,255,.05);border:1px solid var(--line);font-weight:700;font-size:clamp(11px,2.8vh,13px)}
-.lk-toggle small{font-weight:600;font-size:clamp(8px,2.1vh,10px);color:var(--muted)}
-.lk-toggle.on{background:rgba(133,133,133,0.2);border-color:var(--blue)}
-.lk-toggle.on small{color:var(--ok)}
-
-.lk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.lk-chip{padding:.7vh 10px;border-radius:3px;font-size:clamp(10px,2.6vh,12px);font-weight:700;
-    background:rgba(133,133,133,0.12);border:1px solid var(--line-strong)}
-.lk-chip:active{background:var(--royal)}
-
-.lk-actions{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin-top:auto}
-.lk-btn{padding:1.5vh 12px;border-radius:4px;font-weight:800;font-size:clamp(11px,2.9vh,14px);text-align:center;
-    background:rgba(255,255,255,.06);border:1px solid var(--line)}
-.lk-btn:active{background:rgba(133,133,133,0.3)}
-.lk-btn.primary{background:var(--royal);border-color:var(--blue);color:#fff}
-.lk-btn.locked{opacity:.4;pointer-events:none}
-
-.lk-toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:88%;padding:1vh 16px;border-radius:3px;
-    font-size:clamp(11px,2.8vh,13px);font-weight:700;background:rgba(0,0,0,0.599);border:1px solid var(--ok);color:var(--ok);
-    box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:5}
-.lk-toast.err{border-color:var(--danger);color:var(--danger)}
-
-/* ===== Thème Crestwood (même style que les panneaux faction / gouvernement / menu RP) ===== */
-:root{--royal:#8b8b8b;--blue:#8b8b8b;--sky:#bdbdbd;--text:#f4f5f8;--soft:#c9ccd6;--muted:#9a9eab;
-    --line:rgba(255,255,255,.07);--line-strong:rgba(255,255,255,.12);--ok:#3ad070;--danger:#ff5a6a}
-html,body{font-family:"Poppins","Montserrat","Segoe UI",Roboto,Arial,sans-serif}
-.lk{background:radial-gradient(ellipse at 50% 50%,rgba(6,8,14,.35),rgba(6,8,14,0.56))}
-.lk-panel{border:0;border-radius:4px;background:#33353e;box-shadow:0 0 0 clamp(6px,1.6vh,12px) rgba(255,255,255,.07),0 30px 80px rgba(0,0,0,.55)}
-.lk-head{border-bottom:0;background:#2a2c34}
-.lk-dot{box-shadow:0 0 0 4px rgba(139,139,139,0.2)}
-.lk-title h1{font-family:inherit;font-weight:800}
-.lk-state{border:0;background:rgba(139,139,139,0.2);color:#e7e7e7}
-.lk-state.on{background:rgba(58,208,112,.18);color:var(--ok)}
-.lk-close{border:0;background:rgba(255,255,255,.07)}
-.lk-preview{border:0;border-radius:4px;background:radial-gradient(circle at 50% 35%,rgba(139,139,139,0.25),rgba(42,44,52,0.58) 72%)}
-.lk-card{position:relative;border:0;border-radius:4px;background:linear-gradient(180deg,#4f515b,#474953);box-shadow:0 6px 16px rgba(0,0,0,.18);padding:1.4vh 14px 1.4vh 18px}
-.lk-card::before{content:"";position:absolute;left:0;top:16%;bottom:16%;width:3px;border-radius:0 3px 3px 0;background:var(--blue)}
-.lk-card h3{color:#fff}
-.lk-seg-btn,.lk-toggle{border:0;background:rgba(20,22,28,.3)}
-.lk-seg-btn.on{background:var(--blue);box-shadow:0 6px 16px rgba(139,139,139,0.35)}
-.lk-toggle.on{background:rgba(139,139,139,0.3);box-shadow:inset 0 0 0 1px rgba(139,139,139,0.7)}
-.lk-chip{border:0;background:rgba(20,22,28,.3)}
-.lk-chip:active{background:var(--blue)}
-.lk-btn{border:0;border-radius:4px;background:rgba(255,255,255,.07)}
-.lk-btn.primary{background:var(--blue);box-shadow:0 6px 16px rgba(139,139,139,0.35)}
-.lk-toast{border:0;border-radius:4px;background:rgba(22,60,38,0.62);color:#bff5d2}
-.lk-toast.err{background:rgba(70,20,26,0.62);color:#ffc9cf}
-
-/* [Crestwood] vestiaires des autres factions : tenue simple, pas d'equipement de police */
-body.lk-simple #lkToggles, body.lk-simple #lkPresets, body.lk-simple .lk-options .lk-card:nth-of-type(2),
-body.lk-simple #lkVest, body.lk-simple #lkBelt, body.lk-simple #lkHat { display: none !important; }
-
-/* [v24] armurerie */
-.lk-gear{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.lk-gear-btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.05);color:#fff;font:inherit;text-align:left;cursor:pointer}
-.lk-gear-btn b{font-size:12px;font-weight:700}
-.lk-gear-btn small{font-size:10px;color:rgba(255,255,255,.6)}
-.lk-gear-btn:active{background:rgba(59,130,255,.35);transform:scale(.97)}
-.lk-gear-note{margin:6px 0 0;font-size:10.5px;color:rgba(255,255,255,.6)}
+/* [Hallmark polish] focus visible, mouvement reduit */
+:where(button,a,input,select,textarea,summary,[role="button"],[tabindex]):focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}

@@ -1,0 +1,700 @@
+CRESTWOOD RP - V30  (19/11/2026)
+================================
+
+1) MARQUEURS 3D / MAIN D'INTERACTION : PLUS PETITS, SEULEMENT TOUT PRES
+   - Pastille bleue : visible a moins de 12 m (avant 60 m), nom du lieu a moins de 5 m (avant 32 m).
+   - Textes environ 2 fois plus petits (nom, distance, "Toucher pour interagir"), main plus petite
+     (la zone ou on peut toucher reste assez grande).
+   - Textes 3D "Approche-toi et touche la main" (vetements, station, location, velo) : 4 m (avant 12 m).
+     PNJ : 5 m, QG des emplois : 6 m.
+   Fichiers : app/src/main/cpp/samp/game/WorldMarkers.cpp + samp32 (identiques), include/Cw21|Cw25|Npc|JobPro.inc
+
+2) VETEMENTS : TOUT LE MONDE EN SOUS-VETEMENTS
+   - Remise a zero UNIQUE au 1er demarrage du serveur v30 : toutes les tenues sont effacees
+     (table clothes + ancien crestwood_clothes.db + tenues civiles du vestiaire).
+     Comptes, argent, voitures, factions et NIVEAUX ADMIN : rien n'est touche.
+     (marqueur "clothes_reset_v30" dans la table cw_meta : ca ne se refait pas aux redemarrages)
+   - Creation du personnage : le studio ne montre plus que VISAGE et CHEVEUX. Le serveur force
+     aussi les vetements de depart (meme avec un ancien APK) -> on apparait en sous-vetements.
+   - Pour s'habiller : aller dans un MAGASIN DE VETEMENTS (icone t-shirt). /vetements, le bouton
+     TENUE et le studio ne marchent plus ailleurs (sauf vestiaire de faction et staff niveau 4+).
+     Reglages : CLOTH_SHOP_RANGE (8 m), CLOTH_FREE_ADMIN_LVL (4) dans basicgm1.pwn.
+
+3) PLANTAGE EN ARRIVANT SUR UN MAPPING (TECNO POP 10 = KM4s, Android Go, 3-4 Go de RAM)
+   Android tuait le jeu par manque de memoire. Les gros telephones ne changent pas.
+   - Serveur, selon la RAM envoyee par l'appli (/cwdev) :
+       3 Go et moins : 430 objets, chargement 150 m, affichage 170 m
+       4 Go          : 560 objets, chargement 190 m, affichage 220 m
+       plus          : comme avant (800 objets, 260 m)
+     Les cases les plus proches se chargent d'abord : le mapping ou tu es s'affiche.
+   - Appli : memoire de streaming 300-384 Mo au lieu de 512 Mo sur ces telephones,
+     distance d'affichage du jeu 65 % (3 Go / Android Go) ou 80 % (4 Go) au lieu de 100 %.
+     (+ correction du calcul de la RAM en 32 bits, qui debordait a partir de 4 Go)
+   Si ca plante encore : relancer le jeu et envoyer crestwood_log.txt.
+
+4) MAPPING Banka.txt
+   Deja dans le gamemode : c'est la "Banque LS" (MapImp_BanqueLS, 295 objets identiques + les 2
+   batiments retires). Rien a ajouter.
+
+5) COMPILATION
+   Le gamemode ne compilait plus (RPX_COL_ME utilise par Vie.inc / Ville.inc avant d'etre defini) :
+   corrige. basicgm1.amx recompile (pawncc 3.10.10, 0 erreur, memes 8 warnings qu'avant).
+
+A FAIRE : mettre basicgm1.amx sur le serveur ET reconstruire l'APK (C++ 32/64 bits + Java).
+
+====================================================================
+V30 (2e partie) - PANNEAUX NOIR / BLANC + CRESTWOOD STORE
+====================================================================
+6) PANNEAUX HTML : FINI LE BLEU
+   - Bloc [v30] a la fin de assets/common/cw-signal.css (charge en dernier par les 24 panneaux) :
+     verre noir neutre, filets blancs, coins arrondis, titres italiques facon GTA, bouton principal
+     BLANC texte noir, selections en blanc. Plus de photo de ville en fond : le jeu se voit derriere.
+   - Restent en couleur : vert (argent / ok), rouge (danger), couleurs des gangs et des categories,
+     la carte d'identite. Une page qui doit garder ses couleurs : <html data-color>.
+   - Retouches : admin (accent), gouvernement (logo), vestiaire, peche / maison / service (icone).
+
+7) CRESTWOOD STORE (ta boutique, refaite et branchee au serveur)
+   - Page : assets/store/ (index.html, store.css, store.js, img/). Roue du HUD > "Crestwood Store"
+     ou /store. L'ancien bouton "Boutique" de la roue s'appelle maintenant "Superette 24/7".
+   - CrestCoins : packs Wave (memes prix). Le joueur paie, colle la reference -> le staff verifie :
+       /ccwave            paiements en attente      /ccvalider n   /ccrefuser n
+   - Livre tout seul : argent (CC -> $), vehicules (au choix dans la categorie, dans le garage),
+     permis poids lourds / navire / port d'arme ($), kits dans le sac.
+   - Services faits par le staff (CC payes tout de suite) : nom, plaque, numero, avertissement.
+       /ccservices        a faire                   /commandefaite n   /rembourser n
+   - /donnercc id nombre (staff niveau 8, negatif = retirer).
+   - Squid Game : affiche "Bientot" (les skins ne sont pas dans le jeu, donc pas vendables).
+   - Retires (aucun systeme derriere dans le gamemode) : VIP, skins SA, slots, boosts, tuning,
+     accessoires (ils sont deja dans les magasins de vetements), permis voiture (deja donne a tous)
+     et licence pilote (n'existe pas). Panier retire : achat direct.
+   - Serveur : include/Store.inc, base scriptfiles/crestwood_store.db. Java : SAMP.java (pont SampStore,
+     dialogues 9960-9962, lien Wave ouvert dans l'appli Wave / le navigateur).
+
+A FAIRE : basicgm1.amx (deja recompile, 0 erreur) sur le serveur + reconstruire l'APK.
+
+====================================================================
+V30 (3e partie) - COULEURS RP, PANNEAUX 3D -80 %, MAPPINGS MTA (ECLIPSE)
+====================================================================
+8) PANNEAUX HTML : CHAQUE PAGE A SA COULEUR (fini le tout noir)
+   - Bloc [v30b] a la fin de common/cw-signal.css. Chaque page a <html data-rp="nom"> :
+     banque orange, superette verte, emploi jaune, police bleu/rouge, gouvernement emeraude,
+     immobilier turquoise, gangs rouge, peche ocean, station orange, admin violet, tablette RP
+     indigo/cyan, animations rose, enceinte neon... (changer une couleur : --a1 / --a2 dans ce bloc).
+   - Animations : arrivee du panneau, cartes en cascade, reflet sur le bouton principal,
+     halo de couleur qui bouge derriere, reaction au toucher. Le jeu reste visible derriere.
+   - Crestwood Store : de nouveau en couleurs (bleu / violet / rose, raretes colorees, pieces animees).
+
+9) PANNEAUX 3D (marqueurs + main) : -80 %
+   - Pastilles et main 5 fois plus petites, cercles au sol aussi. Le texte est au minimum lisible
+     (a -80 % il ne se lit plus du tout). Textes 3D du serveur plus petits (taille / 2 -> * 0.22).
+
+10) MAPPINGS DU GAMEMODE MTA "ECLIPSE" AVEC LEURS MODELES DANS L'APPLI
+   - assets/cwmodels/ : 39 modeles 3D (dff + textures + collisions) + models.txt. Au lancement l'appli
+     les copie dans <data>/SAMP/cwmodels/ (une seule fois par version), puis le jeu les charge a la place
+     des modeles d'origine, par numero, comme engineReplaceModel de MTA (ModLoader.cpp, ApplyCwModels).
+     Journal : lignes "[cwmodels]" dans le log du jeu.
+   - Inclus : Fleeca, Binco, Mairie, Hopital (All Saints), Mecano, Igs, Glen Park, SubUrban, Ammu,
+     Basket, Plage + Tequilala, Mason 1 et 2, Weed (tabac + labo), parc Watts, poteaux, dos-d'ane,
+     parking, + Mecano MTA et Concession SF (DATA_MAPPINGS, plus besoin de modifier la data).
+   - 23 fichiers .map ajoutes dans scriptfiles/mappings (liste.txt) : LSN (+ interieur), depot routier,
+     labo weed, gym, basket, Binco, mairie, station Idlewood, Mecano 2, parking Albert, Police 2,
+     poteaux, SubUrban, tabac, hopital SF, parc Watts, dos-d'ane...
+   - Mappings du gamemode RETIRES car le MTA les remplace : Mairie (City Hall), Station-service
+     (parking Albert a la place : deplacer les pompes avec /points), Banque Atlas (Binco MTA),
+     Mini-banque (Fleeca MTA). Leurs "RemoveBuilding" sont neutralises aussi.
+   - PAS inclus :
+       * Police (EC-Police), Casino, Concessionnaire : modeles CHIFFRES (pcrypt) -> il faut les fichiers
+         d'origine non chiffres de l'auteur. Le mapping casino n'est donc pas ajoute (le Mecanicien LS reste).
+       * Crims (krp_crimbase 1-3) : modeles encodes (.bin). Elcoronaow : modeles crees a la volee
+         (engineRequestModel), pas de numero fixe -> a faire plus tard.
+   - A TESTER EN JEU (pas de telephone ici) : si un batiment est invisible / blanc / sans collision,
+     envoyer le log (lignes [cwmodels]). Uniquement en 64 bits (le ModLoader n'existe pas dans samp32).
+   - APK plus lourd d'environ 40 a 60 Mo.
+
+11) GAMEMODE MTA : SYSTEMES
+   Bank / EC-Bank : NON (demande d'Anzo). Amendes PD, garage auto, bodycam et animations perso : voir
+   la 5e partie (15 a 18). Le reste (factions, telephone, permis, payday...) : systeme par systeme.
+
+====================================================================
+V30 (4e partie) - STREAMING, NOUVEAU COMPTEUR, EMPLACEMENTS MTA
+====================================================================
+12) OBJETS TRANSPARENTS QUI CLIGNOTENT / DISPARAISSENT
+   - Cause : en v30 le profil "petit telephone" etait trop serre (430 objets, 150 m, 300 Mo) :
+     au plafond, le serveur detruisait / recreait sans arret les objets de la case voisine
+     (objet recree = il reapparait en fondu transparent), et le jeu jetait ses modeles faute de memoire.
+   - Serveur : une case deja chargee garde sa place (bonus 60 m + marge de 1/8 au-dessus du plafond)
+     -> plus d'echange en boucle. Profils : 3 Go = 620 objets / 200 m, 4 Go = 720 / 230 m.
+   - Appli : memoire des modeles 320-448 Mo (au lieu de 200-384), distance d'affichage 80 % / 90 %.
+
+13) COMPTEUR DE VITESSE (hud/speedo-cw/index.html) - refait en v30c, sobre
+   - Remplace l'ancien a la meme place (hud/index.html), fond transparent, bloc compact en bas.
+   - Chiffre blanc + KM/H, fine barre de vitesse (rouge au-dela de 180), petites barres essence / moteur,
+     ceinture, 5 traits de couleur (vie, faim, soif, energie, gilet). L'ancien reste dans hud/original-speedometer.
+
+14) NOS SYSTEMES AUX EMPLACEMENTS DU MTA (ajoutes une seule fois, deplacables avec /points)
+   - Superettes 24/7 : Idlewood (station Igs), Glen Park, Tabac Ganton, bar de la plage.
+   - 2 pompes a essence a la station Idlewood (mapping Igs).
+   - Magasin de vetements : dans le Binco MTA (574,-1507).
+   - Mairie : meme endroit (1481,-1745), batiment MTA (modele 3980) dans l'appli.
+
+====================================================================
+V30 (5e partie) - SYSTEMES DU MTA AVEC LEURS PAGES (v30c)
+====================================================================
+Serveur : include/Pages.inc (+ include/MtaAnims.inc). Pages : assets/ticket, assets/repair, assets/bodycam
+(style commun : assets/common/cw-page.css + cw-page.js). Protocole : dialogues 9970 / 9971 / 9972,
+titre "@page <nom>", JSON ; l'appli renvoie /pageact <nom> <action> [args].
+IMPORTANT : le Crestwood Store et ces pages manquaient dans la version 64 bits de l'appli
+(com.gta.game.SAMP) : c'est corrige, les deux versions (64 et 32 bits) les ont maintenant.
+
+15) AMENDES POLICE (EC-PDTicket)
+   - /ticket (ou /pv) : police, FBI, armee. Joueurs a moins de 7 m + 17 motifs avec leur prix
+     (circulation 500 a 10 000 $, armes / gang / drogue 4 500 a 10 000 $). 3 minutes entre deux amendes.
+   - Le joueur paie tout de suite en liquide (l'agent touche 50 %, TK_OFFICER_PCT) ; sans assez de
+     liquide l'amende est enregistree (table c23_fines, comme le MDT).
+   - /amendes : la page des amendes a payer (payer une / tout payer). /amendestexte = l'ancienne liste.
+
+16) GARAGE AUTO (autorepair du MTA) - Idlewood 2063.9, -1831.5
+   - On entre au volant -> la page s'ouvre. 2 500 $, 24 secondes, vehicule bloque, anneau de progression.
+   - Refuse si un mecanicien (faction) est connecte (REP_BLOCK_IF_MECH 1, mets 0 pour toujours autoriser).
+   - /reparation : rouvre la page sur place, sinon marque le garage sur la carte.
+
+17) BODYCAM (EC-Bodycam) - bureau au commissariat 2059.8, -1887.2 (main "Bodycam") ou /bodycam
+   - Chaque agent allume / eteint sa camera (/bodycam on | off ou l'interrupteur de la page).
+   - Les deux plus hauts grades de la faction (et le staff niveau 4+) voient les agents et "Regardent"
+     une camera allumee (vue de l'agent, suit son vehicule). /bodycam stop -> retour a sa position.
+   - La vue s'arrete seule si l'agent eteint sa camera ou se deconnecte.
+
+18) ANIMATIONS DU MTA (EC-Anim) dans la mini page des animations du HUD
+   - 151 animations (categories Discuter, Assis, Danse, Fumer, Bisous, Combat, Casino, Blesse, Sport,
+     Divers...) : /animq m1 ... m151.
+   - 37 animations perso (fichiers .ifp du MTA : danses, poses assises, salto...) regroupees dans
+     assets/cwmodels/snm.ifp, qui remplace le bloc "SNM" du jeu (64 bits, via le ModLoader).
+   - Le client ignore maintenant une animation introuvable au lieu de planter (aussi en 32 bits, ou
+     les animations perso ne se jouent simplement pas).
+   - A verifier sur telephone : dans le log, "[modloader] snm.ifp -> modele ..." doit apparaitre.
+
+
+====================================================================
+V31 - COMMANDES INCONNUES, CORPS DU PERSONNAGE, COMPTEUR, UBER, INSTAGRAM, CLAVIER
+====================================================================
+19) "COMMANDE INCONNUE"
+   - Boutons de l'appli qui envoyaient des commandes absentes du serveur : moteur (/motor), talkie
+     (/radioact), roue "SIM" (/sim), anciens ecrans du HUD (/hudaction), panneau admin "entree"
+     (/setentree). Tous geres maintenant (include/Compat.inc).
+   - Une commande vraiment inconnue affiche un message en francais et est notee dans
+     scriptfiles/commandes_inconnues.log (date, joueur, commande) : envoie-moi ce fichier si un
+     bouton dit encore "commande inconnue".
+   - Panneau admin, onglet Monde : nouvelle carte "Locations de scooter" (cree un point
+     "Location de vehicules" a ta position + bouton vers le panneau des points).
+
+20) PERSONNAGE QUI APPARAIT AVEC UN VRAI SKIN GTA
+   - Le corps Crestwood (skin 7 homme / 12 femme, en sous-vetements) n'etait installe que pour TON
+     personnage, au moment ou tes vetements s'appliquaient. Les autres joueurs (et toi si
+     l'application ratait) restaient en skin GTA d'origine (personnage habille).
+   - Maintenant les deux corps sont installes des que le jeu les charge (64 et 32 bits).
+
+21) COMPTEUR : L'ANCIEN, EN PLUS BEAU
+   - hud/speedo-cw = exactement le compteur d'origine (meme disposition, meme taille), avec :
+     anneau de vitesse blanc -> bleu avec une lueur douce, graduations, chiffres Montserrat,
+     jauge essence orange, jauge moteur verte / orange / rouge selon l'etat, ceinture verte ou
+     rouge clignotante, cases d'etat arrondies. Fond transparent.
+
+22) TELEPHONE
+   - Uber : vraie carte de San Andreas centree sur toi, la voiture du chauffeur qui a pris ta course,
+     toucher la carte = destination (GPS du jeu).
+   - Instagram : les photos de l'appli Camera se publient pour toute la ville (fil, j'aime,
+     commentaires, profil, notifications). Il faut lancer le petit service
+     server/instagram/ig-server.js (voir server/instagram/LISEZMOI.txt) et ouvrir le port 7790.
+
+23) CLAVIER : le vrai clavier du telephone (Android) remplace le clavier HTML pour le chat et les
+    champs du MDT / craft. (Pour remettre l'ancien : localStorage cwKbHtml = 1.)
+24) Ecriture Montserrat (style des nouvelles pages) dans tous les panneaux et le HUD.
+25) /aide : /amendes, /reparation, /anim, /store, /sim, /instagram (General) ; /ticket et /bodycam (Police).
+26) Optimisation : le compteur n'est redessine que si une valeur change.
+
+====================================================================
+V32 - STABILITE (crashs), CORPS SOUTH, STREAMING D'ORIGINE, UBER CHAUFFEUR
+====================================================================
+27) ERREUR DE COMPILATION 32 BITS : samp32/game/playerped.cpp utilisait Log() au lieu de FLog() -> corrige.
+28) STREAMING D'ORIGINE REMIS
+   - Client (samp + samp32 Streaming.cpp) : budget d'origine (RAM / 4, 512 Mo max). Seul le calcul est
+     fait en 64 bits pour ne pas deborder sur un telephone 32 bits de 4 Go.
+   - Distance d'affichage d'origine pour tous (plus de reduction selon la RAM).
+   - Serveur : le streamer d'objets d'origine (Ms_*) est remis tel quel (plus de profils par RAM).
+     Seule la capacite totale reste a 12 500 objets.
+29) MAPPINGS MTA QUI FAISAIENT PLANTER
+   - Les modeles personnalises du MTA (assets/cwmodels : 41 modeles, dont des BATIMENTS de la ville
+     remplaces) sont SUPPRIMES de l'appli : c'est ce qui plantait en arrivant sur ces mappings.
+   - Mappings MTA qui n'existaient que grace a ces modeles retires de liste.txt : binco, dos d'ane,
+     labo weed, mairie MTA, parking Albert, poteaux, station Idlewood (x2).
+     Objets personnalises retires de : basket, hopital SF, interieur LSN, mecano 2, tabac.
+   - Nos mappings d'origine reviennent : Mairie (City Hall), Station-service, Mini-banque,
+     Banque Atlas / Mecano MTA / Concession SF (avec la data, /mapdata on) comme avant la v30.
+30) ANIMATIONS PERSO QUI FAISAIENT PLANTER : plus de fichier snm.ifp. Les animations du MTA restent
+    dans le menu (144) mais toutes avec les animations du jeu (danses DANCING, poses BEACH...).
+    Le salto, les pompes, "velo" et "sport" (qui n'existaient que dans les fichiers perso) sont retires.
+31) CORPS SOUTH (plus jamais le skin GTA d'origine)
+   - Le corps homme/femme est maintenant TOUJOURS pris dans l'APK (avant, un ancien pack
+     /storage/emulated/0/data/clothes/south passait en priorite et pouvait faire echouer le chargement).
+     Copie dans le cache refaite a chaque mise a jour de l'appli (cache "crestwood-clothes-v2").
+   - Les modeles 7 et 12 sont demandes des le demarrage du jeu et le corps South est installe des
+     qu'ils sont charges ; en cas d'echec, nouvel essai toutes les 3 s (avant : abandon apres 5).
+   - Textures des vetements : APK d'abord, pack DATA seulement si une texture manque.
+32) TOUT EN 32 BITS AUSSI : ModLoader (dossier SAMP/modloader) porte en 32 bits (samp32/game/ModLoader.cpp).
+33) UBER CHAUFFEUR (include/Uber.inc, phone/apps-v32.js, hud/uber-meter.js)
+   - Appli Uber : onglets Passager / Chauffeur.
+   - Chauffeur : au volant de SA voiture (garage) ou n'importe quel vehicule pour la faction taxi,
+     "En ligne". La course est proposee au chauffeur en ligne LE PLUS PROCHE (20 s pour accepter,
+     sinon au suivant). Solde Uber (80 % du prix), nombre de courses, bouton "Retirer en liquide".
+   - Taximetre dans le HUD (chauffeur et client) des que le client monte : prise en charge + prix au km
+     (UberX 150 $ + 500 $/km, Comfort 300 + 750, Black 600 + 1 200, Moto 100 + 380).
+   - Le client suit la voiture sur la carte de l'appli ; le chauffeur voit le client puis la destination
+     (GPS du jeu). Fin : "Terminer la course" ou le client descend ; paiement en liquide.
+   - Commandes : /uber, /uber en ligne | hors ligne | accepter | refuser | terminer | retirer (aussi dans /aide).
+34) CORRECTIF COMPILATION 32 BITS : playerped.cpp de samp32 utilisait Log(...) (classe en 32 bits) -> FLog(...).
+35) BODYCAM (include/Pages.inc)
+   - Camera allumee par defaut pour les agents (on l'eteint avec le bouton du panneau).
+   - Le spectateur est recadre sur l'agent 3 fois (0 s, 0,3 s, 1,2 s) : le client mobile ratait souvent
+     le premier PlayerSpectatePlayer juste apres TogglePlayerSpectating.
+   - Le streamer d'objets (Ms_Tick) charge le decor autour de l'AGENT regarde et non plus autour de la
+     position cachee du chef (avant : decor vide / camera dans le vide quand l'agent etait loin).
+36) APPAREIL PHOTO DU TELEPHONE (hud/hud.js, SAMP.java x2) - la camera reste DANS le telephone (v35)
+   - Photo plus grande (960 px), 3 essais de capture si le telephone renvoie une erreur, message clair
+     avec le code d'erreur. On reste dans l'appareil apres la photo (vignette + "Photo enregistree").
+   - Bug corrige : une photo du telephone pouvait remplacer la photo de la carte d'identite.
+37) TELEPHONE iPHONE 17 PRO : cadre aluminium bleu intense, bords d'ecran fins, Dynamic Island plus
+    petite, bouton Action + volume a gauche, alimentation + Commande appareil photo a droite,
+    ecran verrouille iOS 26 (date au-dessus, grande heure).
+38) UBER REFAIT (phone/apps-v34.js) : carte plein ecran + feuille du bas comme la vraie appli.
+   - Passager : "Ou allez-vous ?" -> touche la carte -> trace de l'itineraire, prix CALCULES avec les
+     tarifs du serveur et la distance (plus de prix inventes ni de faux raccourcis Maison/Travail).
+     Recherche (onde bleue), chauffeur en route (nom, voiture, plaque), taximetre, recu de fin.
+   - Chauffeur ("Conduire") : solde en haut, gros bouton GO, course proposee avec compte a rebours
+     circulaire (Accepter / Refuser), course en cours avec taximetre et "Terminer la course".
+39) BOUTIQUE : APERCU 3D DU VEHICULE (store/store.js, store.css, include/Store.inc)
+   - En achetant un vehicule, la case de gauche montre le vehicule RENDU PAR LE JEU (textdraw
+     "model preview" du serveur placee sous une case transparente) : un vehicule modde (modloader,
+     data) s'affiche donc tel qu'il est en jeu. Boutons tourner (45 deg) et couleur.
+   - Commandes internes : /storeact pv <modele> <x> <y> <l> <h> <rot> <couleur> (pour-mille de
+     l'ecran) et /storeact pvoff. Le panneau autour devient transparent pendant l'apercu.
+40) v35 - CAMERA : LES BOUTONS MARCHENT. Cause trouvee : le calque du HUD (.hud-root) ne recoit aucun
+    toucher (pointer-events:none) et la camera du telephone n'avait jamais ete remise en "auto" ->
+    aucun bouton ne reagissait. Corrige dans hud/hud-v35.css. La camera est remise dans le telephone
+    (la version plein ecran de la v34 est retiree).
+41) v35 - FLECHE POUR RANGER LE TELEPHONE : plus petite (24 px) et plus discrete.
+42) v35 - BOUTONS NATIFS DE SAN ANDREAS RESTYLES (pas de HTML) : cercle de verre + icone blanche,
+    comme la capture envoyee. Textures dans assets/models/buttons/v_*.png, posees sur les vrais
+    boutons du jeu (Widgets/WidgetGta.cpp, 32 et 64 bits) : gauche / droite, accelerer, freiner,
+    frein a main, klaxon, nitro, entrer (voiture) / descendre (portiere), camera.
+43) v35 - BOUTON MOTEUR NATIF (game/EngineButton.cpp, 32 et 64 bits) : meme style, visible au volant,
+    au-dessus du bouton frein. Appui = /moteur. Symbole vert quand le moteur tourne.
+    Appui long (0,6 s) puis glisser = le deplacer (position gardee). Le bouton moteur HTML est retire.
+44) v35 - TENUE DE DEPART SOUTH (homme) : sans vetement choisi, le perso garde la tenue d'origine du
+    modele South (t-shirt blanc, pantalon noir, baskets) au lieu des sous-vetements. Chaque vetement
+    choisi dans le studio remplace la piece d'origine de sa zone (haut / bas / chaussures).
+45) v35 - MOTEURS MTA SAN ANDREAS MOBILE (libGTASA.so, libMobileSA.so...) : NON AJOUTES.
+    Leur libGTASA.so est une version recompilee differente de la notre (adresses toutes differentes :
+    tous les crochets du client SA-MP seraient faux -> plantage) et libMobileSA.so est le client MTA
+    (protocole MTA, pas SA-MP) : il ne peut pas se connecter a notre serveur.
+46) v36 - SORTIE DU HTML, ETAPE 1a : HUD NATIF (vraies vues Android, layout XML)
+   - Plan valide avec Anzo : tout l'affichage passe en natif, page par page, puis la WebView est
+     retiree de l'appli. Ordre : 1) HUD  2) telephone  3) boutique/garage/banque/inventaire
+     4) panneaux de faction  5) le reste + suppression de la WebView.
+   - Fait dans cette version :
+     * compteur de vitesse NATIF (com/crestwood/ui/SpeedoView.java) : meme disposition que l'ancien
+       (arc de vitesse, carburant a gauche, etat du vehicule a droite, ceinture, 5 tuiles vie / faim /
+       soif / energie / gilet). L'ancien compteur etait une page HTML entiere dans un iframe : supprime.
+     * panneau d'infos NATIF en haut a droite (InfoPanelView.java) : lieu (ville d'apres la position),
+       heure, CrestCoins, numero de compte, argent, etoiles de recherche.
+     * res/layout/cw_native_hud.xml + icones vectorielles res/drawable/cw_ic_*.xml.
+     * NativeHud.java : recoit les valeurs du jeu SANS JSON ni JavaScript (avant : ~10 appels
+       evaluateJavascript par seconde pour le compteur), meme classe pour 32 et 64 bits.
+   - Le HUD HTML ne dessine plus ces parties (classe cw-native-hud, hud/hud-v35.css).
+   - Reste de l'etape 1 (prochaines versions) : minimap + jauges autour, notifications, chat,
+     boutons du HUD (radio, interaction, verrou, animations, micro), menu rapide.
+47) v37 - ETAPE 1b : MINIMAP NATIVE (com/crestwood/ui/MinimapView.java)
+   - Copie exacte de la minimap HTML : carte ronde qui tourne avec la camera (memes tuiles
+     hud/radar/tiles), icones du serveur (hud/radar/blips), fleche du joueur, repere N, zoom auto en
+     vehicule, distance restante, et les 5 jauges en arc autour (vie, gilet, soif, faim, energie) avec
+     leurs icones et le clignotement quand c'est critique.
+   - GPS : le calcul d'itineraire (A* sur les routes du jeu) est porte en Java (CrestGps.java), graphe
+     hud/gps/roads.bin (meme donnees que roads.js). Verifie : memes trajets, memes longueurs que la
+     version JavaScript, 1 a 5 ms par calcul. Les chevrons 3D au sol marchent comme avant.
+   - Toucher la minimap = grande carte. L'option "masquer la minimap" de la roue marche toujours.
+   - Reste de l'etape 1 : notifications, chat, boutons du HUD, menu rapide.
+48) v38
+   - BOUTONS NATIFS EN 64 BITS : le reglage "boutons Crestwood" etait coupe par defaut dans la version
+     64 bits (SAMP.java : cw_buttons = 0) -> les nouveaux boutons ne sortaient qu'en 32 bits. Mis a 1,
+     et l'ancien reglage enregistre est remis a OUI une fois (cle cw_btn_v38).
+   - BOUTON MOTEUR : n'apparait que moteur COUPE (pas sur les velos). Un appui demarre, le bouton
+     disparait.
+   - ROUE DU VEHICULE : appui LONG de 5 s sur le vehicule (a pied OU assis dedans), avec un anneau de
+     progression sous le doigt. Dans le vehicule : Couper le moteur / Demarrer, Condamner / Ouvrir les
+     portes, Phares, Ceinture, Ejecter <prenom> (une entree par passager, au volant seulement), Plaque.
+     A pied : comme avant (moteur a distance, verrou, coffre, capot, portes, monter...).
+     Serveur : Ui_OpenVehicle3D accepte l'interieur, actions belt et eject_a/b/c (basicgm1.pwn).
+   - PHOTOS (telephone) : vraie galerie (phone/apps-v38.js) : relue a chaque ouverture, plus de fausses
+     photos internet, photo en plein ecran (glisser = suivante), Supprimer, Publier sur Instagram.
+   - CORPS SOUTH : le chargement du corps ecrit maintenant dans crestwood_log.txt (lignes
+     "[natif] [clothes] ..." : corps pret / ECHEC + raison) pour trouver pourquoi le skin GTA apparait.
+49) v39 - OPTIMISATION (FPS bas, saccades, chauffe)
+   - Petit telephone (4 Go de RAM ou moins / Android Go, ex. TECNO KM4) : ecran a 60 Hz au lieu de
+     120 Hz et limite du jeu a 60 FPS par defaut (le joueur peut toujours changer la limite dans les
+     parametres). A 120 Hz l'ecran, le HUD et la chauffe coutaient cher pour 20-30 FPS de jeu.
+   - HUD : avec la minimap et le compteur natifs, la page HTML ne recoit plus la position, la camera
+     ni la vitesse -> plus AUCUN appel JavaScript pendant la conduite (avant : jusqu'a 10 par seconde).
+     La grande carte (panneau ouvert) recoit toujours la position.
+50) v40 - VETEMENTS / CORPS SOUTH : LES 3 VRAIES CAUSES (trouvees dans le logcat d'Anzo)
+   a) "no texture dictionary for model 7" a CHAQUE essai : CTxdStore::ms_pTxdPool du client n'etait
+      jamais rempli (variable vide). Le loader lit maintenant le vrai pool du jeu (symbole
+      _ZN9CTxdStore11ms_pTxdPoolE dans libGame / libGTASA) -> le dictionnaire du skin 7 est trouve.
+   b) "no anim hierarchy on DFF" : le squelette etait cherche sur l'atome (vide tant que le modele n'est
+      pas installe). Il est maintenant cherche sur les frames du DFF (vraie fonction du jeu).
+   c) crash CPed::PlayFootSteps (adresse 0x44) juste apres un echec : les persos etaient recrees sans
+      leurs os. Maintenant le DFF est verifie AVANT de toucher aux persos, et ils sont recrees avec
+      CPed::SetModelIndex (objet + animations + os).
+   Fichiers : samp*/gui/SouthModelLoader.cpp, samp*/game/RW/RwHelper.cpp (32 et 64 bits).
+51) v41 - FACTIONS RP COMPLETES (server/basicgm/include/Frp.inc)
+   a) Au demarrage, les factions qui manquent sont CREEES automatiquement (une seule fois) :
+      Police (CPD), Sheriff (CCSO), EMS, Pompiers (CFD), FBI, Garde nationale (armee), Gouvernement,
+      Justice (DOJ), Crestwood News, Mecaniciens (CAS), Taxi (CAB) - avec grades, salaires, skins, couleurs.
+      La Police existante est gardee (on complete seulement salaires / sigle / skins).
+      Supprimee par le staff = pas recreee. /factionsdefaut (staff) recree celles qui manquent.
+      Elles apparaissent dans le panneau admin > Factions (Actualiser). Vestiaires : a placer par le staff.
+   b) 2 nouveaux types : "fire" (pompiers) et "justice" (/createfaction fire|justice <nom>).
+   c) POMPIERS : incendies aleatoires (18 lieux de Los Santos + /feupoint du staff), le feu se propage,
+      brule, victimes a secourir (/secourir, pompiers + EMS). Extincteur (vestiaire) ou lance du Firetruck.
+      Prime selon le travail. Vehicule qui explose = feu de vehicule. Telephone : 18 = pompiers, 112 = mecano.
+   d) JUSTICE : casier automatique (prison, amendes, verdicts, mandats), mandats d'arret/perquisition
+      (avis de recherche auto a la connexion), /proces + /verdict, /caution + /payercaution, avocats
+      (honoraires, -25 % de prison si present au verdict), /effacercasier.
+   e) FBI : /traceur sur vehicule + /suivre (GPS live), /ecoute <numero> (SMS + appels). /inspectervehicule.
+   f) ARMEE : /zonemilitaire (intrusion = 3 etoiles), /etatdurgence (salaires x2 services d'urgence).
+   g) /aide > "Urgences, justice & FBI" : commandes selon ta faction. Roue : casier, proces, traceur.
+   h) Bug corrige : les appels 15 (SAMU) / 18 du telephone n'arrivaient a personne (seule la police recevait).
+52) v42 - STUDIO DE CREATION + INTERACTIONS (server/basicgm/include/Cw41.inc, PlayerTap.cpp 32/64)
+   a) 1re connexion : le joueur est mis seul (monde prive) devant un MUR au hasard (10 styles : brique,
+      metal, beton, tole, bois, marbre, studio blanc...), en plein jour, bloque sur place. Il ne regle
+      que son corps (visage, cheveux, sourcils, barbe, maquillage, teint) : pas de tatouages ni d'habits.
+      Il porte deja 2 vetements de depart (haut + bas, homme / femme) qu'il garde apres ENREGISTRER.
+      Retour automatique en ville. /personnage rouvre l'editeur si besoin.
+   b) Menu d'interaction joueur : boutons plus grands, jusqu'a 24 actions (2 ou 3 colonnes).
+      Nouvelles actions directes : observer, demander ses papiers, bisou, danser ensemble, bras de fer,
+      des (100 $) - l'autre accepte en touchant celui qui propose (ou /accepterdemande) ;
+      faire les poches, braquer (arme en main) ; EMS : reanimer, soigner 500 $ ;
+      police : menotter/demenotter, escorter, fouiller (sans ouvrir de page).
+   c) Roue du vehicule : remettre sur roues (vehicule retourne), crocheter (crime, alarme),
+      reparer (mecanicien, le proprietaire accepte et paie 800 $). Libelles plus lisibles + icones.
+53) v43 - MOINS DE SLASH, PANNEAU DE FACTION, TEXTES 3D PLUS GRANDS
+   a) Commandes TAPEES dans le chat : le client les envoie en "/tc /commande". Joueurs : seulement /aide
+      (+ /help, /commandes). Staff (admin 1+) : tout. /slashjoueurs on|off (staff) pour rouvrir a tous.
+      Les menus, pages, boutons et la roue ne sont PAS touches (ils n'envoient pas /tc).
+   b) /aide : toucher une ligne LANCE la commande (bouton "Lancer"). Les lignes avec <...> demandent
+      un joueur : passer par le toucher du joueur ou la tablette.
+   c) Tablette RP > "Ma faction" ouvre le PANNEAU DE FACTION (page existante, serveur ecrit) :
+      tableau de bord (membres, en ligne, coffre, evenements, activite), membres (promouvoir,
+      retrograder, renvoyer, meme hors ligne), recruter un joueur proche (Inviter), calendrier,
+      coffre (deposer / retirer pour les gradés), et "Actions de service" selon la faction :
+      MDT, renfort, mandats, traceurs, ecoutes, zone militaire, blesses, incendies, secourir,
+      tresor, etat d'urgence, vestiaire, quitter la faction.
+   d) Station-service (Idlewood/Unity) : le batiment d'origine 4012 restait sous sa copie retexturee
+      (piliers rouges qui clignotent) -> RemoveBuildingForPlayer ajoute.
+   e) Textes 3D (vestiaires, points...) presque 2x plus grands ; marqueurs : rond au sol, pastille,
+      noms et main bleue plus grands et visibles de plus loin (22 m).
+54) v44 - NOUVEAUX SYSTEMES AVEC PAGES (server/basicgm/include/Cw44.inc, assets/casino, bourse, event)
+   a) CASINO : machine a sous, roulette (couleur, pair/impair, numero x36), blackjack (tirer, rester,
+      doubler). Mises 100 a 50 000 $ en liquide. Point par defaut : Alhambra (Idlewood) ; le staff en
+      ajoute avec /casinoadd [nom] et en retire avec /casinodel. Marqueur "de" + main bleue.
+   b) BOURSE : 8 entreprises, cours toutes les 5 min, actualites (hausse / chute), achat/vente avec
+      la banque (frais 1 %), portefeuille sauvegarde, courbes. Tablette RP > Bourse.
+   c) EVENEMENTS : le staff cree depuis la page (Rassemblement / Derby / Survie + recompense), les
+      joueurs s'inscrivent 2 min, depart auto. Derby et Survie : monde prive sur l'aeroport de LS,
+      dernier en jeu gagne (gain sur la banque). Tablette RP > Evenements.
+   d) METIERS : 9 metiers au lieu de 5 (+ Agent de proprete, Routier, Convoyeur de fonds, Facteur).
+      Leur siege est PROVISOIRE : le staff le place avec le panneau /points (comme les autres).
+   e) Tablette RP : nouvelles tuiles Metiers, Bourse, Casino, Evenements. /aide : nouvelles lignes.
+
+
+==========================================================================================
+55) v45 (21/11/2026) - ECRAN DE CONNEXION EN JEU, NOTIFS, PAGES BLANCHES, WHATSAPP STATUTS
+==========================================================================================
+   a) CONNEXION : pendant la page "jouer", ton perso (corps South, jamais un skin GTA) est debout
+      en jeu sur une petite terrasse au coucher du soleil, avec une voiture de sport derriere,
+      dans un monde prive (7000+id). Il bouge un peu (idle). Tout est detruit au spawn.
+      Le skin de classe est 7 (AddPlayerClass). Les boutons natifs << SPAWN >> sont caches.
+      Fichier : include/Cw45.inc.
+   b) NOTIFICATIONS serveur : petite carte blanche en haut au centre, pastille de couleur,
+      texte fonce lisible meme au coucher du soleil (hud/hud-v45.css).
+   c) PAGES : nouveau theme "verre blanc" degrade + police Muller (CwGame). Plus de bleu.
+      (common/cw-page.css, common/cw-font.css, login/v45.css, cw-welcome.js)
+   d) WHATSAPP :
+      - les contacts ajoutes restent (le ? demande un nom -> sauvegarde serveur, liste WhatsApp) ;
+      - le fond d'ecran ne change plus tout seul (le tap sur l'ecran verrouille le faisait tourner) ;
+      - STATUTS 24 h : photo prise en jeu (Camera -> Photos) ou texte en couleur, + legende.
+        Lecteur plein ecran 5 s / statut. Les videos ne sont pas prises en charge.
+        Partage avec la ville via le service Instagram (routes /status, /statuses).
+   e) CAMERA : le selfie prend maintenant le MILIEU de l'ecran.
+   f) TikTok : les videos locales passent en premier (plus d'ecran noir si internet coupe).
+   g) INSTAGRAM / STATUTS "hors ligne" = le service Node n'est pas lance sur la machine :
+        cd server/instagram && IG_SECRET=<meme secret que Insta.inc> IG_PORT=7790 node ig-server.js
+      (pm2 conseille) et ouvrir le port 7790 TCP dans le pare-feu.
+
+
+==========================================================================================
+56) v46 (21/11/2026) - MON GROUPE, IDENTIFIANT DU JOUR, TUTORIEL PAR APPEL, BOUTIQUE DE VETEMENTS
+==========================================================================================
+   a) TABLETTE RP > MON GROUPE (/groupe) : la page change selon ce que tu es.
+      - Gangster : points de la saison, place au classement, coffre du gang (deposer / retirer pour
+        Lieutenant et Chef), gains (revenus du territoire toutes les 30 min si des membres sont en ville,
+        +3 points et +250 $ par rival elimine), eliminations, morts, classement des membres, journal.
+      - Police / FBI : arrestations, amendes, montant des amendes. EMS : reanimations. Pompiers :
+        incendies eteints. Justice : verdicts. Armee / tueurs : eliminations. Tous : salaires, temps de jeu.
+      - Onglet Moi : tes stats, ton identifiant du jour, rejouer le tutoriel.
+      Base : crestwood_v46.db (tables gs, gbank, glog, dtag, tuto). include/Cw46.inc.
+   b) PLUS DE NOMS AU-DESSUS DES TETES : chaque joueur a un numero "(4821)" tire au hasard par le
+      serveur, nouveau chaque jour. (client : playertags.cpp 32/64 + JNI setPlayerTags, dialogue 9518)
+      Staff : /qui 4821 (qui est-ce ?), /nomsstaff (voir les pseudos, toi seul).
+      -> il faut REBUILD l'APK (code natif) pour voir les numeros.
+   c) TUTORIEL : au 1er spawn le telephone SONNE (nouvelle sonnerie hud/assets/ringtone.mp3).
+      Maya (mairie) guide : ecran, kit, banque, papiers, metier, vetements, garage, telephone,
+      tablette, regles. GPS a chaque etape, "Passer" possible, 1 500 $ a la fin (1re fois).
+      Rejouer : /tutoriel (dans /aide) ou tablette RP > Tutoriel. Staff : /tutoreset <id>.
+      La sonnerie sert aussi pour les vrais appels du telephone.
+   d) BOUTIQUE DE VETEMENTS : chaque piece est montree comme un vrai vetement (silhouette t-shirt,
+      sweat, jean, basket, sac... remplie avec son motif, sur un cintre), filtres par type et
+      "Luxe", grand apercu de la piece choisie, style boutique (ivoire / dore).
+   e) PAGES : chaque page a sa teinte (amendes rose, bourse menthe, evenements orange, groupe =
+      couleur de ton gang / service), casino et bodycam en sombre.
+   f) PANEL ADMIN > Commandes : toutes les commandes staff ajoutees depuis la v41 (casino, justice,
+      etat d'urgence, zone militaire, incendies, boutique CrestCoins, Instagram, v46...).
+
+
+==========================================================================================
+57) v47 (23/11/2026) - PAGES PROTEGEES, MAPPINGS MTA DEPUIS L'APK, HUD JEU, STYLE PERSO PAR PAGE
+==========================================================================================
+   a) PAGES PROTEGEES : a la compilation, les .html .js .css .json de nos dossiers d'assets sont
+      CHIFFRES dans l'APK (AES). Quelqu'un qui ouvre l'APK ne voit que du bruit. L'appli les dechiffre
+      a la volee pour les WebViews (com.crestwood.ui.CwAssets, branche dans les 5 WebViews).
+      Couper (pour deboguer) : gradle.properties -> crestwood.protectPages=false
+      Le journal de compilation affiche : "[crestwood] pages protegees : N fichier(s) chiffre(s)".
+   b) MAPPINGS MTA AVEC LEURS MODELES : assets/mta/<id>/model.dff + model.txd + model.col
+      (31 modeles des ressources ECLIPSE non chiffrees : Fleeca, Binco, Mairie, Ammu, Glen Park,
+      SubUrban, Igs, Mason 1 et 2, Weed + labo, Hopital, Mecano, plage, Tequilala, parc Watts,
+      parking, poteaux). Le jeu les charge tout seul, comme engineReplaceModel de MTA :
+        - seulement quand le joueur s'approche (rien au demarrage), un modele a la fois ;
+        - GARDE ANTI-PLANTAGE : si le jeu plante dans les 20 s apres un modele, ce modele est coupe
+          au lancement suivant (4 plantages = tous coupes, le jeu reste jouable) ;
+        - budget memoire : 110 Mo (64 bits) / 48 Mo (32 bits).
+      Journal : lignes "[mta]" dans crestwood_log.txt. Remis dans liste.txt : binco, labo weed,
+      parking Albert, poteaux, station Idlewood (x2) ; tabac, basket, hopital SF, mecano 2 complets.
+      AJOUTER d'autres ressources MTA : python3 tools/mta/mta_vers_apk.py <dossier MTA> --out
+      app/src/main/assets/mta (Pillow requis). Les ressources chiffrees sont ignorees.
+      APK plus lourd (~90 Mo de modeles avant compression).
+   c) HUD : plus rien en haut a droite. Argent facon jeu ($ vert, gros chiffres, +500 / -500 qui
+      montent), CrestCoins / heure / lieu et etoiles de recherche EN HAUT A GAUCHE a cote de la carte.
+      Boutons ronds brillants (chaque bouton sa couleur), notifications sombres de jeu.
+   d) CHAQUE PAGE SON STYLE : amendes = carnet de PV (papier, tampon) ; garage = atelier (tole,
+      bandes de chantier, LCD) ; bodycam = ecran camera (REC, coins de visee) ; casino = tapis vert
+      et neon ; bourse = terminal (bandeau defilant) ; evenements = arene neon ; Mon groupe = la rue
+      (gang) / dossier officiel (faction) / carte joueur (moi) ; connexion = coucher de soleil ;
+      bienvenue = billet d'arrivee. Polices : common/cw-fonts-v47.css.
+   e) INTERACTIONS DE FACTION (menu au toucher) : police = alcootest, casier, verbaliser, saisir
+      les armes, mettre dans le vehicule ; EMS = bilan, antidouleur, charger dans l'ambulance ;
+      gang = ligoter (mains en l'air), racket 300 $ au coffre, recruter ; presse = interview ;
+      justice / gouv = convocation ; mecano = diagnostic, plein ; tous = pousser un vehicule.
+
+   f) [v47b] HUD D'AVANT REMIS (demande d'Anzo) : panneau en haut a droite (lieu, heure, coins, argent),
+      boutons et notifications d'origine, MEMES couleurs. En plus seulement des ANIMATIONS : l'argent
+      defile vers la nouvelle valeur avec un petit pop, le lieu apparait en fondu, les etoiles
+      respirent, les boutons apparaissent en cascade et rebondissent au toucher, les notifs arrivent
+      avec un rebond et un reflet (hud/hud-v47.css, InfoPanelView.java).
+
+   g) [v49] PAGES D'ORIGINE REMISES (demande d'Anzo : ne plus modifier les HTML deja faits) :
+      amendes, garage, bodycam, casino, bourse, evenements, bienvenue, cw-page.css et la page de
+      CONNEXION reviennent exactement comme en v44. (La scene du perso en jeu tourne toujours derriere,
+      mais la page de connexion d'origine la recouvre.) Gardes : boutique de vetements (v46, demandee),
+      Mon groupe et le tutoriel (nouveaux), telephone / admin / tablette (fonctions).
+      OPTI : plus aucun flou d'arriere-plan dans les pages (lag mobile), etoiles natives redessinees
+      moins souvent, animations coupees sur ce qui est cache, identifiants du jour envoyes en un seul
+      paquet toutes les 2 s au lieu de N x N dialogues quand tout le monde se reconnecte.
+
+58) v50 (24/11/2026) - CONNEXION GOOGLE (FIREBASE) + NOUVELLE PAGE DE CONNEXION
+   a) PAGE DE CONNEXION REFAITE (demande d'Anzo) : illustration nette a gauche (scenes cw19-b / cw19-c
+      en fondu lent), grand titre, panneau plein et sobre a droite. Couleurs a plat : plus de lueur,
+      plus de degrade, plus de verre. Bouton "Continuer avec Google" (blanc, logo G officiel) en
+      premier, puis le mot de passe. Inscription : code promo -> "S'inscrire avec Google" ou mot de
+      passe. Les notifs (boite d'aide) passent en haut a gauche comme en jeu.
+      Fichiers : login/index.html, login/login.css (remplace style.css + v21.css), login/app.js.
+   b) PARCOURS GOOGLE :
+        appli : Google (Credential Manager) -> Firebase Auth -> ID token Firebase
+              -> POST http://<ip serveur>:7790/gauth/verify  (service Node, meme port qu'Instagram)
+              -> ticket de 20 caracteres a usage unique (2 min) -> /authact google <ticket> [PROMO]
+        gamemode : POST local /gauth/redeem -> uid Google + e-mail -> table google_links
+      - compte Google deja lie a CE pseudo : connexion directe, plus de mot de passe ;
+      - nouveau pseudo : compte cree avec Google (+ code promo), puis l'ecran "Ton personnage" ;
+      - pseudo qui a deja un mot de passe : on le tape UNE fois, ensuite Google suffit ;
+      - compte Google lie a un autre pseudo / pseudo lie a un autre Google : refuse.
+      Staff : /gunlink <pseudo> (niveau 4) retire la liaison (aussi dans le panel admin).
+   c) A FAIRE UNE FOIS DANS LA CONSOLE FIREBASE (projet gta-2-11) :
+      1. Authentication > Sign-in method > Google > Activer (adresse e-mail d'assistance) > Enregistrer.
+      2. Parametres du projet > Vos applications > Ajouter une appli Android :
+           package  com.crestwood.rp     (l'actuelle est com.gta.game : ce n'est PAS le package de l'APK)
+           SHA-1    FF:62:E8:37:A6:AF:89:C3:89:1C:CE:14:8D:5A:CB:4F:5C:00:43:92
+           SHA-256  F0:2D:60:AB:22:9E:C0:C3:BD:B1:53:CE:8A:A7:15:67:DF:F2:83:E1:5A:59:1F:30:2E:F5:C3:71:4C:86:D3:F4
+      3. Telecharger le NOUVEAU google-services.json et remplacer app/google-services.json.
+         (Gradle en tire tout seul google_app_id, la cle API et le client Web : pas de plugin.)
+      Sans les etapes 1 a 3, le bouton Google affiche "pas encore configuree" et le mot de passe marche.
+   d) SIGNATURE FIXE : app/crestwood-debug.jks (mot de passe crestwood50, alias crestwood) signe les
+      APK debug et release. Avant, GitHub Actions signait avec une cle differente a chaque build : Google
+      aurait refuse. Les joueurs doivent DESINSTALLER une fois l'ancienne APK (signature differente).
+   e) SERVEUR : relancer server/instagram/ig-server.js (il charge gauth.js). La machine doit pouvoir
+      joindre https://www.googleapis.com (certificats publics de Firebase). Port 7790 ouvert (deja le cas
+      pour Instagram). IG_SECRET identique dans Insta.inc et au lancement du service.
+      Autre projet Firebase : GAUTH_PROJECT=<project_id> au lancement.
+
+59) v51 (24/11/2026) - GOOGLE UNIQUEMENT, SALON, POINT D'APPARITION, CINEMATIQUE, ANTI-LAG
+   a) ECRAN JOUER (launcher, assets/play/) : plus de pseudo a taper. "Se connecter avec Google" une
+      fois par telephone, puis l'adresse masquee (an••••@gmail.com) + JOUER. "Changer" = autre compte.
+   b) EN JEU (assets/login/, page transparente sur le jeu) :
+      - connexion automatique avec le compte Google du telephone (plus AUCUN mot de passe) ;
+      - compte connu : le joueur prend le nom de SON personnage (SetPlayerName) et arrive au SALON :
+        son personnage debout dans la scene, nom en grand, ne le / origine / liquide / banque,
+        bouton ENTRER EN VILLE ;
+      - ENTRER EN VILLE -> choix du point d'apparition, camera EN DIRECT sur chaque lieu :
+        Mairie de Los Santos, Gare Unity Station, Aeroport, Plage de Santa Maria, Grove Street,
+        Hopital All Saints + "La ou tu t'es arrete" (derniere position dehors, table spawn_last).
+      - NOUVEAU compte Google : CINEMATIQUE (5 plans de nuit sur Los Santos, bandes noires, textes,
+        bouton Passer) puis creation du personnage : prenom, nom, genre (le corps change en direct),
+        naissance, origine, code promo. Le nom devient le nom de jeu.
+      - ANCIEN joueur (compte a mot de passe) : "J'ai deja un personnage" -> pseudo + ancien mot de
+        passe UNE seule fois -> relie a Google. Si le nom memorise du telephone a un ancien compte,
+        la page le propose directement ("Deja joue avec X ? Le recuperer").
+      Le nom du personnage est memorise par le launcher pour la connexion suivante.
+      /authact login, register, code, recover : refuses ("La connexion se fait avec Google").
+   c) IMPORTANT : sans les reglages Firebase (partie 58 c) ET sans le service Node lance
+      (ig-server.js + gauth.js), PERSONNE ne peut se connecter. A faire AVANT de mettre ce gamemode.
+   d) ANTI-LAG (32 et 64 bits) :
+      - vetements par joueur (BrlTextureShader) : chaque joueur dessine faisait, a chaque image,
+        des centaines de copies de chaines + une recherche sur 1000 joueurs. Cles pre-calculees,
+        texture gardee, cache ped -> joueur : plus aucune allocation au rendu ;
+      - rendu des objets (mappings) : la recherche de l'objet SA-MP parcourait 1000 cases pour CHAQUE
+        objet dessine, a chaque image -> cache verifie en O(1) (CObjectPool::FindObjectFromGtaPtrFast) ;
+      - squelette / tete des joueurs lointains (> 90 m, sans objet attache) plus recalcules a chaque image.
+
+60) v52 (24/11/2026) - NOUVEAU PROJET FIREBASE : crestwoodrp-3e53d
+   Console : https://console.firebase.google.com/project/crestwoodrp-3e53d/overview
+   a) Dans ce projet :
+      1. Authentication > Commencer > Sign-in method > Google > Activer > e-mail d'assistance > Enregistrer.
+      2. Parametres du projet (roue dentee) > Vos applications > icone Android :
+           nom du package   com.crestwood.rp
+           SHA-1            FF:62:E8:37:A6:AF:89:C3:89:1C:CE:14:8D:5A:CB:4F:5C:00:43:92
+         puis dans la fiche de l'appli : Ajouter une empreinte > SHA-256
+           F0:2D:60:AB:22:9E:C0:C3:BD:B1:53:CE:8A:A7:15:67:DF:F2:83:E1:5A:59:1F:30:2E:F5:C3:71:4C:86:D3:F4
+      3. Telecharger google-services.json (APRES l'etape 1, sinon il manque le client Web)
+         et remplacer app/google-services.json. Rien d'autre a changer dans le code.
+   b) Serveur : gauth.js accepte maintenant crestwoodrp-3e53d ET l'ancien gta-2-11 (le temps que tout le
+      monde ait la nouvelle APK). Plus tard : GAUTH_PROJECT=crestwoodrp-3e53d au lancement.
+      Test : http://<ip>:7790/gauth/ping -> "projects":["crestwoodrp-3e53d","gta-2-11"]
+   c) Le build previent ("[crestwood] google-services.json = projet ...") tant que le fichier n'est pas
+      celui de crestwoodrp-3e53d ou qu'il n'a pas de client Web.
+
+61) v54 (24/11/2026) - PACKAGE DE L'APK = com.crestwoodroleplay
+   L'appli Android du projet Firebase crestwoodrp-3e53d s'appelle com.crestwoodroleplay : l'APK prend ce nom
+   (applicationId ; le namespace Java reste com.gta.game). C'est une NOUVELLE appli pour Android : l'ancienne
+   "com.crestwood.rp" peut etre desinstallee, et les donnees du jeu se retelechargent une fois.
+   Journaux : Android/data/com.crestwoodroleplay/files/crestwood_log.txt
+   app/google-services.json = celui de crestwoodrp-3e53d. Il manque encore le client OAuth :
+     - Authentication > Sign-in method > Google > Activer ;
+     - appli com.crestwoodroleplay > Ajouter une empreinte : SHA-1 puis SHA-256 (voir partie 58) ;
+     - retelecharger google-services.json et le remettre dans app/.
+   CwGoogleAuth lit les ressources Firebase dans le paquet de ressources (com.gta.game), plus par getPackageName().
+
+62) v55 (24/11/2026) - FIREBASE PRET
+   app/google-services.json final : projet crestwoodrp-3e53d, appli com.crestwoodroleplay, SHA-1 de
+   app/crestwood-debug.jks, client Web 172881514820-hnhanp26ap2b0d3rflssoobqirmjcota.apps.googleusercontent.com.
+   Fournisseur Google active dans Authentication. Reste : build GitHub Actions + relancer ig-server.js.
+
+63) v56 (24/11/2026) - VESTIAIRE COMPACT, TENUES EMS (SAMU), TABLETTE JOB ALLEGEE
+   a) VESTIAIRE (assets/locker) : petit menu a gauche facon GTA V, le jeu reste visible (le personnage se
+      change en direct). Police : Modele / Ceinture / Gilet / Casquette / Enfiler la tenue / Tenue civile.
+      Autres factions : la liste des tenues de la faction (Tenue 1, Tenue 2...) + Tenue civile.
+      Armurerie en dessous. Plus d'apercu dessine ni de grosses cartes.
+   b) TENUES EMS : les tenues SAMU (pack DATA_MAPPINGS/EMS_SAMU47, skins 250 et 275) sont maintenant DANS
+      l'APK (assets/skins/250, assets/skins/275) : le code natif remplace les modeles 250 / 275 du jeu
+      (meme methode que le corps South). Plus besoin de toucher a la data.
+      Faction de type medecin : vestiaire -> "Tenue SAMU 1" (250) ou "Tenue SAMU 2" (275).
+      Parcours : panel admin > creer la faction (type medecin) > poser le vestiaire > inviter le joueur
+      (/faction invite <joueur>, ou le panel de faction) > il va au vestiaire > icone main > choisit sa tenue.
+      Serveur : table g_LkOutfit (jusqu'a 3 tenues par type de faction) dans basicgm1.pwn.
+      A TESTER sur telephone : ce sont des modeles PC (2 Mo chacun).
+   c) TABLETTE JOB (NativeJobTablet, natif 32/64) : plus de fausse tablette (cadre, camera, horloge).
+      Petit menu a gauche : onglets EMPLOIS / MON TRAVAIL / QUETES, une ligne par emploi (distance a droite),
+      la ligne touchee affiche son detail et ses boutons (GPS, SIGNER, COMMENCER...). Toucher a cote = fermer.
+   d) Il n'y a PAS de vetements de gang ni de faction dans le catalogue de la boutique (1223 pieces civiles).
+      Les tenues de faction passent par le vestiaire.
+
+64) v57 (24/11/2026) - TABLETTE JOB : retour a la version d'avant (v55) a la demande d'Anzo.
+    NativeJobTablet.java restaure tel quel. Le vestiaire compact et les tenues SAMU (v56) restent.
+
+65) v58 (24/11/2026) - TABLETTE JOB : la MEME tablette (v55), juste plus propre
+    Rien de nouveau dans le fonctionnement ni la disposition. Seulement :
+    - un peu plus compacte (80 % de l'ecran, max 760 x 470 dp au lieu de 90 %, 860 x 520) ;
+    - fond derriere plus leger (le jeu se voit mieux) ;
+    - coins arrondis (tablette, ecran, onglets, cartes, badges, barre de progression, message) ;
+    - onglets : seul l'onglet actif est colore, les autres juste entoures ;
+    - vignettes et boutons un peu plus petits ; le message du serveur en bulle, plus colle au bord.
+
+66) v59 (25/11/2026) - ECRAN NOIR APRES LA CONNEXION
+    Cause : la cinematique d'arrivee et l'apercu des points d'apparition utilisent InterpolateCamera.
+    Le client 32 bits (samp32) ne gerait PAS ce message -> la camera restait sur la terrasse au-dessus
+    de la mer, la nuit -> ecran noir. Avec le nouveau projet Firebase, tout le monde repasse par la
+    cinematique (nouveau compte Google), donc tout le monde le voyait.
+    - samp32 : ScrInterpolateCamera (RPC 82) + CCamera::InterpolateCameraPos/LookAt, comme en 64 bits.
+    - Cw50.inc : avant chaque mouvement de camera, une camera FIXE au point de depart
+      (SetPlayerCameraPos/LookAt) : meme un vieux client montre la ville, jamais la mer noire.
+    - Cw50.inc : Sp_SafeCam, 1,5 s apres "Apparaitre ici" : monde 0, page fermee, camera derriere le joueur.
+    - SouthModelLoader (32/64) : plus de chargement force des tenues SAMU 250/275 a 25 s (pouvait bloquer
+      le jeu pendant la connexion). Elles sont remplacees quand le jeu charge le modele.
+    Si ca reste noir : dire a quel moment (apres Google / pendant le film / apres ENTRER EN VILLE /
+    apres APPARAITRE ICI) et envoyer Android/data/com.crestwoodroleplay/files/crestwood_log.txt
+
+67) v60 (25/11/2026) - PAGE "CWX1" + CHARABIA SUR FOND NOIR
+    Ce que montre la capture : une page HTML encore CHIFFREE (protection v47, en-tete CWX1) affichee
+    telle quelle : la WebView l'a chargee sans passer par le dechiffrement (CwAssets.intercept).
+    - CwAssets.checkPage(view, url), appele dans onPageFinished de TOUTES les WebView (lanceur, ecran
+      de chargement, HUD/pages 32 et 64 bits, dialogues) : si la page visible commence par CWX1, elle
+      est reconstruite en clair (CSS et JS dechiffres et integres, polices/images en chemins absolus)
+      et rechargee avec loadDataWithBaseURL. Le joueur voit le charabia une fraction de seconde au pire.
+    - intercept : chemins tolerants (file:///android_asset//...) ; chaque echec est ecrit dans
+      crestwood_log.txt ("[pages] ...") pour trouver la vraie cause.
+    Secours total si besoin : compiler avec -Pcrestwood.protectPages=false (pages en clair dans l'APK).
+
+68) v61 (25/11/2026) - LANCEUR : la page de chargement s'affichait chiffree au demarrage de l'appli
+    Le lanceur (page de chargement + page JOUER) et l'ecran de chargement du jeu ne passent plus par
+    le dechiffrement a la volee : CwAssets.load(view, url) construit la page deja en clair (CSS/JS
+    integres) et la charge avec loadDataWithBaseURL. Les images, polices et la musique restent lues
+    normalement (adresse de base = la page). Le filet checkPage (v60) reste actif partout ailleurs.
+
+69) v62 (25/11/2026) - HALLMARK (skill de design) : polish des pages principales
+    Profondeur "polish" : le look reste le meme (couleurs, polices, disposition), on enleve les tics
+    "fait par une IA" et on corrige l'accessibilite. Pages : play (lanceur), loading, login (connexion,
+    film, creation, salon, choix du spawn), locker (vestiaire). Verif : tools/hallmark/scripts/sloplint.mjs
+    --scope app -> 0 FAIL sur les 4 pages.
+    - plus de sur-titres au-dessus des titres ("Bienvenue a Los Santos", "Nouveau citoyen", "Citoyen de
+      Crestwood", "Entrer en ville"...) ; libelles en minuscules sans espacement de lettres ;
+    - plus de tirets "—" dans le texte (champs vides : "…", "Non indique" ; dates : JJ / Mois / AAAA) ;
+    - pastille verte + point median retires de "En ligne  Roleplay francophone" ;
+    - toutes les couleurs et polices passent par des variables :root (valeurs d'origine) ;
+    - anneau de focus, version "mouvement reduit", barres de progression animees en transform/clip-path
+      (plus en width/left), etats desactives lisibles, overflow clip ;
+    - chargement : la pastille d'etape est maintenant a droite du titre ; bouton bleu plus fonce (contraste).
+    Aucun id, bouton ni lien supprime. Les autres pages (36) ne sont pas encore passees.
+
+70) v63 (25/11/2026) - BLOQUE SUR L'ECRAN DE CONNEXION (logo + radio, pas de panneau) en 64 bits
+    Cause : dans le jeu aussi, la page de connexion arrivait chiffree. Le filet v60 la reconstruisait,
+    MAIS le message du serveur (@auth, "ouvre l'ecran Google") avait deja ete envoye a la page chiffree
+    et etait perdu -> page vide, joueur bloque.
+    - Toutes les pages du jeu (HUD, panneaux, connexion, dialogues) se chargent maintenant deja
+      dechiffrees (CwAssets.load : HTML + CSS/JS integres, loadDataWithBaseURL). Plus de page chiffree.
+    - Le message @auth n'est consomme que si la page l'a bien recu (DXAuth present) ; sinon il est
+      garde et renvoye au chargement suivant.

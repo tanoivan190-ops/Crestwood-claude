@@ -25,8 +25,8 @@
     { n: "Mécanicien de Los Santos" }, { n: "Centre de rééducation (Palomino Creek)" }, { n: "Base de Verdant Meadows" },
     { n: "Mairie de Los Santos" }, { n: "Armurerie", entry: 1 }, { n: "Studio Crestwood News", entry: 2 }, { n: "Bunker de la base", entry: 3 }
   ];
-  const FAC_TYPES = ["police", "medic", "news", "government", "hitman", "federal", "mechanic", "terrorist", "army", "cardealer", "burger", "taxi"];
-  const FAC_TYPE_FR = ["Police", "Médecins", "Journalistes", "Gouvernement", "Tueurs à gages", "Fédéraux", "Mécaniciens", "Terroristes", "Armée", "Concessionnaire", "Burger", "Taxi"];
+  const FAC_TYPES = ["police", "medic", "news", "government", "hitman", "federal", "mechanic", "terrorist", "army", "cardealer", "burger", "taxi", "fire", "justice"];
+  const FAC_TYPE_FR = ["Police", "Médecins", "Journalistes", "Gouvernement", "Tueurs à gages", "Fédéraux", "Mécaniciens", "Terroristes", "Armée", "Concessionnaire", "Burger", "Taxi", "Pompiers", "Justice"];
   function facOf(id) { return state.fac.find((f) => f.id === Number(id)) || null; }
   function facName(id) { const f = facOf(id); return f ? f.n : (Number(id) ? "Faction " + id : "Civil"); }
   function facLabel(p) {
@@ -769,6 +769,20 @@ function renderFactions() {
       c.appendChild(list);
     }));
 
+    // [v31] locations de scooter / vehicules (points "Location" du panneau /points, Faggio...)
+    box.appendChild(serverCard("Locations de scooter", 4, (c) => {
+      c.appendChild(el("p", "adm-hint", "Place-toi à pied à l'endroit voulu : un point « Location de véhicules » (scooter Faggio…) est créé ici. Liste, déplacement et suppression : panneau des points."));
+      const row = el("div", "adm-choices");
+      const add = el("button", "adm-btn primary", "Créer une location de scooter ici");
+      add.type = "button";
+      add.addEventListener("click", () => send("cmd", 0, "/mapact ptnew 4 0 Location de scooter"));
+      const pts = el("button", "adm-btn", "Panneau des points");
+      pts.type = "button";
+      pts.addEventListener("click", () => send("cmd", 0, "/points"));
+      row.appendChild(add); row.appendChild(pts);
+      c.appendChild(row);
+    }));
+
     // [v21] magasins de vetements : places par le staff, le studio de style s'ouvre avec la main
     box.appendChild(serverCard("Magasins de vêtements", 4, (c) => {
       c.appendChild(el("p", "adm-hint", "Place-toi à pied à l'endroit voulu : le magasin apparaît avec un t-shirt 3D, un texte et une icône sur la carte. Les joueurs s'habillent avec la main « Vêtements »."));
@@ -891,6 +905,10 @@ function renderFactions() {
     { cat: "Factions", c: "/setfaction", lvl: 4, d: "Mettre un joueur dans une faction (0 = civil) avec un grade.", p: [P.who, { ph: "ID faction", num: true, w: 100 }, { ph: "Grade", num: true, w: 80, opt: true }] },
     { cat: "Factions", c: "/editfaction", lvl: 4, d: "Modifier une faction : nom, sigle, type, couleur, grades, skins, salaires, chef.", p: [{ ph: "ID faction", num: true, w: 100 }, { sel: FEDIT_SEL }, { ph: "Valeur", w: 200 }] },
     { cat: "Factions", c: "/createfaction", lvl: 6, d: "Créer une faction.", p: [{ sel: FTYPE_SEL }, { ph: "Nom de la faction", w: 220 }] },
+    { cat: "Factions", c: "/factionsdefaut", lvl: 4, d: "Recréer les factions par défaut manquantes (Police, Sheriff, EMS, Pompiers, FBI, Armée, Gouvernement, Justice, News, Mécanos, Taxi)." },
+    { cat: "Factions", c: "/incendie", lvl: 4, d: "Déclencher un incendie à ta position (taille 1 à 3).", p: [{ ph: "Taille 1-3", num: true, w: 100, opt: true }] },
+    { cat: "Factions", c: "/stopincendies", lvl: 4, d: "Éteindre tous les incendies en cours." },
+    { cat: "Factions", c: "/feupoint", lvl: 4, d: "Ajouter un point d'incendie aléatoire à ta position.", p: [{ ph: "Nom du lieu", w: 220 }] },
     { cat: "Factions", c: "/removefaction", lvl: 6, d: "Supprimer une faction (ses membres redeviennent civils).", p: [{ ph: "ID faction", num: true, w: 100 }], danger: true },
     { cat: "Gangs", c: "/setgang", lvl: 4, d: "Mettre un joueur dans un gang avec un grade.", p: [P.who, { sel: GANG_SEL }, { sel: GRANK_SEL }] },
     { cat: "Immobilier", c: "/creermaison", lvl: 6, d: "Créer une maison à vendre, porte à ta position.", p: [{ sel: HOUSE_SEL }, { ph: "Prix ($)", num: true, w: 130 }] },
@@ -933,7 +951,35 @@ function renderFactions() {
     { cat: "PNJ", c: "/pnj tp", lvl: 4, d: "Se téléporter à un PNJ.", p: [{ ph: "ID PNJ", num: true, w: 90 }] },
     { cat: "PNJ", c: "/pnj suppr", lvl: 4, d: "Supprimer un PNJ.", p: [{ ph: "ID PNJ", num: true, w: 90 }], danger: true },
     { cat: "Location de vélo", c: "/rendrevelo", lvl: 0, d: "Rendre le vélo loué (près d'un point de location)." },
-    { cat: "Police & prison", c: "/mdt", lvl: 0, d: "Ouvrir le MDT (forces de l'ordre)." }
+    { cat: "Police & prison", c: "/mdt", lvl: 0, d: "Ouvrir le MDT (forces de l'ordre)." },
+    // [v46] toutes les commandes staff ajoutees depuis (v41 a v46)
+    { cat: "Joueurs (v46)", c: "/qui", lvl: 1, d: "Qui se cache derrière un identifiant du jour, ex. (4821) ?", p: [{ ph: "Identifiant (4 chiffres)", num: true, w: 150 }] },
+    { cat: "Joueurs (v46)", c: "/nomsstaff", lvl: 1, d: "Voir les pseudos au lieu des identifiants du jour au-dessus des têtes (toi seul). Retape pour revenir." },
+    { cat: "Joueurs (v46)", c: "/tutoreset", lvl: 2, d: "Relancer le tutoriel d'un joueur (son téléphone sonne : Maya de la mairie).", p: [P.id] },
+    { cat: "Joueurs (v46)", c: "/slashjoueurs", lvl: 4, d: "Commandes tapées pour les joueurs : off = seulement /aide (recommandé), on = toutes.", p: [{ sel: [["off", "off · seulement /aide"], ["on", "on · toutes les commandes"]] }] },
+    { cat: "Gangs", c: "/gangcoffre", lvl: 6, d: "Ajouter (ou retirer avec -) de l'argent au coffre d'un gang.", p: [{ sel: GANG_SEL.slice(1) }, P.amount] },
+    { cat: "Factions", c: "/etatdurgence", lvl: 4, d: "État d'urgence : salaires des services d'urgence x2 et annonce à tous.", p: [{ sel: [["on", "Déclarer"], ["off", "Lever"]] }] },
+    { cat: "Factions", c: "/zonemilitaire", lvl: 4, d: "Zone militaire (armée) : activer / couper.", p: [{ sel: [["on", "Activer"], ["off", "Couper"]] }] },
+    { cat: "Factions", c: "/feupoints", lvl: 4, d: "Liste des points d'incendie aléatoires." },
+    { cat: "Factions", c: "/feupointdel", lvl: 4, d: "Supprimer un point d'incendie.", p: [{ ph: "ID point", num: true, w: 90 }], danger: true },
+    { cat: "Factions", c: "/incendies", lvl: 0, d: "Incendies en cours (GPS vers le plus proche)." },
+    { cat: "Justice", c: "/effacercasier", lvl: 4, d: "Effacer le casier judiciaire d'un joueur.", p: [P.who], danger: true },
+    { cat: "Justice", c: "/annulermandat", lvl: 4, d: "Annuler un mandat (numéro dans /mandats).", p: [P.n] },
+    { cat: "Justice", c: "/mandats", lvl: 0, d: "Mandats d'arrêt actifs." },
+    { cat: "Casino & loisirs", c: "/casinoadd", lvl: 4, d: "Créer un point de casino à ta position.", p: [{ ph: "Nom (option)", w: 180, opt: true }] },
+    { cat: "Casino & loisirs", c: "/casinodel", lvl: 4, d: "Supprimer le point de casino sur lequel tu te trouves.", danger: true },
+    { cat: "Casino & loisirs", c: "/evenements", lvl: 0, d: "Page des événements (staff : créer, lancer, arrêter un derby / une survie)." },
+    { cat: "Casino & loisirs", c: "/bourse", lvl: 0, d: "Page de la bourse de Crestwood." },
+    { cat: "Boutique (CrestCoins)", c: "/ccwave", lvl: 6, d: "Paiements Wave en attente." },
+    { cat: "Boutique (CrestCoins)", c: "/ccservices", lvl: 6, d: "Commandes de services en attente." },
+    { cat: "Boutique (CrestCoins)", c: "/ccvalider", lvl: 6, d: "Valider une commande.", p: [P.n] },
+    { cat: "Boutique (CrestCoins)", c: "/ccrefuser", lvl: 6, d: "Refuser une commande.", p: [P.n], danger: true },
+    { cat: "Boutique (CrestCoins)", c: "/commandefaite", lvl: 6, d: "Marquer une commande comme livrée.", p: [P.n] },
+    { cat: "Boutique (CrestCoins)", c: "/rembourser", lvl: 6, d: "Rembourser une commande.", p: [P.n], danger: true },
+    { cat: "Boutique (CrestCoins)", c: "/donnercc", lvl: 8, d: "Donner (ou retirer avec -) des CrestCoins.", p: [P.id, P.amount] },
+    { cat: "Comptes (v50)", c: "/gunlink", lvl: 4, d: "Retirer la liaison Google d'un compte (le joueur pourra lier un autre compte Google ou revenir au mot de passe).", p: [{ ph: "Pseudo (Prénom_Nom)", w: 170 }], danger: true },
+    { cat: "Réseaux sociaux", c: "/igdel", lvl: 3, d: "Supprimer une publication Instagram.", p: [P.n], danger: true },
+    { cat: "Mappings", c: "/mappings", lvl: 4, d: "Panneau des mappings, portails et points." }
   ];
   function renderCmds() {
     const box = $("admCmds");

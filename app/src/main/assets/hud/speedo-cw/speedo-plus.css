@@ -1,0 +1,59 @@
+/* [v31] Compteur d'origine, meme disposition, rendu plus soigne (degrades, lueur douce, graduations,
+   chiffres Montserrat, voyants qui changent de couleur). Fond transparent. */
+@font-face { font-family: "MontCw"; src: url("../../common/montserrat_black.ttf"); font-weight: 900; }
+@font-face { font-family: "MontCw"; src: url("../../common/montserrat_bold.ttf"); font-weight: 700; }
+html, body { background: transparent !important; }
+
+/* anneaux : piste plus fine et translucide, barres avec une lueur douce */
+#speedometer .speedometer-container .speedometer-box .tachometer,
+#speedometer .speedometer-container .speedometer-box .fuel,
+#speedometer .speedometer-container .speedometer-box .engine { stroke: rgba(8, 12, 20, .46); stroke-width: 11; }
+#speedometer .speedometer-container .speedometer-box .tachometerBar { stroke-width: 11; filter: drop-shadow(0 0 5px rgba(110, 210, 255, .55)); transition: stroke-dashoffset .16s linear; }
+#speedometer .speedometer-container .speedometer-box .fuelBar { stroke-width: 10; filter: drop-shadow(0 0 4px rgba(255, 190, 70, .55)); transition: stroke-dashoffset .5s ease; }
+#speedometer .speedometer-container .speedometer-box .engineBar { stroke-width: 10; filter: drop-shadow(0 0 4px var(--eng-glow, rgba(60, 230, 140, .5))); transition: stroke-dashoffset .5s ease; }
+.cw-ticks line { stroke: rgba(255, 255, 255, .3); stroke-width: 1.3; stroke-linecap: round; }
+.cw-ticks line.big { stroke: rgba(255, 255, 255, .6); stroke-width: 2.2; }
+.cw-ticks line.hot { stroke: rgba(255, 92, 92, .75); }
+
+/* chiffre de vitesse */
+#speedometer .speedometer-container .speedBox { filter: none; margin-top: -66px; }
+#speedometer .speedometer-container .speedBox > p {
+  font-family: "MontCw", "Montserrat", sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 3px;
+  color: rgba(214, 236, 255, .85); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); margin-bottom: 1px;
+}
+#speedometer .speedometer-container .speedBox #speed { font-size: 46px; line-height: 46px; transform: skewX(-8deg); }
+#speedometer .speedometer-container .speedBox #speed p {
+  font-family: "MontCw", "Montserrat", sans-serif !important; font-weight: 900; letter-spacing: -1px; color: #fff;
+  text-shadow: none;
+}
+#speedometer .speedometer-container .speedBox, #speedometer .speedometer-container .speedBox #speed,
+#speedometer .speedometer-container .speedBox #speed p { overflow: visible !important; }
+#speedometer .speedometer-container .speedBox #speed { filter: drop-shadow(0 0 8px rgba(120, 210, 255, .35)) drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); }
+#speedometer .speedometer-container .speedBox #speed p.zero { color: rgba(255, 255, 255, .18); text-shadow: none; filter: none; }
+#speedometer.cw-fast .speedBox #speed { filter: drop-shadow(0 0 9px rgba(255, 110, 90, .55)) drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); }
+
+/* icones : teintees comme leur jauge */
+#speedometer .speedometer-box .fuel-icon path, #speedometer .speedometer-box .fuel-icon { fill: #ffd27a !important; }
+#speedometer .speedometer-box .engine-icon path, #speedometer .speedometer-box .engine-icon { fill: var(--eng-col, #6ff0a8) !important; transition: fill .4s; }
+#speedometer .speedometer-container .speedometer-box #belt { transition: fill .3s, filter .3s; }
+#speedometer.cw-nobelt .speedometer-box #belt { fill: #ff5a6a !important; animation: cwBelt 1s ease-in-out infinite; }
+#speedometer.cw-belt .speedometer-box #belt { fill: #4ff0a0 !important; filter: drop-shadow(0 0 3px rgba(79, 240, 160, .6)) !important; }
+@keyframes cwBelt { 50% { opacity: .35; } }
+#speedometer.cw-lowfuel .speedometer-box .fuel-icon { animation: cwBelt .9s ease-in-out infinite; }
+
+/* petites cases d'etat : coins arrondis, reflet, remplissage anime */
+#info .life-status .life-box {
+  border-radius: 9px; background: rgba(8, 12, 20, .5); border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .35); overflow: hidden;
+}
+#info .life-status .life-box .life-bar { border-radius: 8px; transition: height .45s ease; }
+#info .life-status .life-box::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 45%; border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)); pointer-events: none; z-index: 2;
+}
+#info .life-status .life-box .image-box img { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .55)); }
+#info .life-status .life-box.health .life-bar { background: linear-gradient(to top right, #c0172b 0%, #ff4d5e 100%); }
+#info .life-status .life-box.hunger .life-bar { background: linear-gradient(to top right, #c25d0c 0%, #ffa23a 100%); }
+#info .life-status .life-box.thirst .life-bar { background: linear-gradient(to top right, #0f62c9 0%, #3fb3ff 100%); }
+#info .life-status .life-box.stress .life-bar { background: linear-gradient(to top right, #c99a12 0%, #ffe46b 100%); }
+#info .life-status .life-box.armour .life-bar { background: linear-gradient(to top right, #4a2bd6 0%, #8c6bff 100%); }

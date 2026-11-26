@@ -1,59 +1,34 @@
 /* =====================================================================
-   Crestwood RP · Connexion (v19)
+   Crestwood RP v51 · Arrivee en ville (connexion Google uniquement)
    Pont natif (SAMP.java game + game32) :
-     page -> jeu  : SampAuth.action(type, json)   type = login | register | promocheck |
-                    requestRecoveryCode | recover | identity        ;  SampAuth.ready()
-     jeu -> page  : DXAuth.openFromNative({"screen":"login|register|identity","name":"Prenom_Nom"})
-                    DXAuth.handleResponse({"type":"success|error|info|warning","title":"..","message":"..",
-                                           "screen":"login","close":1,"promo":{...}})
-   Compatibilite : window.RevoltAuth (notify / openScreen / setRememberedConnexion / clearFields).
+     page -> jeu : SampAuth.action(type, json)  type = create | link | identity | promocheck |
+                   gpreview | introskip | enter | back | spawnsel | spawn
+                   SampAuth.google(json) (connexion Google -> ticket -> /authact google)
+                   SampAuth.googleAccount() / SampAuth.ready()
+     jeu -> page : DXAuth.openFromNative({"screen":"google|intro|create|link|identity|lobby|spawn",...})
+                   DXAuth.handleResponse({"type":"success|error|info|warning","title":"..","message":"..",
+                                          "screen":"..","retry":1,"promo":{...}})
+                   DXAuth.googleStep(email) / DXAuth.googleError(message, annule)
    ===================================================================== */
 (() => {
   "use strict";
-  const T = (x) => (window.CwI18n ? window.CwI18n.t(x) : x);   // [v20] langues
-  const L = (fr, en, pt) => { const l = window.CwI18n ? window.CwI18n.lang : "fr"; return l === "en" ? en : (l === "pt" ? pt : fr); };
+  const T = (x) => (window.CwI18n ? window.CwI18n.t(x) : x);
   const $ = (id) => document.getElementById(id);
   const root = $("cwAuth");
-  const card = $("cwCard");
-  const tabsBox = $("cwTabs");
   const busy = $("cwBusy");
-  const NAME_RE = /^[A-Za-z0-9_]{3,24}$/;
-  const PASS_OK = (p) => p.length >= 4 && p.length <= 100 && /^[\x21-\x7E]+$/.test(p) && !/[\\/]/.test(p);
-  const EMAIL_RE = /^[A-Za-z0-9._+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
-  let currentScreen = "login";
+  let screen = "google";
   let busyTimer = 0;
-  let lockedName = "";
+  let playerName = "";
+  let googlePort = 7790;
 
-  // ---------------------------------------------------------------- notifications (boite d'aide GTA SA)
+  // ---------------------------------------------------------------- notifications
   const stack = $("notificationContainer");
   const SA = { success: "#5cc85f", error: "#e2484c", warning: "#f3c75c", info: "#6f9cff" };
   const DEF_TITLE = { success: "Succès", error: "Erreur", warning: "Attention", info: "" };
-  let audioCtx = null;
-  function beep(type) {
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      audioCtx = audioCtx || new Ctx();
-      if (audioCtx.state === "suspended" && audioCtx.resume) audioCtx.resume().catch(() => {});
-      const t = audioCtx.currentTime + 0.01;
-      const notes = type === "error" ? [[520, 0], [390, 0.09]] : [[988, 0], [1480, 0.07]];
-      notes.forEach(([f, d]) => {
-        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = "square"; o.frequency.value = f;
-        g.gain.setValueAtTime(0.0001, t + d);
-        g.gain.exponentialRampToValueAtTime(0.045, t + d + 0.008);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.07);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(t + d); o.stop(t + d + 0.08);
-      });
-    } catch (_) {}
-  }
-  function esc(v) {
-    return String(v == null ? "" : v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  }
+  const esc = (v) => String(v == null ? "" : v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   function notify(message, type = "info", options = {}) {
-    if (type === "alert") type = "warning";
     if (type === "danger") type = "error";
+    if (type === "alert") type = "warning";
     if (!SA[type]) type = "info";
     const text = String(message || "").trim();
     if (!text || !stack) return null;
@@ -64,220 +39,290 @@
     box.innerHTML = (title ? `<b>${esc(title)}</b>` : "") + esc(text);
     stack.appendChild(box);
     while (stack.children.length > 2) stack.firstElementChild.remove();
-    root.classList.add("has-note");
     requestAnimationFrame(() => box.classList.add("show"));
-    beep(type);
     const duration = Math.max(2500, Math.min(12000, Number(options.duration) || 5200));
-    setTimeout(() => {
-      box.classList.remove("show");
-      setTimeout(() => { box.remove(); if (!stack.children.length) root.classList.remove("has-note"); }, 220);
-    }, duration);
+    setTimeout(() => { box.classList.remove("show"); setTimeout(() => box.remove(), 220); }, duration);
     return box;
   }
 
   // ---------------------------------------------------------------- envoi au jeu
-  function emitToGame(type, payload) {
-    const name = String(type).replace(/^auth:/, "");
+  function emit(type, payload) {
     const json = JSON.stringify(payload || {});
-    try {
-      if (window.SampAuth && typeof window.SampAuth.action === "function") { window.SampAuth.action(name, json); return true; }
-    } catch (e) { console.warn("[Auth] SampAuth.action :", e); }
-    const msg = JSON.stringify({ action: "auth:" + name, payload, event: "auth:" + name, data: payload });
-    if (window.Android && typeof window.Android.postMessage === "function") { window.Android.postMessage(msg); return true; }
-    if (window.cefQuery) { window.cefQuery({ request: msg, onSuccess() {}, onFailure() {} }); return true; }
-    console.log("[Crestwood Auth]", name, payload);
+    try { if (window.SampAuth && typeof window.SampAuth.action === "function") { window.SampAuth.action(type, json); return true; } } catch (e) { console.warn(e); }
+    console.log("[Crestwood Auth]", type, json);
     return false;
   }
-  function setBusy(on) {
+  function setBusy(on, ms) {
     clearTimeout(busyTimer);
     busy.hidden = !on;
-    document.querySelectorAll(".cw-primary").forEach((b) => { b.disabled = !!on; });
-    if (on) busyTimer = setTimeout(() => setBusy(false), 7000);
+    document.querySelectorAll(".cw-cta").forEach((b) => { b.disabled = !!on; });
+    if (on) busyTimer = setTimeout(() => setBusy(false), ms || 8000);
   }
 
   // ---------------------------------------------------------------- ecrans
-  function showScreen(name) {
+  function show(name) {
     const next = $("screen-" + name);
     if (!next) return;
-    currentScreen = name;
+    if (screen === "intro" && name !== "intro") filmStop();
+    screen = name;
+    root.dataset.screen = name;
     document.querySelectorAll(".cw-screen").forEach((s) => s.classList.toggle("active", s === next));
-    document.querySelectorAll(".cw-tab").forEach((t) => t.classList.toggle("active", t.dataset.screen === name));
-    if (name !== "identity") tabsBox.dataset.active = name;
-    if (name === "register" && !$("registerUsername").value) regStep(false);
-    card.classList.toggle("identity", name === "identity");
-    card.scrollTop = 0;
   }
-  // Inscription : choix Google / Crestwood avant le formulaire
-  function regStep(form) { $("regChoice").hidden = !!form; $("registerForm").hidden = !form; card.scrollTop = 0; }
-  $("btnCrestwood").addEventListener("click", () => regStep(true));
-  $("regBack").addEventListener("click", () => regStep(false));
-  $("btnGoogle").addEventListener("click", () => notify(T("Connexion Google bientôt disponible. Utilise « Continuer avec Crestwood » pour l'instant."), "info"));
-  document.querySelectorAll(".cw-tab").forEach((t) => t.addEventListener("click", () => showScreen(t.dataset.screen)));
-  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => showScreen(b.dataset.go)));
-  document.querySelectorAll("[data-eye]").forEach((b) => b.addEventListener("click", () => {
-    const input = $(b.dataset.eye);
-    if (!input) return;
-    input.type = input.type === "password" ? "text" : "password";
-    b.classList.toggle("on", input.type === "text");
-  }));
-  function bad(input, msg) {
-    const f = input && input.closest(".cw-field");
-    if (f) { f.classList.add("bad"); setTimeout(() => f.classList.remove("bad"), 1800); }
-    notify(msg, "error");
+  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => show(b.dataset.go)));
+
+  // ---------------------------------------------------------------- connexion Google
+  const gStatus = $("gStatus"), gMail = $("gMail"), gProgress = $("gProgress"), gButton = $("gButton"), gRetry = $("gRetry");
+  let googleTimer = 0, googleRunning = false;
+  function maskEmail(e) {
+    const m = /^([^@]+)@(.+)$/.exec(String(e || ""));
+    if (!m) return "";
+    const keep = m[1].length >= 3 ? 2 : 1;
+    return m[1].slice(0, keep) + "•".repeat(Math.min(4, Math.max(1, m[1].length - keep))) + "@" + m[2];
+  }
+  function googleAccount() {
+    try { if (window.SampAuth && window.SampAuth.googleAccount) return JSON.parse(window.SampAuth.googleAccount() || "{}") || {}; } catch (_) {}
+    return {};
+  }
+  function googleUi(state, text) {
+    // state : run | idle | error
+    gProgress.classList.toggle("off", state !== "run");
+    gButton.hidden = state === "run" || state === "error";
+    gRetry.hidden = state !== "error";
+    if (text) gStatus.textContent = text;
+  }
+  function googleStart(choose) {
+    if (googleRunning) return;
+    if (!window.SampAuth || typeof window.SampAuth.google !== "function") {
+      googleUi("error", T("Mets à jour l'application."));
+      return;
+    }
+    const a = googleAccount();
+    gMail.textContent = a.email ? maskEmail(a.email) : "";
+    googleRunning = true;
+    googleUi("run", a.email ? T("Connexion à ton compte Google…") : T("Choisis ton compte Google…"));
+    clearTimeout(googleTimer);
+    googleTimer = setTimeout(() => { googleRunning = false; googleUi("error", T("Pas de réponse. Réessaie.")); }, 40000);
+    try { window.SampAuth.google(JSON.stringify({ name: playerName, port: googlePort, promo: "", choose: choose ? 1 : 0 })); }
+    catch (e) { googleRunning = false; googleUi("error", T("Connexion Google impossible.")); }
+  }
+  gButton.addEventListener("click", () => googleStart(true));
+  gRetry.addEventListener("click", () => googleStart(false));
+  function googleStep(email) {
+    if (email) gMail.textContent = maskEmail(email);
+    gStatus.textContent = T("Vérification de ton compte…");
+    clearTimeout(googleTimer);
+    googleTimer = setTimeout(() => { googleRunning = false; googleUi("error", T("Le serveur ne répond pas. Réessaie.")); }, 15000);
+  }
+  function googleError(message, cancelled) {
+    clearTimeout(googleTimer);
+    googleRunning = false;
+    if (cancelled) { googleUi("idle", T("Connecte-toi avec Google pour jouer.")); return; }
+    googleUi("error", T("Connexion impossible."));
+    if (message) notify(String(message), "error", { title: "Google" });
+  }
+
+  // ---------------------------------------------------------------- cinematique
+  const CAPTIONS = [
+    ["Los Santos · 20 h 40", "Une ville qui ne dort jamais."],
+    ["Centre-ville", "Des milliers de vies."],
+    ["Grove Street", "Ici, personne ne te connaît."],
+    ["Vinewood", "Pas encore."],
+    ["Mairie de Los Santos", "Ton histoire commence ici."]
+  ];
+  const fBlack = $("filmBlack"), fCap = $("filmCaption"), fSmall = $("filmSmall"), fBig = $("filmBig"), fEnd = $("filmEnd"), fCount = $("filmCount");
+  let filmStep = -1, filmEndTimer = 0;
+  function filmStep_(step, n) {
+    if (step === filmStep) return;
+    filmStep = step;
+    setTimeout(() => fBlack.classList.add("off"), 500);
+    const c = CAPTIONS[Math.max(0, Math.min(CAPTIONS.length - 1, step))];
+    fCap.classList.remove("show");
+    void fCap.offsetWidth;
+    fSmall.textContent = T(c[0]);
+    fBig.textContent = T(c[1]);
+    fCap.classList.add("show");
+    fCount.textContent = String(step + 1).padStart(2, "0") + " / " + String(n || CAPTIONS.length).padStart(2, "0");
+    clearTimeout(filmEndTimer);
+    if (step >= (n || CAPTIONS.length) - 1) filmEndTimer = setTimeout(() => { fCap.classList.remove("show"); fEnd.classList.add("on"); }, 3200);
+  }
+  function filmStop() {
+    clearTimeout(filmEndTimer);
+    filmStep = -1;
+    fEnd.classList.remove("on");
+    fBlack.classList.remove("off");
+    fCap.classList.remove("show");
+  }
+  $("filmSkip").addEventListener("click", () => emit("introskip", {}));
+
+  // ---------------------------------------------------------------- formulaires d'identite
+  const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  const ORIGINS = ["Côte d'Ivoire", "Sénégal", "Mali", "Burkina Faso", "Guinée", "Cameroun", "Bénin", "Togo", "Niger", "Gabon", "Congo", "RD Congo",
+    "Ghana", "Nigeria", "Maroc", "Algérie", "Tunisie", "France", "Belgique", "Suisse", "Canada", "Haïti", "États-Unis", "Autre"];
+  const opt = (sel, v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
+  const ascii = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z -]/g, "").trim();
+  function fillDate(d, m, y) {
+    opt(d, "", "JJ"); for (let i = 1; i <= 31; i++) opt(d, i, i);
+    opt(m, "", "Mois"); MONTHS.forEach((x, i) => opt(m, i + 1, T(x)));
+    opt(y, "", "AAAA"); for (let i = 2008; i >= 1940; i--) opt(y, i, i);
+  }
+  function fillOrigin(o, other, wrap) {
+    opt(o, "", T("Choisis"));
+    ORIGINS.forEach((x) => opt(o, x, T(x)));
+    o.addEventListener("change", () => { wrap.hidden = o.value !== "Autre"; });
+  }
+  function readIdentity(d, m, y, o, other) {
+    if (!d.value || !m.value || !y.value) return { err: "Indique ta date de naissance." };
+    const dim = new Date(Number(y.value), Number(m.value), 0).getDate();
+    if (Number(d.value) > dim) return { err: "Cette date n'existe pas." };
+    const origin = o.value === "Autre" ? ascii(other.value) : ascii(o.value);
+    if (origin.length < 2) return { err: "Indique ton origine." };
+    return { birth: String(d.value).padStart(2, "0") + "/" + String(m.value).padStart(2, "0") + "/" + y.value, origin: origin.replace(/ /g, "_").slice(0, 22) };
+  }
+  function bad(el, msg) {
+    const f = el && el.closest(".cw-in");
+    if (f) { f.classList.add("bad"); setTimeout(() => f.classList.remove("bad"), 1600); }
+    notify(T(msg), "error");
     return false;
   }
-
-  // pseudo de jeu impose par le serveur : champ verrouille
-  function lockName(name) {
-    lockedName = name;
-    ["loginUsername", "registerUsername", "recoverUsername"].forEach((id) => {
-      const input = $(id);
-      if (!input) return;
-      input.value = name;
-      input.readOnly = !!name;
-      input.closest(".cw-field").classList.toggle("locked", !!name);
-    });
-  }
-
-  // ---------------------------------------------------------------- connexion
-  $("loginForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const u = $("loginUsername"), p = $("loginPassword");
-    const username = u.value.trim(), password = p.value;
-    if (!NAME_RE.test(username)) return bad(u, "Pseudo invalide (3 à 24 lettres, chiffres ou _).");
-    if (!password) return bad(p, "Entre ton mot de passe.");
-    if (!PASS_OK(password)) return bad(p, "Mot de passe invalide (sans espace, ni / ni \\).");
-    window.__cwPending = { username, password, remember: $("rememberConnexion").checked };
-    setBusy(true);
-    emitToGame("login", { username, password, remember: $("rememberConnexion").checked });
-  });
-
-  // ---------------------------------------------------------------- inscription + code promo
-  const pw = $("registerPassword"), strength = $("pwStrength");
-  pw.addEventListener("input", () => {
-    const v = pw.value;
-    let s = 0;
-    if (v.length >= 4) s++;
-    if (v.length >= 8) s++;
-    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
-    if (/[0-9]/.test(v) && /[^A-Za-z0-9]/.test(v)) s++;
-    strength.dataset.s = v ? String(Math.max(1, s)) : "0";
-  });
-  const promoInput = $("registerPromo"), promoReward = $("promoReward");
-  let promoChecked = "";
-  const cleanPromo = (v) => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
-  promoInput.addEventListener("input", () => {
-    const c = cleanPromo(promoInput.value);
-    if (promoInput.value !== c) promoInput.value = c;
-    if (c !== promoChecked) { promoReward.hidden = true; promoChecked = ""; }
-  });
-  $("promoCheck").addEventListener("click", () => {
-    const code = cleanPromo(promoInput.value);
-    if (code.length < 3) return bad(promoInput, "Entre un code promo (3 à 15 lettres ou chiffres).");
-    setBusy(true);
-    emitToGame("promocheck", { code });
-  });
-  $("promoClear").addEventListener("click", () => {
-    promoInput.value = ""; promoChecked = ""; promoReward.hidden = true;
-  });
-  function showPromo(p) {
-    if (!p) return;
-    if (!p.ok) { promoReward.hidden = true; promoChecked = ""; return; }
-    promoChecked = cleanPromo(p.code);
-    $("promoRewardTitle").textContent = L(`Code ${promoChecked} · Forfait ${p.pack || ""}`, `Code ${promoChecked} · ${p.pack || ""} pack`, `Código ${promoChecked} · Pacote ${p.pack || ""}`).trim();
-    const money = Number(p.money || 0).toLocaleString(L("fr-FR", "en-US", "pt-BR"));
-    const veh = p.veh || L("Véhicule", "Vehicle", "Veículo"), days = p.days || 0;
-    $("promoRewardText").textContent = L(`${veh} pendant ${days} jours + ${money} $, reçus à ton arrivée en ville.`,
-      `${veh} for ${days} days + $${money}, given when you arrive in the city.`,
-      `${veh} por ${days} dias + $${money}, entregues quando você chegar na cidade.`);
-    promoReward.hidden = false;
-  }
-  $("registerForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const u = $("registerUsername"), m = $("registerEmail"), c = $("registerConfirmPassword");
-    const username = u.value.trim(), email = m.value.trim().toLowerCase(), password = pw.value;
-    if (!NAME_RE.test(username)) return bad(u, "Pseudo invalide (3 à 24 lettres, chiffres ou _).");
-    if (!EMAIL_RE.test(email) || email.length > 63) return bad(m, "Adresse e-mail invalide.");
-    if (!PASS_OK(password)) return bad(pw, "Mot de passe : 4 à 100 caractères, sans espace ni / \\.");
-    if (password !== c.value) return bad(c, "Les deux mots de passe ne sont pas identiques.");
-    if (!$("acceptTerms").checked) return notify(T("Accepte le règlement pour créer ton compte."), "warning");
-    const promo = cleanPromo(promoInput.value);
-    if (promo && promo.length < 3) return bad(promoInput, "Code promo trop court.");
-    setBusy(true);
-    emitToGame("register", { username, email, password, confirmPassword: c.value, promo });
-  });
-
-  // ---------------------------------------------------------------- recuperation
-  $("requestCodeButton").addEventListener("click", () => {
-    const u = $("recoverUsername"), username = u.value.trim();
-    if (!NAME_RE.test(username)) return bad(u, "Pseudo invalide.");
-    setBusy(true);
-    emitToGame("requestRecoveryCode", { username });
-  });
-  $("recoverForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const u = $("recoverUsername"), k = $("recoverCode"), p = $("recoverNewPassword");
-    const username = u.value.trim(), code = k.value.trim(), newPassword = p.value;
-    if (!NAME_RE.test(username)) return bad(u, "Pseudo invalide.");
-    if (!/^\d{7,18}$/.test(code)) return bad(k, "Le code contient 7 à 18 chiffres.");
-    if (!PASS_OK(newPassword)) return bad(p, "Mot de passe : 4 à 100 caractères, sans espace ni / \\.");
-    setBusy(true);
-    emitToGame("recover", { username, code, newPassword });
-  });
-
-  // ---------------------------------------------------------------- identite du personnage
-  (() => {
-    const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-    const ORIGINS = ["Côte d'Ivoire", "Sénégal", "Mali", "Burkina Faso", "Guinée", "Cameroun", "Bénin", "Togo", "Niger", "Gabon", "Congo", "RD Congo",
-      "Ghana", "Nigeria", "Maroc", "Algérie", "Tunisie", "France", "Belgique", "Suisse", "Canada", "Haïti", "États-Unis", "Autre"];
-    const day = $("idDay"), month = $("idMonth"), year = $("idYear"), origin = $("idOrigin"), other = $("idOther"), otherWrap = $("idOtherWrap");
-    let gender = -1;
-    const opt = (sel, v, t) => { const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o); };
-    opt(day, "", "Jour"); for (let d = 1; d <= 31; d++) opt(day, d, d);
-    opt(month, "", "Mois"); MONTHS.forEach((m, i) => opt(month, i + 1, m));
-    opt(year, "", "Année"); for (let y = 2008; y >= 1940; y--) opt(year, y, y);
-    opt(origin, "", "Choisis ton origine"); ORIGINS.forEach((o) => opt(origin, o, o));
-    origin.addEventListener("change", () => { otherWrap.hidden = origin.value !== "Autre"; });
-    document.querySelectorAll(".cw-gender-btn").forEach((b) => b.addEventListener("click", () => {
-      gender = Number(b.dataset.gender);
-      document.querySelectorAll(".cw-gender-btn").forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", String(x === b)); });
+  function segBind(seg, onPick) {
+    seg.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      seg.querySelectorAll("button").forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", String(x === b)); });
+      onPick(Number(b.dataset.gender));
     }));
-    const ascii = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z -]/g, "").trim();
-    $("identityForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (gender !== 0 && gender !== 1) return notify("Choisis Homme ou Femme.", "error");
-      if (!day.value || !month.value || !year.value) return notify("Indique ta date de naissance.", "error");
-      const dim = new Date(Number(year.value), Number(month.value), 0).getDate();
-      if (Number(day.value) > dim) return notify("Cette date n'existe pas.", "error");
-      const o = origin.value === "Autre" ? ascii(other.value) : ascii(origin.value);
-      if (o.length < 2) return notify("Indique ton origine.", "error");
-      const birth = String(day.value).padStart(2, "0") + "/" + String(month.value).padStart(2, "0") + "/" + year.value;
-      setBusy(true);
-      emitToGame("identity", { birth, gender, origin: o.replace(/ /g, "_").slice(0, 22) });
-    });
-    window.CwIdentity = { open() { showScreen("identity"); } };
-  })();
+  }
+  function segSet(seg, g) {
+    seg.querySelectorAll("button").forEach((x) => { const on = Number(x.dataset.gender) === g; x.classList.toggle("on", on); x.setAttribute("aria-checked", String(on)); });
+  }
 
-  // ---------------------------------------------------------------- memoire des identifiants
-  const STORAGE_USER = "revolt_auth_username";
-  const STORAGE_PASS = "revolt_auth_password";
-  function setRemembered(username, password) {
-    if (!lockedName) $("loginUsername").value = username || "";
-    $("loginPassword").value = password || "";
-    $("rememberConnexion").checked = !!(username || password);
+  // creation
+  const cFirst = $("cFirst"), cLast = $("cLast"), cSeg = document.querySelector("#screen-create .cw-seg");
+  const cDay = $("cDay"), cMonth = $("cMonth"), cYear = $("cYear"), cOrigin = $("cOrigin"), cOther = $("cOther"), cPromo = $("cPromo"), cReward = $("cPromoReward");
+  let cGender = 0, previewTimer = 0;
+  fillDate(cDay, cMonth, cYear);
+  fillOrigin(cOrigin, cOther, $("cOtherWrap"));
+  const namePart = (v) => { const s = ascii(v).replace(/[^A-Za-z]/g, ""); return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ""; };
+  [cFirst, cLast].forEach((i) => i.addEventListener("input", () => { const v = namePart(i.value); if (i.value !== v) i.value = v; }));
+  segBind(cSeg, (g) => {
+    cGender = g;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => emit("gpreview", { gender: g }), 150);
+  });
+  const cleanPromo = (v) => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
+  cPromo.addEventListener("input", () => { const c = cleanPromo(cPromo.value); if (cPromo.value !== c) cPromo.value = c; cReward.hidden = true; });
+  $("cPromoCheck").addEventListener("click", () => {
+    const code = cleanPromo(cPromo.value);
+    if (code.length < 3) return bad(cPromo, "Entre un code promo (3 à 15 lettres ou chiffres).");
+    setBusy(true);
+    emit("promocheck", { code });
+  });
+  $("createForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const first = namePart(cFirst.value), last = namePart(cLast.value);
+    if (first.length < 2 || first.length > 12) return bad(cFirst, "Prénom : 2 à 12 lettres.");
+    if (last.length < 2 || last.length > 12) return bad(cLast, "Nom : 2 à 12 lettres.");
+    const id = readIdentity(cDay, cMonth, cYear, cOrigin, cOther);
+    if (id.err) return notify(T(id.err), "error");
+    setBusy(true);
+    emit("create", { name: first + "_" + last, birth: id.birth, gender: cGender, origin: id.origin, promo: cleanPromo(cPromo.value) });
+  });
+  $("suggestBox").addEventListener("click", () => { $("lName").value = $("suggestName").textContent; show("link"); setTimeout(() => $("lPass").focus(), 200); });
+
+  // ancien personnage
+  $("linkForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const n = $("lName"), p = $("lPass");
+    const user = n.value.trim(), pass = p.value;
+    if (!/^[A-Za-z0-9_\[\]\.$@=()]{3,24}$/.test(user)) return bad(n, "Pseudo invalide.");
+    if (!pass || /\s/.test(pass)) return bad(p, "Entre ton ancien mot de passe.");
+    setBusy(true);
+    emit("link", { username: user, password: pass });
+  });
+
+  // identite (ancien compte)
+  const iSeg = $("idSeg");
+  let iGender = -1;
+  fillDate($("iDay"), $("iMonth"), $("iYear"));
+  fillOrigin($("iOrigin"), $("iOther"), $("iOtherWrap"));
+  segBind(iSeg, (g) => { iGender = g; });
+  $("identityForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (iGender !== 0 && iGender !== 1) return notify(T("Choisis Homme ou Femme."), "error");
+    const id = readIdentity($("iDay"), $("iMonth"), $("iYear"), $("iOrigin"), $("iOther"));
+    if (id.err) return notify(T(id.err), "error");
+    setBusy(true);
+    emit("identity", { birth: id.birth, gender: iGender, origin: id.origin });
+  });
+  window.CwIdentity = { open() { show("identity"); } };
+
+  // ---------------------------------------------------------------- salon
+  function fillLobby(d) {
+    const parts = String(d.name || playerName || "").split("_");
+    $("lbFirst").textContent = parts[0] || "";
+    $("lbLast").textContent = parts.slice(1).join(" ") || "";
+    $("lbBirth").textContent = d.birth || "Non indiqué";
+    $("lbOrigin").textContent = d.origin || "Non indiqué";
+    $("lbCash").textContent = d.cash != null && d.cash !== "" ? d.cash + " $" : "Non indiqué";
+    $("lbBank").textContent = d.bank != null && d.bank !== "" ? d.bank + " $" : "Non indiqué";
+    const a = googleAccount();
+    $("lbMail").textContent = d.email || (a.email ? maskEmail(a.email) : T("Compte Google"));
   }
-  function loadRemembered() {
-    try {
-      const u = localStorage.getItem(STORAGE_USER) || "", p = localStorage.getItem(STORAGE_PASS) || "";
-      if (!u && !p) return;
-      if (lockedName && u && u.toLowerCase() !== lockedName.toLowerCase()) return;   // autre compte
-      setRemembered(u, p);
-    } catch (_) {}
+  $("lbEnter").addEventListener("click", () => { setBusy(true, 3000); emit("enter", {}); });
+
+  // ---------------------------------------------------------------- point d'apparition
+  const PLACES = [
+    { tag: "Centre-ville", name: "Mairie de Los Santos", desc: "City Hall : papiers, emplois et premiers pas." },
+    { tag: "El Corona", name: "Gare Unity Station", desc: "Trains, bus et taxis : toute la ville à portée." },
+    { tag: "Sud de la ville", name: "Aéroport de Los Santos", desc: "Tu viens d'atterrir." },
+    { tag: "Bord de mer", name: "Plage de Santa Maria", desc: "Le sable, la jetée et le soleil." },
+    { tag: "Ganton", name: "Grove Street", desc: "Le quartier. Tout le monde se connaît." },
+    { tag: "Market", name: "Hôpital All Saints", desc: "Les urgences à deux pas." }
+  ];
+  const LAST = { tag: "Dernière position", name: "Là où tu t'es arrêté", desc: "Reprends exactement où tu étais." };
+  const strip = $("spStrip"), place = $("spPlace");
+  let spSel = 0, spCount = PLACES.length, spLast = false, spSelTimer = 0;
+  function placeOf(i) { return i === spCount ? LAST : PLACES[i] || PLACES[0]; }
+  function renderPlace() {
+    const p = placeOf(spSel);
+    $("spTag").textContent = T(p.tag);
+    $("spName").textContent = T(p.name);
+    $("spDesc").textContent = T(p.desc);
+    place.classList.remove("swap"); void place.offsetWidth; place.classList.add("swap");
+    strip.querySelectorAll(".cw-card").forEach((c) => c.classList.toggle("on", Number(c.dataset.i) === spSel));
+    const on = strip.querySelector(".cw-card.on");
+    if (on && on.scrollIntoView) on.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
   }
-  function saveRemembered(u, p) { try { localStorage.setItem(STORAGE_USER, u || ""); localStorage.setItem(STORAGE_PASS, p || ""); } catch (_) {} }
-  function clearRemembered() { try { localStorage.removeItem(STORAGE_USER); localStorage.removeItem(STORAGE_PASS); } catch (_) {} }
+  function buildStrip() {
+    strip.innerHTML = "";
+    const order = [];
+    if (spLast) order.push(spCount);
+    for (let i = 0; i < spCount; i++) order.push(i);
+    order.forEach((i, k) => {
+      const p = placeOf(i);
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cw-card" + (i === spCount ? " last" : "");
+      b.dataset.i = String(i);
+      b.innerHTML = `<small>${String(k + 1).padStart(2, "0")}</small><b>${esc(T(p.name))}</b>`;
+      b.addEventListener("click", () => {
+        if (spSel === i) return;
+        spSel = i;
+        renderPlace();
+        clearTimeout(spSelTimer);
+        spSelTimer = setTimeout(() => emit("spawnsel", { n: i }), 120);
+      });
+      strip.appendChild(b);
+    });
+  }
+  $("spGo").addEventListener("click", () => { setBusy(true, 6000); emit("spawn", { n: spSel }); });
+  $("spBack").addEventListener("click", () => emit("back", {}));
 
   // ---------------------------------------------------------------- reponses du serveur
+  function showPromo(p) {
+    if (!p || !p.ok) { cReward.hidden = true; return; }
+    const money = Number(p.money || 0).toLocaleString("fr-FR");
+    cReward.textContent = `✓ ${p.code} · ${p.veh || "Véhicule"} ${p.days || 0} jours + ${money} $ à ton arrivée`;
+    cReward.hidden = false;
+  }
   function handleResponse(raw) {
     let r = raw;
     try { if (typeof raw === "string") r = JSON.parse(raw); } catch (_) { setBusy(false); return; }
@@ -287,21 +332,47 @@
     const type = map[String(r.type || "info").toLowerCase()] || "info";
     if (r.promo) showPromo(r.promo);
     if (r.message) notify(r.message, type, { title: r.title });
-    if (r.screen) showScreen(r.screen);
-    const pending = window.__cwPending;
-    if (type === "success" && r.close && pending) {
-      if (pending.remember) saveRemembered(pending.username, pending.password); else clearRemembered();
-      window.__cwPending = null;
-    }
-    if (type === "success" && r.screen === "login") {
-      const n = $("registerUsername").value.trim();
-      if (n) $("loginUsername").value = n;
-      $("loginPassword").value = "";
-      $("loginPassword").focus();
-    }
+    if (screen === "google" && (r.retry || type === "error")) { googleRunning = false; clearTimeout(googleTimer); googleUi("error", T("Connexion impossible.")); }
+    if (r.screen && $("screen-" + r.screen)) show(r.screen);
   }
 
-  // ---------------------------------------------------------------- musique (pistes de l'ecran de chargement)
+  function openFromNative(raw) {
+    let d = raw;
+    try { if (typeof raw === "string") d = JSON.parse(raw || "{}"); } catch (_) { d = {}; }
+    d = d || {};
+    setBusy(false);
+    if (d.name && /^[A-Za-z0-9_\[\]\.$@=()]{3,24}$/.test(String(d.name))) playerName = String(d.name);
+    const gp = Number(d.gp);
+    if (gp > 0 && gp < 65536) googlePort = gp;
+    const s = String(d.screen || "google");
+    if (s === "intro") { show("intro"); filmStep_(Number(d.step) || 0, Number(d.n) || 5); return; }
+    if (s === "create") {
+      const sug = String(d.suggest || "");
+      $("suggestBox").hidden = !sug;
+      $("suggestName").textContent = sug;
+      cGender = Number(d.gender) === 1 ? 1 : 0;
+      segSet(cSeg, cGender);
+      show("create");
+      return;
+    }
+    if (s === "lobby") { fillLobby(d); show("lobby"); return; }
+    if (s === "spawn") {
+      spCount = Number(d.count) || PLACES.length;
+      spLast = Number(d.last) === 1;
+      spSel = Number(d.sel) || 0;
+      if (spSel === spCount && !spLast) spSel = 0;
+      buildStrip();
+      show("spawn");
+      renderPlace();
+      return;
+    }
+    if (s === "identity") { show("identity"); return; }
+    if (s === "link") { show("link"); return; }
+    show("google");
+    googleStart(false);
+  }
+
+  // ---------------------------------------------------------------- musique
   const TRACKS = [
     { src: "../loading/music/track1.mp3", title: "SPRINTER · Central Cee x Dave" },
     { src: "../loading/music/track2.mp3", title: "PILIER · Ninho" },
@@ -325,7 +396,6 @@
   audio.addEventListener("error", () => { if (musicStopped || ++musicErrors > TRACKS.length) return; setTimeout(() => { loadTrack(trackIndex + 1); play(); }, 300); });
   $("musicToggle").addEventListener("click", () => { if (audio.paused) play(); else audio.pause(); });
   $("musicNext").addEventListener("click", () => { loadTrack(trackIndex + 1); play(); });
-  $("musicPrev").addEventListener("click", () => { if (audio.currentTime > 3) { audio.currentTime = 0; return; } loadTrack(trackIndex - 1); play(); });
   vol.addEventListener("input", () => setVol(vol.value));
   try { const saved = localStorage.getItem("cw_login_volume"); if (saved !== null) vol.value = saved; } catch (_) {}
   vol.addEventListener("change", () => { try { localStorage.setItem("cw_login_volume", vol.value); } catch (_) {} });
@@ -342,46 +412,30 @@
   // ---------------------------------------------------------------- API appelee par le jeu
   window.DXAuth = {
     handleResponse,
-    showConnexion() { showScreen("login"); loadRemembered(); },
+    openFromNative,
+    googleStep,
+    googleError,
+    showConnexion() { show("google"); },
     startMusic() { musicStopped = false; if (!audio.src) loadTrack(trackIndex); play(); },
     stopMusic,
     forceCloseFromGame: stopMusic,
-    setRememberedConnexion: setRemembered,
-    clearRememberedConnexion: clearRemembered,
-    openFromNative(raw) {
-      let d = raw;
-      try { if (typeof raw === "string") d = JSON.parse(raw || "{}"); } catch (_) { d = {}; }
-      d = d || {};
-      const name = String(d.name || "").trim();
-      if (NAME_RE.test(name)) lockName(name);
-      setBusy(false);
-      if (d.screen === "identity") { showScreen("identity"); return; }
-      showScreen(d.screen === "register" || d.screen === "recover" ? d.screen : "login");
-      loadRemembered();
-      if (d.screen === "register") {
-        const nm = name.replace(/_/g, " ");
-        notify(L("Bienvenue " + nm + " ! Crée ton compte, et si tu as un code promo, entre-le pour recevoir tes cadeaux.",
-          "Welcome " + nm + "! Create your account, and if you have a promo code, enter it to get your gifts.",
-          "Bem-vindo " + nm + "! Crie sua conta e, se tiver um código promocional, digite para ganhar seus presentes."),
-          "info", { title: L("Nouveau à Crestwood", "New to Crestwood", "Novo em Crestwood"), duration: 8000 });
-      }
-    }
+    setRememberedConnexion() {},
+    clearRememberedConnexion() {}
   };
-  window.RevoltAuth = {
-    notify,
-    openScreen(s) { if (s === "login" || s === "register" || s === "recover") showScreen(s); },
-    setRememberedConnexion: setRemembered,
-    clearFields() { document.querySelectorAll(".cw-screen input").forEach((i) => { if (i.readOnly) return; if (i.type === "checkbox") i.checked = false; else i.value = ""; }); }
-  };
+  window.RevoltAuth = { notify, openScreen(s) { if ($("screen-" + s)) show(s); }, setRememberedConnexion() {}, clearFields() {} };
 
-  loadRemembered();
   const ready = () => { try { if (window.SampAuth && typeof window.SampAuth.ready === "function") window.SampAuth.ready(); } catch (_) {} };
   if (document.readyState === "complete") ready(); else window.addEventListener("load", ready);
 
-  // apercu dans un navigateur (sans le jeu)
+  // apercu dans un navigateur (sans le jeu) : ?preview=google|intro|create|link|identity|lobby|spawn
   if (!window.SampAuth && /[?&]preview=/.test(location.search)) {
-    const mode = (location.search.match(/preview=([a-z]+)/) || [])[1];
-    window.DXAuth.openFromNative({ screen: mode === "identity" ? "identity" : (mode === "register" ? "register" : "login"), name: "Anzo_Smith" });
-    if (mode === "register") showPromo({ ok: 1, code: "ANZO", pack: "Medium", veh: "Sabre", days: 12, money: 500000 });
+    root.classList.add("preview");
+    const mode = (location.search.match(/preview=([a-z]+)/) || [])[1] || "google";
+    if (mode === "lobby") openFromNative({ screen: "lobby", name: "Anzo_Smith", birth: "12/03/1998", origin: "Cote d'Ivoire", cash: "12 500", bank: "248 900", email: "an••••@gmail.com" });
+    else if (mode === "spawn") openFromNative({ screen: "spawn", sel: 6, last: 1, count: 6 });
+    else if (mode === "intro") { openFromNative({ screen: "intro", step: 1, n: 5 }); }
+    else if (mode === "create") openFromNative({ screen: "create", suggest: "Anzo_Smith", gender: 0 });
+    else if (mode === "google") { show("google"); gMail.textContent = "an••••@gmail.com"; googleUi("run", T("Connexion à ton compte Google…")); }
+    else openFromNative({ screen: mode });
   }
 })();

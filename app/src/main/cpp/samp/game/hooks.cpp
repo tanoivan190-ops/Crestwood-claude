@@ -13,6 +13,7 @@
 #include "PlayerTap.h"
 #include "WorldMarkers.h"
 #include "CombatButtons.h"
+#include "EngineButton.h"
 #define TDBSAFE_LOG Log
 #include "Textures/TextureDatabaseSafe.h"
 #include "Scene.h"
@@ -273,7 +274,7 @@ void CEntity_Render_hook(CEntityGTA* thiz) {
     if (thiz && iBuildingToRemoveCount > 0) {
         const CVector& p = thiz->GetPosition();
         if (Crestwood_ShouldHideBuilding(thiz->m_nModelIndex, p.x, p.y, p.z) &&
-            (!pNetGame || !pNetGame->GetObjectPool() || !pNetGame->GetObjectPool()->GetObjectFromGtaPtr(thiz))) {
+            (!pNetGame || !pNetGame->GetObjectPool() || !pNetGame->GetObjectPool()->FindObjectFromGtaPtrFast(thiz))) {
             thiz->m_bUsesCollision = 0;
             thiz->m_bCollisionProcessed = 0;
             return;
@@ -293,7 +294,7 @@ void CObject_Render_hook(CObjectGta* thiz)
     CObjectGta *object = thiz;
     if(pNetGame && object != 0)
     {
-        CObject *pObject = pNetGame->GetObjectPool()->FindObjectFromGtaPtr(object);
+        CObject *pObject = pNetGame->GetObjectPool()->FindObjectFromGtaPtrFast(object);   // [v51] opti
         if(pObject && pObject->m_pEntity)
         {
             RwObject* rwObject = (RwObject*)pObject->m_pEntity->m_pRwObject;
@@ -468,6 +469,7 @@ void AND_TouchEvent_hook(int type, int num, int posX, int posY)
     // la touche leur est reservee (elle ne va ni au jeu ni a ImGui).
     if (WorldMarkers::OnTouch(type, num, posX, posY)) return;
     if (CombatButtons::OnTouch(type, num, posX, posY)) return;
+    if (EngineButton::OnTouch(type, num, posX, posY)) return;   // [v35]
 
     if (PlayerTap::OnTouch(type, num, posX, posY)) return;   // menu 3D des joueurs
 

@@ -1,0 +1,4 @@
+<map xmlns:edf="https://wiki.multitheftauto.com/wiki/Resource:Editor/EDF" edf:definitions="editor_main">
+    <removeWorldObject id="removeWorldObject (MTraffic1) (3)" radius="11.08576" interior="-1" model="1283" lodModel="0" posX="2001.9219" posY="-1683.6172" posZ="15.53906" rotX="0" rotY="0" rotZ="0" scale="1"></removeWorldObject>
+    <object id="object (sw_pickupwreck01) (1)" dimension="0" model="12957" interior="0" scale="1" alpha="255" collisions="true" doublesided="false" breakable="false" posX="2009.5" posY="-1682.6" posZ="13" rotX="0" rotY="0" rotZ="-89"></object>
+</map>

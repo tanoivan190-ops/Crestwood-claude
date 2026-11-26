@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-th="grey" data-sg>
+<html lang="fr" data-th="grey" data-sg data-rp="faction">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -167,6 +167,8 @@ button.card:active{transform:scale(.985)}
 .toast.err{background:rgba(70,20,26,0.62);color:#ffc9cf}
 
 @media (max-width:620px){ .panel{grid-template-columns:clamp(110px,24%,150px) minmax(0,1fr)} .right{display:none} }
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:clamp(8px,2vh,14px)}
+.tools .tool{flex:1 1 clamp(120px,30%,220px)}
 </style>
 <link rel="stylesheet" href="../common/crestwood-theme.css" />
   <link rel="stylesheet" href="../common/cw-pro.css">
@@ -242,9 +244,9 @@ button.card:active{transform:scale(.985)}
   "use strict";
   const bridge = window.SampFaction || null;
   const $ = (id) => document.getElementById(id);
-  const S = { view: "dash", fac: {}, me: {}, st: {}, log: [], next: [], members: [], events: [], q: "", onlyOn: false, month: null, sel: null, busy: 0 };
-  const TYPE_NAMES = { police: "Police", medic: "Médical", news: "Presse", government: "Gouvernement", hitman: "Agence", federal: "FBI", mechanic: "Mécanique", terrorist: "Organisation", army: "Armée", cardealer: "Concession", burger: "Restauration", taxi: "Taxi" };
-  const EMBLEM = { police: "e-police", federal: "e-police", army: "e-police", medic: "e-medic", government: "e-government", mechanic: "e-mechanic", news: "e-news" };
+  const S = { view: "dash", fac: {}, me: {}, st: {}, log: [], next: [], members: [], events: [], tools: [], near: [], q: "", onlyOn: false, month: null, sel: null, busy: 0 };
+  const TYPE_NAMES = { police: "Police", medic: "Médical", news: "Presse", government: "Gouvernement", hitman: "Agence", federal: "FBI", mechanic: "Mécanique", terrorist: "Organisation", army: "Armée", cardealer: "Concession", burger: "Restauration", taxi: "Taxi", fire: "Pompiers", justice: "Justice" };
+  const EMBLEM = { police: "e-police", federal: "e-police", army: "e-police", medic: "e-medic", fire: "e-medic", justice: "e-government", government: "e-government", mechanic: "e-mechanic", news: "e-news" };
 
   function parse(raw) { if (raw && typeof raw === "object") return raw; try { return JSON.parse(raw || "{}") || {}; } catch (_) { return {}; } }
   function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
@@ -324,6 +326,13 @@ button.card:active{transform:scale(.985)}
     cards.appendChild(card("Coffre", money(st.bal), "var(--blue)", "i-money", openSheet));
     cards.appendChild(card("Événements", (Number(st.ev) || 0) + " événement(s)", "var(--cyan)", "i-bell", () => go("events")));
     m.appendChild(cards);
+    // [v42] actions de service selon la faction (remplacent les commandes)
+    if (S.tools.length) {
+      m.appendChild(el("div", "sec", "Actions de service"));
+      const tb = el("div", "tools");
+      S.tools.forEach((t) => { const b = el("button", "btn tool", t[1]); b.type = "button"; b.addEventListener("click", () => send("tool", t[0])); tb.appendChild(b); });
+      m.appendChild(tb);
+    }
     m.appendChild(el("div", "sec", "Dernières activités"));
     const feed = el("div", "feed");
     if (!S.log.length) feed.appendChild(el("p", "empty", "Aucune activité pour le moment."));
@@ -340,6 +349,18 @@ button.card:active{transform:scale(.985)}
     ch.addEventListener("click", () => { S.onlyOn = !S.onlyOn; ch.classList.toggle("on", S.onlyOn); list(); });
     tb.appendChild(s); tb.appendChild(ch); m.appendChild(tb);
     const box = el("div"); m.appendChild(box);
+    // [v42] recruter : joueurs proches sans faction
+    if (Number(S.me.mg) === 1) {
+      m.appendChild(el("div", "sec", "Recruter un joueur proche"));
+      if (!S.near.length) m.appendChild(el("p", "empty", "Personne sans faction a moins de 10 m."));
+      S.near.forEach((p) => {
+        const r = el("div", "mrow");
+        r.appendChild(el("div", "av on", initials(p[1])));
+        const w = el("div", "who"); w.appendChild(el("b", "", nice(p[1]))); w.appendChild(el("small", "", "ID " + p[0])); r.appendChild(w);
+        const b = el("button", "btn", "Inviter"); b.type = "button"; b.addEventListener("click", () => send("invite", p[0])); r.appendChild(b);
+        m.appendChild(r);
+      });
+    }
     const mg = Number(S.me.mg) === 1, myRank = Number(S.me.r) || 1, ld = Number(S.me.ld) === 1, rc = Number(S.fac.rc) || 1;
     function list() {
       box.replaceChildren();
@@ -475,8 +496,8 @@ button.card:active{transform:scale(.985)}
   function apply(d) {
     if (d.fac) S.fac = d.fac;
     if (d.me) S.me = d.me;
-    if (d.v === "dash") { if (d.st) S.st = d.st; if (Array.isArray(d.log)) S.log = d.log; if (Array.isArray(d.next)) S.next = d.next; }
-    if (d.v === "members" && Array.isArray(d.list)) S.members = d.list;
+    if (d.v === "dash") { if (d.st) S.st = d.st; if (Array.isArray(d.log)) S.log = d.log; if (Array.isArray(d.next)) S.next = d.next; if (Array.isArray(d.tools)) S.tools = d.tools; }
+    if (d.v === "members" && Array.isArray(d.list)) { S.members = d.list; S.near = Array.isArray(d.near) ? d.near : []; }
     if (d.v === "events" && Array.isArray(d.list)) {
       S.events = d.list;
       const now = Date.now() / 1000 - 3600;

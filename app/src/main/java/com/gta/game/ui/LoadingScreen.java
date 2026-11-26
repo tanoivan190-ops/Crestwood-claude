@@ -24,12 +24,6 @@ public class LoadingScreen {
     // Filet de securite : si le jeu ne ferme pas l'ecran (dialogue, spawn...), on le ferme tout seul apres 30 s.
     private static final long MAX_WAIT_MS = 30_000L;
     private static final long FADE_MS = 350L;
-    // [v22] duree minimale d'affichage au demarrage : l'intro, le choix de langue, le diaporama et les astuces
-    // ont le temps de se derouler meme si le jeu est pret plus vite. Le bouton "Entrer en jeu" passe outre.
-    private static final long MIN_FIRST_SHOW_MS = 30_000L;
-    private final long firstShownAt = android.os.SystemClock.elapsedRealtime();
-    private boolean minShowElapsed;
-    private final Runnable delayedHide = this::hide;
 
     public LoadingScreen(Activity activity) {
         this.activity = activity;
@@ -47,6 +41,11 @@ public class LoadingScreen {
         // sans ca la WebView peint un fond BLANC tant que la page n'est pas affichee (l'"ecran blanc" du 32 bits)
         loadingWebView.setBackgroundColor(0xFF050506);
         loadingWebView.setWebViewClient(new WebViewClient() {
+            // [v47] pages protegees : HTML/JS/CSS/JSON chiffres dans l'APK, dechiffres ici (com.crestwood.ui.CwAssets)
+            @Override public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, android.webkit.WebResourceRequest request) {
+                android.webkit.WebResourceResponse cwr = com.crestwood.ui.CwAssets.intercept(view.getContext(), request);
+                return cwr != null ? cwr : super.shouldInterceptRequest(view, request);
+            }
             // [v19] moteur de rendu perdu (memoire) : sans ce "return true", Android ferme toute l'application
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
                 android.util.Log.e("LoadingScreen", "[webview] moteur de rendu perdu : ecran de chargement retire");
@@ -63,6 +62,7 @@ public class LoadingScreen {
                 return true;
             }
             @Override public void onPageFinished(WebView view, String url) {
+                com.crestwood.ui.CwAssets.checkPage(view, url);   // [v60] page restee chiffree -> reconstruite en clair
                 // La data peut etre deja prete avant la fin du chargement de la page : on remet l'etat "connexion".
                 if (completed) evaluate("window.LoadingBridge&&LoadingBridge.connecting()");
             }
@@ -78,7 +78,7 @@ public class LoadingScreen {
         settings.setUseWideViewPort(true);
         settings.setMediaPlaybackRequiresUserGesture(false); // musique de l'écran de chargement
         loadingWebView.addJavascriptInterface(new LoadingBridge(), "AndroidLoading");
-        loadingWebView.loadUrl("file:///android_asset/loading/index.html");
+        com.crestwood.ui.CwAssets.load(loadingWebView, "file:///android_asset/loading/index.html");
 
         DataInstaller.setListener(new DataInstaller.Listener() {
             @Override public void onProgress(final int percent, final String phase, final long done, final long total) {
@@ -119,18 +119,7 @@ public class LoadingScreen {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\"";
     }
 
-    public void hide() { hide(false); }
-
-    private void hide(boolean force) {
-        if (!force && !minShowElapsed) {
-            final long remaining = MIN_FIRST_SHOW_MS - (android.os.SystemClock.elapsedRealtime() - firstShownAt);
-            if (remaining > 0 && mainLayout != null && mainLayout.getVisibility() == View.VISIBLE && handler != null) {
-                handler.removeCallbacks(delayedHide);
-                handler.postDelayed(delayedHide, remaining);
-                return;
-            }
-            minShowElapsed = true;
-        }
+    public void hide() {
         if (handler != null) handler.removeCallbacksAndMessages(null);
         // Deja cache (ou en train de se cacher) : rien a faire
         if (mainLayout == null || mainLayout.getVisibility() != View.VISIBLE || hiding) return;
@@ -157,7 +146,7 @@ public class LoadingScreen {
         }
         if (mainLayout.getVisibility() == View.VISIBLE) return;
         mainLayout.setVisibility(View.VISIBLE);
-        if (loadingWebView != null) loadingWebView.loadUrl("file:///android_asset/loading/index.html");
+        if (loadingWebView != null) com.crestwood.ui.CwAssets.load(loadingWebView, "file:///android_asset/loading/index.html");
         if (completed && handler != null) {
             handler.postDelayed(() -> evaluate("window.LoadingBridge&&LoadingBridge.connecting()"), 600L);
             handler.postDelayed(this::hide, MAX_WAIT_MS);
@@ -165,7 +154,7 @@ public class LoadingScreen {
     }
 
     public void destroy() {
-        hide(true);
+        hide();
         if (loadingWebView != null) {
             loadingWebView.stopLoading();
             loadingWebView.removeJavascriptInterface("AndroidLoading");
@@ -180,7 +169,7 @@ public class LoadingScreen {
         @JavascriptInterface public void start() { DataInstaller.prepare(activity); }
         @JavascriptInterface public void retry() { DataInstaller.repair(activity); }
         // Bouton "Entrer en jeu" de l'ecran de chargement : ferme l'ecran sur le thread UI
-        @JavascriptInterface public void skip() { runOnUiThread(() -> LoadingScreen.this.hide(true)); }
+        @JavascriptInterface public void skip() { runOnUiThread(LoadingScreen.this::hide); }
         // [v21] memoire native du premier lancement (cw.lang / cw.rules) : survit a tout
         @JavascriptInterface public String getPref(String key) {
             if (key == null || !key.matches("cw\\.[a-z]{1,12}")) return "";

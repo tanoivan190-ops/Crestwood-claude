@@ -119,7 +119,7 @@ void Chat::keyboardEvent(const std::string& input)
         // le HUD / les pages envoient de l'UTF-8 : le serveur SA-MP et les autres clients attendent du Windows-1252
         // (sinon "é" arrive en "Ã©" chez les autres joueurs et dans la base du serveur)
         const std::string cp = Encoding::utf2cp(input);
-        if (input[0] == '/') pNetGame->SendChatCommand(cp.c_str());
+        if (input[0] == '/') pNetGame->SendChatCommand(("/tc " + cp).c_str());   // [v42] commande tapee : filtree par le serveur
         else
         {
             pNetGame->SendChatMessage(cp.c_str());

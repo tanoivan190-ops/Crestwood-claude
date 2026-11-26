@@ -1,5 +1,0 @@
-Boutique Crestwood (Netlify)
-1. Netlify > Add new site > Import from GitHub > depot Crestwood-claude > branche v22
-   Base directory : boutique    Publish directory : .   Functions : netlify/functions
-2. Site configuration > Environment variables > DISCORD_WEBHOOK = (lien du webhook Discord)
-3. Deploys > Trigger deploy.

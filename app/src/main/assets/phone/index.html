@@ -308,6 +308,46 @@ body{min-height:100vh;justify-content:flex-end !important;align-items:center !im
 .pb{width:4px !important;right:-4px !important;background:linear-gradient(90deg,#1b1d21,#4d525a,#1b1d21) !important;border-radius:3px !important;}
 .pbl{left:-4px !important;right:auto !important;}
 </style>
+<style id="cw35-close">
+/* [v35] fleche de fermeture plus petite et discrete */
+#phoneCloseArrow{width:24px !important;height:24px !important;border-width:1px !important;border-color:rgba(255,255,255,.45) !important;
+  background:rgba(15,15,18,.45) !important;top:max(8vh,18px) !important;right:calc(1.5vw + var(--phone-zoom,.5) * 400px + 6px) !important}
+#phoneCloseArrow svg{width:13px !important;height:13px !important;stroke-width:2.4 !important}
+</style>
+<style id="cw34-iphone17">
+/* [v34] iPhone 17 Pro : cadre aluminium "bleu intense", bords d'ecran tres fins, Dynamic Island plus petite,
+   bouton Action + volume a gauche, alimentation + Commande de l'appareil photo a droite, horloge iOS 26 */
+.phone{padding:9px !important;border-radius:62px !important;
+  background:linear-gradient(155deg,#53627c 0%,#25304200 0%,#2b3546 6%,#1a2130 30%,#121823 55%,#202a3a 80%,#4a5a76 100%) !important;
+  box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.75),
+             inset 0 1px 1.5px rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,0,0,.6),inset 0 0 0 4px #07080a,inset 0 0 0 5px rgba(140,170,220,.10) !important;}
+.phone::before{border-radius:62px !important;padding:1.5px !important;
+  background:linear-gradient(150deg,rgba(200,220,255,.55),rgba(255,255,255,.08) 25%,rgba(255,255,255,0) 50%,rgba(150,180,235,.28) 80%,rgba(255,255,255,.35)) !important;}
+.screen,.screen::after{border-radius:54px !important;}
+.screen{box-shadow:0 0 0 1px #000 !important;}
+.island{top:10px !important;width:104px !important;height:31px !important;border-radius:99px !important;padding:0 11px !important;}
+.island .lens{opacity:.0}
+.statusbar{height:52px !important;padding:2px 32px 0 36px !important;font-size:15px !important;font-weight:700 !important;letter-spacing:-.2px}
+/* boutons : gauche = Action (court) + volume +/- ; droite = alimentation + Commande appareil photo (plate, saphir) */
+.pb{width:4px !important;background:linear-gradient(90deg,#141a24,#5a6a86 55%,#1a2130) !important;border-radius:3px !important;box-shadow:0 1px 2px rgba(0,0,0,.5) !important;}
+.pbl{left:-4px !important;right:auto !important;top:150px !important;height:30px !important;}
+.pb2{left:-4px !important;right:auto !important;top:200px !important;height:54px !important;}
+.pb3{left:-4px !important;right:auto !important;top:264px !important;height:54px !important;}
+.pb1{right:-4px !important;left:auto !important;top:210px !important;height:88px !important;}
+.pb1::after{content:"";position:absolute;right:0;top:250px;width:4px;height:54px;border-radius:2px;
+  background:linear-gradient(90deg,#0b0f16,#3d4d68 50%,#0b0f16);box-shadow:inset 0 0 0 1px rgba(180,200,240,.18)}
+/* ecran verrouille iOS 26 : date au-dessus, grande heure epaisse */
+#lockClockBox{display:flex;flex-direction:column-reverse;top:62px !important}
+#lockTime{font-size:96px !important;font-weight:700 !important;letter-spacing:-3px !important;line-height:.95 !important;
+  color:rgba(255,255,255,.93) !important;text-shadow:0 2px 18px rgba(0,0,0,.25)}
+#lockDate{font-size:17px !important;font-weight:600 !important;margin:0 0 2px !important;opacity:.95}
+#lockNotifs{top:210px !important}
+/* dock et icones un peu plus "iOS 26" (verre clair) */
+.dock{border-radius:34px !important;left:12px !important;right:12px !important;bottom:10px !important;
+  background:rgba(255,255,255,.22) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.12),0 10px 26px rgba(0,0,0,.25) !important}
+.app .icon,.app .icon::after{border-radius:15px}
+.app .lbl{font-size:10.5px;font-weight:500}
+</style>
 <script>
 (function(){function fit(){var h=window.innerHeight||360;var z=(h*.95)/740;document.documentElement.style.setProperty('--phone-zoom',Math.max(.3,z).toFixed(3));}fit();window.addEventListener('resize',fit);})();
 </script>
@@ -391,7 +431,7 @@ body{min-height:100vh;justify-content:flex-end !important;align-items:center !im
     <div class="view dark active" id="lock">
       <div class="wallpaper" id="lockWp"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 65%,rgba(0,0,0,.5));z-index:1;pointer-events:none"></div>
-      <div style="position:absolute;top:70px;left:0;right:0;text-align:center;color:#fff;z-index:2">
+      <div id="lockClockBox" style="position:absolute;top:70px;left:0;right:0;text-align:center;color:#fff;z-index:2">
         <div style="font-size:64px;font-weight:200;letter-spacing:1px;line-height:1" id="lockTime">9:41</div>
         <div style="font-size:15px;opacity:.95;margin-top:6px" id="lockDate">lundi 1 mars</div>
       </div>
@@ -859,6 +899,9 @@ const TT_FEED=[
   {id:'u34',user:'@toi',caption:'Rest in peace 🖤',img:USER_IMGS['340424'],likes:21400,comments:1650},
   {id:'u35',user:'@toi',caption:'Bunny mood 🐰',img:USER_IMGS['340425'],likes:3600,comments:190},
 ];
+/* [v45] TikTok : d'abord les videos / photos de l'appli (toujours la), les liens internet a la fin
+   (s'ils ne chargent pas, le fil ne commence plus par un ecran noir "hors ligne") */
+(function(){const loc=[],net=[];TT_FEED.forEach(p=>((p.video||/^https?:/.test(String(p.img||'')))?net:loc).push(p));TT_FEED.length=0;loc.concat(net).forEach(p=>TT_FEED.push(p));})();
 
 let ttLiked={};
 
@@ -1169,6 +1212,7 @@ function phoneShowIncoming(name,number){
   document.getElementById('incName').textContent=name;
   document.getElementById('incNumber').textContent=number;
   document.getElementById('incomingCallOverlay').style.display='flex';
+  if(window.cwRingStart)window.cwRingStart();
 }
 function phoneAcceptIncoming(){
   const p=phonePendingIncoming;if(!p)return;
@@ -2059,7 +2103,7 @@ setInterval(tick,1000);tick();
 applyWallpaper(document.getElementById('homeWp'));
 applyWallpaper(document.getElementById('lockWp'));
 updateStatusIcons();
-document.getElementById('lockWp').addEventListener('click',()=>{wpIdx=(wpIdx+1)%WP.length;applyWallpaper(document.getElementById('lockWp'));applyWallpaper(document.getElementById('homeWp'));});
+/* [v45] supprime : toucher l'ecran verrouille changeait le fond d'ecran ("le fond d'ecran part") */
 
 /* ================= CENTRE DE CONTRÔLE ================= */
 function openCC(){document.getElementById('ccOverlay').classList.add('active');}
@@ -2123,5 +2167,10 @@ function ccSliderStart(e,type){
 </script>
 <script src="net.js"></script>
 <script src="store.js"></script>
+<script src="apps-v31.js"></script>
+<script src="apps-v32.js"></script>
+<script src="apps-v34.js"></script>
+<script src="apps-v38.js"></script>
+<script src="apps-v45.js"></script>
 </body>
 </html>

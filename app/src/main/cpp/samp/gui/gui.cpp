@@ -6,6 +6,7 @@
 #include "../game/PlayerTap.h"
 #include "../game/WorldMarkers.h"
 #include "../game/CombatButtons.h"
+#include "../game/EngineButton.h"
 #include "../playertags.h"
 #include "../net/playerbubblepool.h"
 #include "../CDebugInfo.h"
@@ -161,6 +162,7 @@ void UI::drawList()
     WorldMarkers::Render(renderer());
     // boutons natifs VISER (visee permanente) / TIRER (drive-by passager)
     CombatButtons::Render(renderer());
+    EngineButton::Render(renderer());   // [v35] bouton moteur natif
 
     draw(renderer());
 

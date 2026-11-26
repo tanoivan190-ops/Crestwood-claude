@@ -4,6 +4,7 @@
 #include "../net/netgame.h"
 #include "../vendor/armhook/patch.h"
 #include <cmath>
+#include <dlfcn.h>
 // 0.3.7
 #include "Entity/CPedGTA.h"
 #include "Streaming.h"
@@ -779,6 +780,21 @@ void CPlayerPed::GetTransformedBonePosition(int iBoneID, CVector* vecOut)
 	((void (*)(CPedGTA*, CVector*, int, int))(g_libGTASA + (VER_x32 ? 0x4A24A8 + 1: 0x598670)))(m_pPed, vecOut, iBoneID, 0);
 }
 
+// [v30c] l'animation existe-t-elle dans ce bloc (deja charge) ? Fonctions du jeu (libGTASA) trouvees par leur nom.
+static bool CwAnimExists(const char* lib, const char* name)
+{
+    typedef void* (*GetBlockFn)(const char*);
+    typedef void* (*GetAnimFn)(const char*, const void*);
+    static GetBlockFn getBlock = nullptr;
+    static GetAnimFn getAnim = nullptr;
+    if (!getBlock && CHook::lib) getBlock = (GetBlockFn)dlsym(CHook::lib, "_ZN12CAnimManager17GetAnimationBlockEPKc");
+    if (!getAnim && CHook::lib) getAnim = (GetAnimFn)dlsym(CHook::lib, "_ZN12CAnimManager12GetAnimationEPKcPK10CAnimBlock");
+    if (!getBlock || !getAnim) return true;          // verification impossible : comportement d'origine
+    void* block = getBlock(lib);
+    if (!block) return false;
+    return getAnim(name, block) != nullptr;
+}
+
 void CPlayerPed::ApplyAnimation(const char* szAnimName, const char* szAnimLib, float fT, int opt1, int opt2, int opt3, int opt4, int iTime)
 {
 	int iWaitAnimLoad = 0;
@@ -789,13 +805,19 @@ void CPlayerPed::ApplyAnimation(const char* szAnimName, const char* szAnimLib, f
 	if(!strcasecmp(szAnimLib,"SEX")) return;
 	if(!strcasecmp(szAnimLib,"SAMP")) return;
 
-	if(!pGame->IsAnimationLoaded(szAnimLib))
-	{
-		pGame->RequestAnimation(szAnimLib);
+    // [v30c] une animation absente d'un bloc charge est ignoree au lieu de planter le jeu
+    if(!pGame->IsAnimationLoaded(szAnimLib))
+    {
+        pGame->RequestAnimation(szAnimLib);
         ScriptCommand(&apply_animation, m_dwGTAId, szAnimName, szAnimLib, fT, opt1, opt2, opt3, opt4, iTime);
-	}
+    }
+    else if (!CwAnimExists(szAnimLib, szAnimName))
+    {
+        FLog("ApplyAnimation : %s:%s introuvable, ignoree", szAnimLib, szAnimName);
+        return;
+    }
 
-	ScriptCommand(&apply_animation, m_dwGTAId, szAnimName, szAnimLib, fT, opt1, opt2, opt3, opt4, iTime);
+    ScriptCommand(&apply_animation, m_dwGTAId, szAnimName, szAnimLib, fT, opt1, opt2, opt3, opt4, iTime);
 }
 
 // 0.3.7
@@ -2311,12 +2333,17 @@ void CPlayerPed::ProcessAttach()
     if(m_pPed->IsInVehicle() && m_pPed->pVehicle->IsRCVehicleModelID())
         needRender = false;
 
-    m_pPed->UpdateRpHAnim();
+    // [v51] OPTI : squelette et tete mis a jour seulement pour les peds dans le monde et proches
 
-    if (m_pPed->IsAdded())
-    {
-        ProcessHeadMatrix();
-    }
+    // (ou qui portent des objets) ; avant : tous les joueurs du serveur, a chaque image.
+
+    const bool cwAdded = m_pPed->IsAdded();
+
+    const bool cwNear = cwAdded && m_pPed->GetDistanceFromCamera() < 90.0f;
+
+    if (cwNear || (cwAdded && !m_aAttachedObject.empty())) m_pPed->UpdateRpHAnim();
+
+    if (cwNear) ProcessHeadMatrix();
     for (auto iter : m_aAttachedObject)
     {
         auto attach = iter.second;

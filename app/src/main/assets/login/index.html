@@ -2,193 +2,147 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="description" content="Arrivée en ville sur Crestwood Roleplay : connexion, personnage et point d’apparition.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#07080b">
-  <title>Crestwood RP - Connexion</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Crestwood RP</title>
+  <link rel="stylesheet" href="login.css">
   <link rel="stylesheet" href="../common/cw-perf.css">
-  <link rel="stylesheet" href="v21.css">
   <script src="../common/i18n.js"></script>
 </head>
 <body>
 <!--
-  Ecran de connexion Crestwood RP (v19).
-  Pont natif : window.SampAuth.action(type, json) / SampAuth.ready()   (SAMP.java game + game32)
-  Le natif appelle : DXAuth.openFromNative(json) / DXAuth.handleResponse(json) / CwIdentity.open()
-  Types envoyes : login, register (+ promo), promocheck, requestRecoveryCode, recover, identity
+  Crestwood RP v51 : arrivee en ville (connexion Google uniquement).
+  La page est TRANSPARENTE : derriere, le jeu montre le personnage (scene Cw45), la cinematique
+  d'arrivee et l'apercu en direct des points d'apparition.
+  Ecrans (envoyes par le serveur, dialogue 9520 "@auth") :
+    google   connexion automatique avec le compte Google du telephone
+    intro    cinematique d'arrivee (nouveau compte Google)            step / n
+    create   creation du personnage (+ "J'ai deja un personnage" -> link)
+    link     recuperer un ancien personnage (ancien mot de passe, une fois)
+    identity identite manquante (ancien compte)
+    lobby    le personnage attend : ENTRER EN VILLE
+    spawn    choix du point d'apparition (camera en direct)
+  Page -> jeu : SampAuth.action(type, json) / SampAuth.google(json) / SampAuth.ready()
 -->
-<main class="cw-auth" id="cwAuth">
-  <div class="cw-bg" aria-hidden="true"></div>
-  <div class="cw-shade" aria-hidden="true"></div>
+<main class="cw" id="cwAuth" data-screen="google">
+  <div class="cw-preview-bg" aria-hidden="true"></div>
+  <div class="cw-veil" aria-hidden="true"></div>
+  <img class="cw-logo" src="assets/images/cw-logo.png" alt="Crestwood Roleplay">
 
-  <!-- ======== colonne marque ======== -->
-  <section class="cw-brand" aria-label="Crestwood RP">
-    <img class="cw-logo" src="assets/images/cw-logo.png" alt="Crestwood Roleplay">
-    <p class="cw-tagline">Ta vie commence à <b>Crestwood</b>.</p>
-    <ul class="cw-features">
-      <li><i class="ic ic-city"></i><span><b>Une ville vivante</b><small>Métiers, entreprises, factions et gangs</small></span></li>
-      <li><i class="ic ic-money"></i><span><b>Économie en dollars</b><small>Banque, garage, maisons et enchères</small></span></li>
-      <li><i class="ic ic-gift"></i><span><b>Code promo à l'inscription</b><small>Véhicule et argent offerts dès ton arrivée</small></span></li>
-    </ul>
-    <div class="cw-server"><span class="cw-dot"></span><b>Serveur en ligne</b><span class="cw-sep"></span><span>Roleplay francophone</span></div>
+  <!-- ===== CONNEXION GOOGLE ===== -->
+  <section class="cw-screen cw-side" id="screen-google">
+    <h1 class="cw-title">Connexion</h1>
+    <div class="cw-gline" id="gLine">
+      <i class="g-logo" aria-hidden="true"></i>
+      <div><b id="gStatus">Connexion à ton compte Google…</b><small id="gMail"></small></div>
+    </div>
+    <div class="cw-progress" id="gProgress"><span></span></div>
+    <button class="cw-google" type="button" id="gButton" hidden><i class="g-logo" aria-hidden="true"></i><span>Continuer avec Google</span></button>
+    <button class="cw-ghost" type="button" id="gRetry" hidden>Réessayer</button>
   </section>
 
-  <!-- ======== carte d'authentification ======== -->
-  <section class="cw-card" id="cwCard">
-    <nav class="cw-tabs" id="cwTabs" aria-label="Authentification">
-      <button type="button" class="cw-tab active" data-screen="login">Connexion</button>
-      <button type="button" class="cw-tab" data-screen="register">Inscription</button>
-      <button type="button" class="cw-tab" data-screen="recover">Mot de passe</button>
-      <span class="cw-tab-bar" aria-hidden="true"></span>
-    </nav>
+  <!-- ===== CINEMATIQUE ===== -->
+  <section class="cw-screen cw-film" id="screen-intro" aria-live="polite">
+    <div class="cw-bar cw-bar-top"></div>
+    <div class="cw-bar cw-bar-bottom"></div>
+    <div class="cw-film-black" id="filmBlack"></div>
+    <div class="cw-caption" id="filmCaption"><small id="filmSmall"></small><h2 id="filmBig"></h2></div>
+    <div class="cw-film-end" id="filmEnd"><img src="assets/images/cw-logo.png" alt=""><span>Ta vie commence maintenant.</span></div>
+    <button class="cw-skip" type="button" id="filmSkip">Passer<i></i></button>
+    <div class="cw-film-count" id="filmCount"></div>
+  </section>
 
-    <!-- CONNEXION -->
-    <section class="cw-screen active" id="screen-login">
-      <header class="cw-head">
-        <h1>Content de te revoir</h1>
-        <p>Entre ton mot de passe pour rejoindre la ville.</p>
-      </header>
-      <form id="loginForm" autocomplete="off" novalidate>
-        <label class="cw-field">
-          <i class="ic ic-user"></i>
-          <input id="loginUsername" type="text" maxlength="24" placeholder="Pseudo (Prénom_Nom)" autocomplete="off" spellcheck="false">
-          <span class="cw-lock" title="Pseudo de connexion"></span>
-        </label>
-        <label class="cw-field">
-          <i class="ic ic-key"></i>
-          <input id="loginPassword" type="password" maxlength="100" placeholder="Mot de passe" autocomplete="off">
-          <button class="cw-eye" type="button" data-eye="loginPassword" aria-label="Afficher le mot de passe"></button>
-        </label>
-        <div class="cw-row">
-          <label class="cw-check"><input id="rememberConnexion" type="checkbox"><span></span>Se souvenir de moi</label>
-          <button class="cw-link" type="button" data-go="recover">Mot de passe oublié ?</button>
-        </div>
-        <button class="cw-primary" type="submit"><span>Se connecter</span></button>
-        <p class="cw-foot">Pas encore de compte ? <button class="cw-link" type="button" data-go="register">Crée-le en 1 minute</button></p>
-      </form>
-    </section>
-
-    <!-- INSCRIPTION -->
-    <section class="cw-screen" id="screen-register">
-      <header class="cw-head">
-        <h1>Créer ton compte</h1>
-        <p>Ton pseudo de jeu devient ton identité en ville.</p>
-      </header>
-      <div class="cw-choice" id="regChoice">
-        <button class="cw-provider google" id="btnGoogle" type="button"><i class="gg" aria-hidden="true">G</i><span>Continuer avec Google</span></button>
-        <div class="cw-or"><span>ou</span></div>
-        <button class="cw-provider cwood" id="btnCrestwood" type="button"><img src="assets/images/cw-logo.png" alt=""><span>Continuer avec Crestwood</span></button>
-        <p class="cw-foot">Déjà un compte ? <button class="cw-link" type="button" data-go="login">Connecte-toi</button></p>
+  <!-- ===== CREATION DU PERSONNAGE ===== -->
+  <section class="cw-screen cw-side cw-form-side" id="screen-create">
+    <h1 class="cw-title">Ton personnage</h1>
+    <button class="cw-suggest" type="button" id="suggestBox" hidden><span>Déjà joué avec <b id="suggestName"></b> ?</span><em>Le récupérer</em></button>
+    <form id="createForm" autocomplete="off" novalidate>
+      <div class="cw-two">
+        <label class="cw-in"><span>Prénom</span><input id="cFirst" type="text" maxlength="12" autocomplete="off" spellcheck="false"></label>
+        <label class="cw-in"><span>Nom</span><input id="cLast" type="text" maxlength="12" autocomplete="off" spellcheck="false"></label>
       </div>
-      <form id="registerForm" autocomplete="off" novalidate hidden>
-        <p class="cw-foot cw-back"><button class="cw-link" type="button" id="regBack">‹ Autres choix</button></p>
-        <div class="cw-grid">
-          <label class="cw-field">
-            <i class="ic ic-user"></i>
-            <input id="registerUsername" type="text" maxlength="24" placeholder="Pseudo (Prénom_Nom)" autocomplete="off" spellcheck="false">
-            <span class="cw-lock" title="Pseudo de connexion"></span>
-          </label>
-          <label class="cw-field">
-            <i class="ic ic-mail"></i>
-            <input id="registerEmail" type="email" maxlength="63" placeholder="Adresse e-mail" autocomplete="off" spellcheck="false">
-          </label>
-          <label class="cw-field">
-            <i class="ic ic-key"></i>
-            <input id="registerPassword" type="password" maxlength="100" placeholder="Mot de passe" autocomplete="off">
-            <button class="cw-eye" type="button" data-eye="registerPassword" aria-label="Afficher le mot de passe"></button>
-            <span class="cw-strength" id="pwStrength" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          </label>
-          <label class="cw-field">
-            <i class="ic ic-key"></i>
-            <input id="registerConfirmPassword" type="password" maxlength="100" placeholder="Confirmer" autocomplete="off">
-            <button class="cw-eye" type="button" data-eye="registerConfirmPassword" aria-label="Afficher le mot de passe"></button>
-          </label>
+      <div class="cw-seg" role="radiogroup" aria-label="Genre">
+        <button type="button" class="on" data-gender="0" role="radio" aria-checked="true">Homme</button>
+        <button type="button" data-gender="1" role="radio" aria-checked="false">Femme</button>
+      </div>
+      <div class="cw-three">
+        <label class="cw-in cw-sel"><span>Jour</span><select id="cDay"></select></label>
+        <label class="cw-in cw-sel"><span>Mois</span><select id="cMonth"></select></label>
+        <label class="cw-in cw-sel"><span>Année</span><select id="cYear"></select></label>
+      </div>
+      <div class="cw-two-alt">
+        <label class="cw-in cw-sel"><span>Origine</span><select id="cOrigin"></select></label>
+        <div class="cw-promo-row">
+          <label class="cw-in"><span>Code promo</span><input id="cPromo" type="text" maxlength="15" autocomplete="off" spellcheck="false" autocapitalize="characters" placeholder="facultatif"></label>
+          <button class="cw-ghost" type="button" id="cPromoCheck">OK</button>
         </div>
-
-        <div class="cw-promo" id="promoBox">
-          <label class="cw-field cw-field-promo">
-            <i class="ic ic-gift"></i>
-            <input id="registerPromo" type="text" maxlength="15" placeholder="Code promo (facultatif)" autocomplete="off" spellcheck="false" autocapitalize="characters">
-          </label>
-          <button class="cw-secondary" id="promoCheck" type="button">Vérifier</button>
-          <div class="cw-reward" id="promoReward" hidden>
-            <i class="ic ic-gift"></i>
-            <div><b id="promoRewardTitle">Forfait</b><small id="promoRewardText"></small></div>
-            <button class="cw-x" id="promoClear" type="button" aria-label="Retirer le code"></button>
-          </div>
-        </div>
-
-        <label class="cw-check cw-terms"><input id="acceptTerms" type="checkbox"><span></span>J'ai lu et j'accepte le règlement de Crestwood RP</label>
-        <button class="cw-primary" type="submit"><span>Créer mon compte</span></button>
-      </form>
-    </section>
-
-    <!-- RECUPERATION -->
-    <section class="cw-screen" id="screen-recover">
-      <header class="cw-head">
-        <h1>Mot de passe oublié</h1>
-        <p>Demande un code au staff, puis choisis un nouveau mot de passe.</p>
-      </header>
-      <form id="recoverForm" autocomplete="off" novalidate>
-        <label class="cw-field">
-          <i class="ic ic-user"></i>
-          <input id="recoverUsername" type="text" maxlength="24" placeholder="Pseudo (Prénom_Nom)" autocomplete="off" spellcheck="false">
-          <span class="cw-lock" title="Pseudo de connexion"></span>
-        </label>
-        <div class="cw-inline">
-          <label class="cw-field">
-            <i class="ic ic-hash"></i>
-            <input id="recoverCode" type="text" inputmode="numeric" maxlength="18" placeholder="Code reçu" autocomplete="off">
-          </label>
-          <button class="cw-secondary" id="requestCodeButton" type="button">Demander un code</button>
-        </div>
-        <label class="cw-field">
-          <i class="ic ic-key"></i>
-          <input id="recoverNewPassword" type="password" maxlength="100" placeholder="Nouveau mot de passe" autocomplete="off">
-          <button class="cw-eye" type="button" data-eye="recoverNewPassword" aria-label="Afficher le mot de passe"></button>
-        </label>
-        <button class="cw-primary" type="submit"><span>Changer le mot de passe</span></button>
-        <p class="cw-foot"><button class="cw-link" type="button" data-go="login">‹ Retour à la connexion</button></p>
-      </form>
-    </section>
-
-    <!-- IDENTITE (apres la premiere connexion) -->
-    <section class="cw-screen" id="screen-identity">
-      <header class="cw-head">
-        <h1>Ton personnage</h1>
-        <p>Dernière étape. Ton genre décide de ton corps, le reste se change en boutique.</p>
-      </header>
-      <form id="identityForm" autocomplete="off" novalidate>
-        <div class="cw-label">Genre</div>
-        <div class="cw-gender" role="radiogroup" aria-label="Genre">
-          <button type="button" class="cw-gender-btn" data-gender="0" role="radio" aria-checked="false"><i class="ic ic-male"></i><span>Homme</span></button>
-          <button type="button" class="cw-gender-btn" data-gender="1" role="radio" aria-checked="false"><i class="ic ic-female"></i><span>Femme</span></button>
-        </div>
-        <div class="cw-label">Date de naissance</div>
-        <div class="cw-selects">
-          <select id="idDay" aria-label="Jour"></select>
-          <select id="idMonth" aria-label="Mois"></select>
-          <select id="idYear" aria-label="Année"></select>
-        </div>
-        <div class="cw-label">Origine</div>
-        <div class="cw-selects one"><select id="idOrigin" aria-label="Origine"></select></div>
-        <label class="cw-field" id="idOtherWrap" hidden>
-          <i class="ic ic-globe"></i>
-          <input id="idOther" type="text" maxlength="22" placeholder="Ton pays / ta région" autocomplete="off">
-        </label>
-        <button class="cw-primary" type="submit"><span>Entrer à Crestwood</span></button>
-      </form>
-    </section>
-
-    <div class="cw-busy" id="cwBusy" hidden><span></span></div>
+      </div>
+      <label class="cw-in" id="cOtherWrap" hidden><span>Ton pays / ta région</span><input id="cOther" type="text" maxlength="22" autocomplete="off"></label>
+      <p class="cw-reward" id="cPromoReward" hidden></p>
+      <button class="cw-cta" type="submit"><span>Créer mon personnage</span><i></i></button>
+      <button class="cw-text" type="button" data-go="link">J’ai déjà un personnage à Crestwood</button>
+    </form>
   </section>
 
-  <!-- notifications : meme boite d'aide que le HUD (style GTA SA) -->
+  <!-- ===== ANCIEN PERSONNAGE ===== -->
+  <section class="cw-screen cw-side cw-form-side" id="screen-link">
+    <h1 class="cw-title">Récupérer mon personnage</h1>
+    <p class="cw-lead">Une seule fois : ton ancien mot de passe relie ton personnage à ton compte Google. Ensuite, plus jamais de mot de passe.</p>
+    <form id="linkForm" autocomplete="off" novalidate>
+      <label class="cw-in"><span>Pseudo (Prénom_Nom)</span><input id="lName" type="text" maxlength="24" autocomplete="off" spellcheck="false"></label>
+      <label class="cw-in"><span>Ancien mot de passe</span><input id="lPass" type="password" maxlength="80" autocomplete="off"></label>
+      <button class="cw-cta" type="submit"><span>Relier à Google</span><i></i></button>
+      <button class="cw-text" type="button" data-go="create">Créer un nouveau personnage</button>
+    </form>
+  </section>
+
+  <!-- ===== IDENTITE (ancien compte sans identite) ===== -->
+  <section class="cw-screen cw-side cw-form-side" id="screen-identity">
+    <h1 class="cw-title">Ton identité</h1>
+    <form id="identityForm" autocomplete="off" novalidate>
+      <div class="cw-seg" role="radiogroup" aria-label="Genre" id="idSeg">
+        <button type="button" data-gender="0" role="radio" aria-checked="false">Homme</button>
+        <button type="button" data-gender="1" role="radio" aria-checked="false">Femme</button>
+      </div>
+      <div class="cw-three">
+        <label class="cw-in cw-sel"><span>Jour</span><select id="iDay"></select></label>
+        <label class="cw-in cw-sel"><span>Mois</span><select id="iMonth"></select></label>
+        <label class="cw-in cw-sel"><span>Année</span><select id="iYear"></select></label>
+      </div>
+      <label class="cw-in cw-sel"><span>Origine</span><select id="iOrigin"></select></label>
+      <label class="cw-in" id="iOtherWrap" hidden><span>Ton pays / ta région</span><input id="iOther" type="text" maxlength="22" autocomplete="off"></label>
+      <button class="cw-cta" type="submit"><span>Valider</span><i></i></button>
+    </form>
+  </section>
+
+  <!-- ===== SALON ===== -->
+  <section class="cw-screen cw-side" id="screen-lobby">
+    <h1 class="cw-name"><span id="lbFirst">Anzo</span><span id="lbLast">Smith</span></h1>
+    <dl class="cw-facts">
+      <div><dt>Né le</dt><dd id="lbBirth">…</dd></div>
+      <div><dt>Origine</dt><dd id="lbOrigin">…</dd></div>
+      <div><dt>Liquide</dt><dd id="lbCash">…</dd></div>
+      <div><dt>Banque</dt><dd id="lbBank">…</dd></div>
+    </dl>
+    <button class="cw-cta cw-cta-big" type="button" id="lbEnter"><span>Entrer en ville</span><i></i></button>
+    <p class="cw-account"><i class="g-logo" aria-hidden="true"></i><span id="lbMail">Compte Google</span></p>
+  </section>
+
+  <!-- ===== POINT D'APPARITION ===== -->
+  <section class="cw-screen cw-spawn" id="screen-spawn">
+    <header class="cw-spawn-head">
+      <button class="cw-back" type="button" id="spBack" aria-label="Retour"></button>
+      <div><h1 class="cw-title">Où veux-tu apparaître ?</h1></div>
+    </header>
+    <div class="cw-place" id="spPlace"><small id="spTag"></small><b id="spName"></b><span id="spDesc"></span></div>
+    <div class="cw-strip" id="spStrip"></div>
+    <button class="cw-cta cw-spawn-go" type="button" id="spGo"><span>Apparaître ici</span><i></i></button>
+  </section>
+
+  <div class="cw-busy" id="cwBusy" hidden><span></span></div>
   <div class="sa-stack" id="notificationContainer" aria-live="polite"></div>
 
-  <!-- lecteur de musique (pistes de l'ecran de chargement) -->
   <section class="cw-player" id="cwPlayer" aria-label="Musique">
-    <button class="cw-pbtn" id="musicPrev" type="button" aria-label="Piste précédente"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
     <button class="cw-pbtn cw-play" id="musicToggle" type="button" aria-label="Pause"><svg viewBox="0 0 24 24"><path id="musicIcon" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
     <button class="cw-pbtn" id="musicNext" type="button" aria-label="Piste suivante"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l10.5 7L4 19z"/></svg></button>
     <div class="cw-track"><small>Radio Crestwood</small><b id="musicTitle">Crestwood Radio</b></div>

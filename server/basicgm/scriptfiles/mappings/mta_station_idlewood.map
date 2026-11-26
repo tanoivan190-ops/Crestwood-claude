@@ -1,0 +1,6 @@
+<map edf:definitions="editor_main">
+    <object id="object (ab_mafiaSuite01zzz) (1)" breakable="true" interior="0" alpha="255" dimension="0" model="14581" scale="1" doublesided="false" collisions="true" frozen="false" posX="1921.4004" posY="-1775.0996" posZ="14.9" rotX="0" rotY="0" rotZ="0"></object>
+    <object id="object (Gen_doorINT02) (1)" breakable="true" interior="0" alpha="255" dimension="0" model="1492" scale="1" doublesided="false" collisions="true" frozen="false" posX="1927.995" posY="-1774.813" posZ="12.555" rotX="0" rotY="0" rotZ="270"></object>
+    <object id="object (Gen_doorINT02) (2)" breakable="true" interior="0" alpha="255" dimension="0" model="1492" scale="1" doublesided="false" collisions="true" frozen="false" posX="1928" posY="-1777.83801" posZ="12.555" rotX="0" rotY="0" rotZ="90"></object>
+    <object id="object (StudioHallBuild) (1)" breakable="true" interior="0" alpha="255" dimension="0" model="14814" scale="1" doublesided="false" collisions="true" frozen="false" posX="1924.3391" posY="-1775.9344" posZ="12.541" rotX="0" rotY="0" rotZ="0"></object>
+</map>

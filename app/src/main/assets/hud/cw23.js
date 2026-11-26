@@ -51,7 +51,12 @@
   function field(ph, max) {
     const i = h("input", "cw23-in"); i.type = "text"; i.placeholder = ph; i.maxLength = max || 40; i.readOnly = true;
     i.setAttribute("inputmode", "none"); i.autocomplete = "off";
-    i.addEventListener("pointerdown", (e) => { e.preventDefault(); window.CwKb?.openFor ? window.CwKb.openFor(i, () => i.dispatchEvent(new Event("change"))) : (i.readOnly = false, i.focus()); });
+    i.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      // [v31] clavier du telephone par defaut : CwKb.openFor renvoie false -> champ normal + clavier Android
+      if (window.CwKb?.openFor && window.CwKb.openFor(i, () => i.dispatchEvent(new Event("change")))) return;
+      i.readOnly = false; i.removeAttribute("inputmode"); i.focus(); window.SampHud?.showAndroidKeyboard?.();
+    });
     return i;
   }
   function row(...kids) { const r = h("div", "cw23-row"); kids.forEach((k) => r.appendChild(k)); return r; }

@@ -57,21 +57,7 @@
       ["A staff decide", "Algum problema? /report. As decisões da staff valem."]
     ]
   };
-  var FLAGS = {
-    fr: "<svg viewBox='0 0 60 40'><rect width='20' height='40' fill='#0055A4'/><rect x='20' width='20' height='40' fill='#fff'/><rect x='40' width='20' height='40' fill='#EF4135'/></svg>",
-    en: "<svg viewBox='0 0 60 40'><rect width='60' height='40' fill='#012169'/><path d='M0 0L60 40M60 0L0 40' stroke='#fff' stroke-width='7'/><path d='M0 0L60 40M60 0L0 40' stroke='#C8102E' stroke-width='3'/><path d='M30 0V40M0 20H60' stroke='#fff' stroke-width='11'/><path d='M30 0V40M0 20H60' stroke='#C8102E' stroke-width='6.5'/></svg>",
-    pt: "<svg viewBox='0 0 60 40'><rect width='60' height='40' fill='#FF0000'/><rect width='24' height='40' fill='#006600'/><circle cx='24' cy='20' r='7' fill='#FFE000'/><circle cx='24' cy='20' r='4' fill='#fff'/><circle cx='24' cy='20' r='2' fill='#0033A0'/></svg>"
-  };
-  // [code, sigle, nom, eyebrow, titre, sous-titre, bouton]
-  var LANGS = [
-    ["fr", "FR", "Français", "Langue · Language", "Bienvenue à Crestwood", "Choisis la langue de ton aventure. Tu pourras la changer plus tard dans les réglages.", "Continuer"],
-    ["en", "EN", "English", "Language · Langue", "Welcome to Crestwood", "Choose the language of your adventure. You can change it later in the settings.", "Continue"],
-    ["pt", "PT", "Português", "Idioma · Language", "Bem-vindo a Crestwood", "Escolha o idioma da sua aventura. Você poderá mudá-lo depois nas configurações.", "Continuar"]
-  ];
-  function guessLang() {
-    var n = ((navigator.language || navigator.userLanguage || "fr") + "").toLowerCase();
-    return n.indexOf("pt") === 0 ? "pt" : (n.indexOf("en") === 0 ? "en" : "fr");
-  }
+  var LANGS = [["fr", "FR", "Français", "Langue de la ville"], ["en", "EN", "English", "City language: French"], ["pt", "PT", "Português", "Idioma da cidade: francês"]];
 
   var CSS = ""
     + "@font-face{font-family:'CwMontW';src:url('../common/fonts/montserrat_bold.ttf') format('truetype');font-weight:700}"
@@ -110,37 +96,13 @@
     + ".cww.out{opacity:0;transition:opacity .25s}"
     + "@media (prefers-reduced-motion:reduce){.cww.out{transition:none}}";
 
-  var CSS2 = ""
-    + ".cww{background:radial-gradient(ellipse at 20% 30%,rgba(59,130,255,.16),transparent 55%),rgba(4,6,9,.9)}"
-    + ".cww-card{border-radius:16px;background:linear-gradient(180deg,rgba(59,130,255,.07),rgba(255,255,255,0) 30%),rgba(15,18,23,.96);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 26px 70px rgba(0,0,0,.6)}"
-    + ".cww-plate{border-radius:50%;box-shadow:none}"
-    + ".cww-btn{border-radius:12px;background:linear-gradient(180deg,#4b8fff,#2f74f0);box-shadow:0 6px 18px rgba(59,130,255,.3)}"
-    + ".cww-btn:disabled{background:#2a2f37;box-shadow:none}"
-    + ".cww-rules li::before{border-radius:6px}"
-    /* ecran de langue : colonne de drapeaux a gauche, apercu a droite */
-    + ".cww-card.cwl{flex-direction:row;width:min(94vw,780px);height:min(86vh,430px)}"
-    + ".cwl-rail{flex:none;display:flex;flex-direction:column;gap:clamp(8px,2.4vh,14px);align-items:center;justify-content:center;padding:clamp(10px,3vh,18px) clamp(12px,2.6vw,22px);"
-    + "background:rgba(255,255,255,.03);border-right:1px solid rgba(255,255,255,.08)}"
-    + ".cwl-flag{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:clamp(64px,13vw,92px);padding:clamp(7px,2vh,11px) 6px;border:1px solid rgba(255,255,255,.1);"
-    + "border-radius:12px;background:rgba(255,255,255,.04);color:#c7cbd2;font:700 clamp(9px,2.6vh,11px)/1 'CwMontW',sans-serif;letter-spacing:.14em;transition:transform .15s,border-color .15s,background .15s}"
-    + ".cwl-flag svg{display:block;width:100%;height:auto;border-radius:5px;box-shadow:0 2px 10px rgba(0,0,0,.45)}"
-    + ".cwl-flag.on{border-color:#3b82ff;background:rgba(59,130,255,.16);color:#fff;transform:scale(1.04);box-shadow:0 0 0 3px rgba(59,130,255,.18)}"
-    + ".cwl-main{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(16px,5vh,34px) clamp(16px,4vw,36px)}"
-    + ".cwl-eyebrow{display:flex;align-items:center;gap:10px;font:700 clamp(8.5px,2.5vh,11px)/1 'CwMontW',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#9cc1ff}"
-    + ".cwl-eyebrow::before{content:'';width:28px;height:2px;border-radius:2px;background:linear-gradient(90deg,#3b82ff,rgba(59,130,255,0))}"
-    + ".cwl-title{margin:clamp(8px,2.4vh,14px) 0 0;font:900 clamp(20px,7.6vh,38px)/1.08 'CwMontW',sans-serif;color:#fff;letter-spacing:-.01em;transition:opacity .18s}"
-    + ".cwl-sub{margin:clamp(6px,1.8vh,10px) 0 0;font:500 clamp(10.5px,3vh,14px)/1.5 'CwMontW',sans-serif;color:#aab1bc;max-width:46ch;transition:opacity .18s}"
-    + ".cwl-title.sw,.cwl-sub.sw{opacity:0}"
-    + ".cwl-go{margin-top:clamp(14px,4.4vh,26px);align-self:flex-start}"
-    + "@media (max-width:560px){.cww-card.cwl{flex-direction:column;height:auto;max-height:94vh}.cwl-rail{flex-direction:row;border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}}";
-
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var T = function (s) { return I ? I.t(s) : s; };
 
   function show() {
     var st = document.createElement("style");
-    st.textContent = CSS + CSS2;
+    st.textContent = CSS;
     document.head.appendChild(st);
     var root = el("div", "cww");
     root.setAttribute("role", "dialog");
@@ -151,51 +113,37 @@
     var picked = (I && I.chosen) ? I.lang : "";
 
     function langStep() {
-      card.className = "cww-card cwl";
       card.innerHTML = "";
-      if (!picked) picked = guessLang();
-      var rail = el("div", "cwl-rail");
-      var main = el("div", "cwl-main");
-      var eyebrow = el("div", "cwl-eyebrow");
-      var title = el("h2", "cwl-title");
-      var sub = el("p", "cwl-sub");
-      var go = el("button", "cww-btn cwl-go");
-      go.type = "button";
-      main.appendChild(eyebrow); main.appendChild(title); main.appendChild(sub); main.appendChild(go);
-
-      function paint(code, animate) {
-        var l = LANGS.filter(function (x) { return x[0] === code; })[0] || LANGS[0];
-        function set() { eyebrow.textContent = l[3]; title.textContent = l[4]; sub.textContent = l[5]; go.textContent = l[6]; }
-        if (!animate) { set(); return; }
-        title.classList.add("sw"); sub.classList.add("sw");
-        window.setTimeout(function () { set(); title.classList.remove("sw"); sub.classList.remove("sw"); }, 170);
-      }
+      var head = el("div", "cww-head", "<span class='cww-plate'>CW</span><div><h2>Choisis ta langue · Choose your language</h2><p>Tu pourras la changer plus tard dans les réglages.</p></div>");
+      var body = el("div", "cww-body");
       LANGS.forEach(function (l) {
-        var b = el("button", "cwl-flag" + (picked === l[0] ? " on" : ""), FLAGS[l[0]] + "<span>" + l[1] + "</span>");
+        var b = el("button", "cww-lang" + (picked === l[0] ? " on" : ""), "<i>" + l[1] + "</i><span><b>" + l[2] + "</b><small>" + esc(l[3]) + "</small></span>");
         b.type = "button";
-        b.setAttribute("aria-label", l[2]);
         b.addEventListener("click", function () {
-          if (picked === l[0]) return;
           picked = l[0];
-          Array.prototype.forEach.call(rail.querySelectorAll(".cwl-flag"), function (x) { x.classList.toggle("on", x === b); });
-          paint(picked, true);
+          Array.prototype.forEach.call(body.querySelectorAll(".cww-lang"), function (x) { x.classList.toggle("on", x === b); });
+          next.disabled = false;
         });
-        rail.appendChild(b);
+        body.appendChild(b);
       });
-      go.addEventListener("click", function () {
+      var foot = el("div", "cww-foot");
+      foot.appendChild(el("span", "cww-check"));
+      var next = el("button", "cww-btn", "Continuer");
+      next.type = "button";
+      next.disabled = !picked;
+      next.addEventListener("click", function () {
         if (!picked) return;
         savePref("cw.lang", picked);
         if (I && I.live) I.live(picked);
         rulesStep();
       });
-      card.appendChild(rail); card.appendChild(main);
-      paint(picked, false);
+      foot.appendChild(next);
+      card.appendChild(head); card.appendChild(body); card.appendChild(foot);
     }
 
     function rulesStep() {
       var code = (I && I.lang) || "fr";
       var list = RULES[code] || RULES.fr;
-      card.className = "cww-card";
       card.innerHTML = "";
       var head = el("div", "cww-head", "<span class='cww-plate'>CW</span><div><h2>" + esc(T("Règlement de Crestwood")) + "</h2><p>" + esc(T("Lis les règles de la ville avant d'entrer. Elles s'appliquent à tous les joueurs.")) + "</p></div>");
       var body = el("div", "cww-body");

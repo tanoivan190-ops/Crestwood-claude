@@ -8,6 +8,7 @@
 
 #include "SouthModelLoader.h"
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
@@ -27,7 +28,6 @@
 #include "game/RW/rwcore.h"
 #include "game/RW/stream.h"
 #include "game/RW/RwHelper.h"
-#include "game/BrlTextureShader.h"
 #include "game/Streaming.h"
 #include "game/StreamingInfo.h"
 #include "game/TxdDef.h"
@@ -206,21 +206,45 @@ RpClump* LoadDffFile(const char* path, std::string& err) {
     return clump;
 }
 
-// ms_pTxdPool est un inline statique jamais renseigne cote client : on lit le
-// vrai pointeur du moteur (sinon "no texture dictionary" et habits inchanges).
-static CTxdPool* NativeTxdPool() {
-    if (CTxdStore::ms_pTxdPool) return CTxdStore::ms_pTxdPool;
-    const char* libs[] = { "libGame.so", "libGTASA.so" };
-    for (const char* name : libs) {
-        void* h = dlopen(name, RTLD_NOLOAD | RTLD_LAZY);
-        if (!h) continue;
-        void* sym = dlsym(h, "_ZN9CTxdStore11ms_pTxdPoolE");
-        if (sym) {
-            CTxdStore::ms_pTxdPool = *(CTxdPool**)sym;
-            break;
+// [v40] VRAI pool des dictionnaires du jeu. CTxdStore::ms_pTxdPool du client n'etait JAMAIS rempli
+//       (variable locale vide) -> "no texture dictionary for model 7" a chaque essai -> skin GTA d'origine.
+CTxdPool* GameTxdPool() {
+    static CTxdPool** s_pp = nullptr;
+    static bool s_tried = false;
+    if (!s_tried) {
+        s_tried = true;
+        const char* libs[] = { VER_x32 ? "libGTASA.so" : "libGame.so", "libGame.so", "libGTASA.so" };
+        for (const char* name : libs) {
+            void* h = dlopen(name, RTLD_NOLOAD | RTLD_LAZY);
+            if (!h) continue;
+            s_pp = (CTxdPool**)dlsym(h, "_ZN9CTxdStore11ms_pTxdPoolE");
+            if (s_pp) break;
         }
     }
-    return CTxdStore::ms_pTxdPool;
+    CTxdPool* pool = s_pp ? *s_pp : nullptr;
+    if (pool) CTxdStore::ms_pTxdPool = pool;
+    return pool ? pool : CTxdStore::ms_pTxdPool;
+}
+
+// [v40] hierarchie d'animation d'un clump TOUT JUSTE LU : elle est sur les FRAMES (plugin HAnim).
+//       L'ancienne fonction du client la cherchait sur l'atome (rempli seulement apres SetClump) -> toujours vide.
+RwFrame* FindHierFrameCB(RwFrame* frame, void* data) {
+    auto** out = static_cast<RpHAnimHierarchy**>(data);
+    if (*out) return nullptr;
+    RpHAnimHierarchy* h = CHook::CallFunction<RpHAnimHierarchy*>("_Z24RpHAnimFrameGetHierarchyP7RwFrame", frame);
+    if (h) { *out = h; return nullptr; }
+    CHook::CallFunction<RwFrame*>("_Z21RwFrameForAllChildrenP7RwFramePFS0_S0_PvES1_", frame, FindHierFrameCB, data);
+    return *out ? nullptr : frame;
+}
+RpHAnimHierarchy* FindClumpHierarchy(RpClump* clump) {
+    if (!clump) return nullptr;
+    RpHAnimHierarchy* h = CHook::CallFunction<RpHAnimHierarchy*>("_Z29GetAnimHierarchyFromSkinClumpP7RpClump", clump);
+    if (h) return h;
+    RwFrame* root = reinterpret_cast<RwFrame*>(reinterpret_cast<RwObject*>(clump)->parent);
+    if (!root) return nullptr;
+    h = CHook::CallFunction<RpHAnimHierarchy*>("_Z24RpHAnimFrameGetHierarchyP7RwFrame", root);
+    if (!h) CHook::CallFunction<RwFrame*>("_Z21RwFrameForAllChildrenP7RwFramePFS0_S0_PvES1_", root, FindHierFrameCB, &h);
+    return h;
 }
 
 RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
@@ -228,10 +252,11 @@ RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
         return nullptr;
     }
     const int16 txdIndex = modelInfo->m_nTxdIndex;
-    if (txdIndex < 0 || !NativeTxdPool()) {
+    CTxdPool* txdPool = GameTxdPool();
+    if (txdIndex < 0 || !txdPool) {
         return nullptr;
     }
-    TxdDef* def = CTxdStore::ms_pTxdPool->GetAt(txdIndex);
+    TxdDef* def = txdPool->GetAt(txdIndex);
     if (!def) {
         return nullptr;
     }
@@ -242,39 +267,6 @@ RwTexDictionary* EnsureModelDictionary(CBaseModelInfo* modelInfo) {
     return reinterpret_cast<RwTexDictionary*>(def->m_pRwDictionary);
 }
 
-// Cherche la hierarchie d'animation sur TOUS les atomics (le helper du moteur
-// ne regarde que le premier, qui peut ne pas etre l'atomic "skin").
-struct HierSearch { RpHAnimHierarchy* hier = nullptr; int atomics = 0; int skinned = 0; };
-static RpAtomic* FindHierCB(RpAtomic* atomic, void* data) {
-    auto* r = static_cast<HierSearch*>(data);
-    ++r->atomics;
-    if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) ++r->skinned;
-    if (!r->hier) r->hier = RpSkinAtomicGetHAnimHierarchy(atomic);
-    return atomic;
-}
-// [v22] Un DFF fraichement lu n'a PAS encore de hierarchie rattachee aux atomics : le moteur la
-// rattache plus tard dans CPedModelInfo::SetClump (SetHierarchyForSkinAtomic). La hierarchie existe
-// en revanche deja sur les frames (plugin HAnim). On la cherche donc aussi dans l'arbre des frames.
-static RpHAnimHierarchy* FindFrameHierarchy(RwFrame* frame, int depth) {
-    if (!frame || depth > 64) return nullptr;
-    if (RpHAnimHierarchy* h = RpHAnimFrameGetHierarchy(frame)) return h;
-    for (RwFrame* c = frame->child; c; c = c->next) {
-        if (RpHAnimHierarchy* h = FindFrameHierarchy(c, depth + 1)) return h;
-    }
-    return nullptr;
-}
-static RpHAnimHierarchy* FindAnimHierarchy(RpClump* clump, int* atomics, int* skinned) {
-    HierSearch r;
-    RpClumpForAllAtomics(clump, FindHierCB, &r);
-    if (atomics) *atomics = r.atomics;
-    if (skinned) *skinned = r.skinned;
-    if (!r.hier && r.skinned > 0) {
-        r.hier = FindFrameHierarchy(RpClumpGetFrame(clump), 0);
-        FLog("[clothes] hierarchie cherchee dans les frames : %s", r.hier ? "trouvee" : "absente");
-    }
-    return r.hier;
-}
-
 // MTA CRenderWareSA::ReplacePedModel: hierarchy check, double clone (render
 // order flips per clone), SetClump, destroy the previous model-info clump.
 bool ReplacePedModel(CBaseModelInfo* modelInfo, RpClump* source, std::string& err) {
@@ -282,10 +274,8 @@ bool ReplacePedModel(CBaseModelInfo* modelInfo, RpClump* source, std::string& er
         err = "null modelInfo/clump";
         return false;
     }
-    int nAtomics = 0, nSkinned = 0;
-    RpHAnimHierarchy* hier = FindAnimHierarchy(source, &nAtomics, &nSkinned);
+    RpHAnimHierarchy* hier = FindClumpHierarchy(source);   // [v40] la bonne recherche (frames)
     if (!hier) {
-        FLog("[clothes] diag dff: %d atomic(s), %d avec skin, aucune hierarchie", nAtomics, nSkinned);
         err = "no anim hierarchy on DFF (MTA refuses ReplacePedModel)";
         return false;
     }
@@ -357,7 +347,6 @@ std::vector<CPedGTA*> ReleasePedsUsingModel(int modelId) {
 }
 
 void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
-    if (!released.empty()) BrlTextureShader::ResetLocalPlayer();   // anciens materiaux liberes
     size_t recreated = 0;
     for (CPedGTA* ped : released) {
         // The ped pool owns these objects; replacing model-info does not remove
@@ -366,10 +355,9 @@ void RecreateReleasedPeds(const std::vector<CPedGTA*>& released, int modelId) {
         if (!ped || (int)ped->m_nModelIndex != modelId) {
             continue;
         }
-        // [v22] CreateRwObject (slot 8) seul ne reinitialise PAS les animations du ped
-        // (RpAnimBlendClumpInit) : CPed::ProcessControl/PlayFootSteps plantait ensuite (champ nul).
-        // On passe par le vrai SetModelIndex du jeu (dispatch virtuel), comme CPlayerPed::SetModelIndex.
-        ped->SetModelIndex((uint32_t)modelId);
+        // [v40] CPed::SetModelIndex = recreation COMPLETE (objet RW + animations + os). Avant : CreateRwObject
+        //       seul -> m_apBones restaient vides -> crash dans CPed::PlayFootSteps.
+        CHook::CallFunction<void>("_ZN4CPed13SetModelIndexEj", ped, (unsigned int)modelId);
         if (ped->m_pRwObject) {
             ++recreated;
         } else {
@@ -392,8 +380,36 @@ bool EndsWithIgnoreCase(const char* name, const char* ext) {
 
 } // namespace
 
+// [v38] ligne dans crestwood_log.txt (SAMP.cwLog) : diagnostic du corps South sur le telephone du joueur
+void CwNativeLog(const char* fmt, ...) {
+    if (!pJavaWrapper || !javaVM || !fmt) return;
+    char buf[400];
+    va_list ap; va_start(ap, fmt); vsnprintf(buf, sizeof(buf), fmt, ap); va_end(ap);
+    JNIEnv* env = nullptr;
+    if (javaVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK || !env) return;
+    jclass cls = env->GetObjectClass(pJavaWrapper->activity);
+    jmethodID m = cls ? env->GetMethodID(cls, "cwLog", "(Ljava/lang/String;)V") : nullptr;
+    if (env->ExceptionCheck()) env->ExceptionClear();
+    if (m) {
+        jstring js = env->NewStringUTF(buf);
+        if (js) { env->CallVoidMethod(pJavaWrapper->activity, m, js); env->DeleteLocalRef(js); }
+        if (env->ExceptionCheck()) env->ExceptionClear();
+    }
+    if (cls) env->DeleteLocalRef(cls);
+}
+
+// [v56] tenues de faction livrees dans l'APK (assets/skins/<id>/) : EMS / SAMU
+static const int kCwFactionSkins[] = {250, 275};
+static bool CwIsFactionSkin(int id) {
+    for (int s : kCwFactionSkins) if (s == id) return true;
+    return false;
+}
+
 bool SouthModelLoader::GetSkinDir(int modelId, char* out, size_t outSize) {
-    const char* gender = (modelId == 7 || modelId == 163) ? "male" : (modelId == 9 || modelId == 12) ? "female" : nullptr;
+    char skinKey[16];
+    snprintf(skinKey, sizeof(skinKey), "skin%d", modelId);
+    const char* gender = (modelId == 7 || modelId == 163) ? "male" : (modelId == 9 || modelId == 12) ? "female"
+                       : CwIsFactionSkin(modelId) ? skinKey : nullptr;
     if (!gender || !out) {
         return false;
     }
@@ -423,7 +439,7 @@ bool SouthModelLoader::IsLoaded(int modelId) {
 }
 
 bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
-    if (!(modelId == 7 || modelId == 9 || modelId == 12 || modelId == 163)) {
+    if (!(modelId == 7 || modelId == 9 || modelId == 12 || modelId == 163 || CwIsFactionSkin(modelId))) {
         err = "unsupported model " + std::to_string(modelId);
         return false;
     }
@@ -478,13 +494,15 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     }
     RwTexDictionary* dict = EnsureModelDictionary(modelInfo);
     if (!dict) {
-        err = "no texture dictionary for model " + std::to_string(modelId);
+        char why[160];
+        snprintf(why, sizeof(why), "no texture dictionary for model %d (txd %d, pool %p)", modelId,
+                 (int)modelInfo->m_nTxdIndex, (void*)GameTxdPool());
+        err = why;
         return false;
     }
 
-    // [v22] Les instances de peds ne sont liberees qu'APRES avoir verifie que le DFF est valide
-    // (hierarchie d'animation). Avant : un DFF sans hierarchie laissait les peds recrees dans un
-    // etat casse et le jeu plantait dans CPed::PlayFootSteps juste apres la connexion.
+    // [v40] les peds ne sont liberes qu'APRES avoir verifie le DFF (avant : echec -> peds recrees sans os -> crash
+    //       CPed::PlayFootSteps adresse 0x44)
     std::vector<CPedGTA*> releasedPeds;
 
     // RpClumpStreamRead resolves each material's texture BY NAME against the
@@ -510,24 +528,22 @@ bool SouthModelLoader::LoadForModel(int modelId, std::string& err) {
     snprintf(dffPath, sizeof(dffPath), "%s%s", dir, dffFile.c_str());
     std::string dffErr;
     RpClump* source = LoadDffFile(dffPath, dffErr);
+    if (source && !FindClumpHierarchy(source)) {
+        RpClumpDestroy(source);
+        CTxdStore::PopCurrentTxd();
+        err = "dff sans hierarchie d'animation (squelette) : " + std::string(dffFile);
+        return false;
+    }
+    if (source) releasedPeds = ReleasePedsUsingModel(modelId);   // DFF valide : on peut liberer les peds
     if (!source) {
-        // (rien n'a encore ete libere ici)
+        // ReleasePedsUsingModel() already removed the live instances.  Restore
+        // them even if the replacement DFF is corrupt/missing, otherwise the
+        // next render or ProcessControl pass dereferences a missing clump.
+        RecreateReleasedPeds(releasedPeds, modelId);
         CTxdStore::PopCurrentTxd();
         err = std::string("dff load failed: ") + dffErr;
         return false;
     }
-
-    {
-        int chkAtomics = 0, chkSkinned = 0;
-        if (!FindAnimHierarchy(source, &chkAtomics, &chkSkinned)) {
-            FLog("[clothes] diag dff: %d atomic(s), %d avec skin, aucune hierarchie (modele %d laisse intact)", chkAtomics, chkSkinned, modelId);
-            CTxdStore::PopCurrentTxd();
-            RpClumpDestroy(source);
-            err = "no anim hierarchy on DFF (skin ignore, modele d'origine conserve)";
-            return false;
-        }
-    }
-    releasedPeds = ReleasePedsUsingModel(modelId);
 
     std::string replaceErr;
     if (!ReplacePedModel(modelInfo, source, replaceErr)) {
@@ -585,12 +601,66 @@ void SouthModelLoader::Shutdown() {
 #include "game/BrlTextureShader.h"
 #include "game/game.h"
 
+// [v31] corps Crestwood (7 homme, 12 femme) installes des que le jeu a deja le modele en memoire
+// (joueur local OU autre joueur qui apparait). Avant : seul le corps du joueur LOCAL etait remplace,
+// au moment ou ses vetements s'appliquaient -> les autres joueurs (et soi-meme si l'application ratait)
+// apparaissaient avec le vrai skin GTA 7 / 12 (personnage habille). Jamais bloquant : on n'appelle
+// LoadForModel que si le modele est DEJA charge (TryLoadModel rend la main tout de suite).
+static void CwPreloadBodiesTick() {
+    static uint32_t s_next = 0;
+    static int s_fail[2] = {0, 0};
+    const uint32_t now = GetTickCount();
+    if (now < s_next) return;
+    s_next = now + 700;
+    const int ids[2] = {7, 12};
+    for (int k = 0; k < 2; k++) {
+        const int id = ids[k];
+        if (SouthModelLoader::IsLoaded(id)) continue;
+        // [v32] jamais d'abandon : apres un echec on reessaie toutes les 3 s (le joueur ne doit JAMAIS
+        //       rester avec le skin GTA d'origine)
+        static uint32_t s_retryAt[2] = {0, 0};
+        if (s_fail[k] > 0 && now < s_retryAt[k]) continue;
+        if (!CStreaming::GetInfo(id).IsLoaded()) continue;
+        std::string err;
+        if (SouthModelLoader::LoadForModel(id, err)) { FLog("[clothes] corps %d installe : %s", id, err.c_str()); CwNativeLog("[clothes] corps %d installe : %s", id, err.c_str()); }
+        else {
+            s_fail[k]++; s_retryAt[k] = now + 3000;
+            if (s_fail[k] <= 5) FLog("[clothes] corps %d : echec %d/5 : %s", id, s_fail[k], err.c_str());
+            if (s_fail[k] <= 4) CwNativeLog("[clothes] corps %d : ECHEC %d : %s", id, s_fail[k], err.c_str());
+        }
+        return;   // un seul corps par passage (le remplacement prend un peu de temps)
+    }
+    // [v56] tenues de faction (EMS) : remplacees des que le jeu charge le modele.
+    static uint32_t s_start = 0;
+    static int s_ffail[8] = {0};
+    static uint32_t s_fretry[8] = {0};
+    static bool s_forced[8] = {false};
+    if (!s_start) s_start = now;
+    for (size_t k = 0; k < sizeof(kCwFactionSkins) / sizeof(kCwFactionSkins[0]) && k < 8; k++) {
+        const int id = kCwFactionSkins[k];
+        if (SouthModelLoader::IsLoaded(id)) continue;
+        if (s_ffail[k] >= 5 || now < s_fretry[k]) continue;
+        const bool inMem = CStreaming::GetInfo(id).IsLoaded();
+        // [v59] plus de chargement force (blocage possible pendant la connexion -> ecran noir) :
+        //       la tenue est remplacee seulement quand le jeu a deja charge le modele.
+        if (!inMem) continue;
+        s_forced[k] = true;
+        std::string err;
+        if (SouthModelLoader::LoadForModel(id, err)) { CwNativeLog("[skins] tenue %d installee : %s", id, err.c_str()); }
+        else { s_ffail[k]++; s_fretry[k] = now + 4000; CwNativeLog("[skins] tenue %d : ECHEC %d : %s", id, s_ffail[k], err.c_str()); }
+        return;
+    }
+}
+
+void MtaModels_Tick();
 bool SouthModelLoader::PreloadBodies() {
     // [fix] AVANT : nouvel essai toutes les 1,5 s SANS FIN, et chaque essai bloquait le thread de rendu
     // 2 x 3 s (TryLoadModel) -> jeu fige puis plantage du pilote graphique. MAINTENANT : non bloquant,
     // 20 essais maximum (~30 s), puis abandon propre (les objets d'origine restent).
     // [31/10] LSPD (1862) et JBL (2226) de l'APK RETIRES a la demande d'Anzo (plantages au chargement).
     // Plus aucun modele d'objet n'est remplace : on ne touche plus au streaming au demarrage.
+    CwPreloadBodiesTick();   // [v31] corps Crestwood 7 / 12
+    MtaModels_Tick();        // [v47] modeles des mappings MTA depuis l'APK (gui/MtaModels.cpp)
     return true;
     static bool s_done = false;
     static uint32_t s_next = 0;

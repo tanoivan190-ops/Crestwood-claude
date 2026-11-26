@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-th="grey" data-sg>
+<html lang="fr" data-th="grey" data-sg data-rp="rp">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -387,9 +387,15 @@ textarea.in{resize:none;height:clamp(52px,15vh,84px)}
     tile(t2, "Tenues", "i-shirt", "#ff7ac6", () => send("go", "outfit"));
     tile(t2, "Garage", "i-car", "#1ec8ff", () => send("go", "garage"));
     tile(t2, "Ma faction", "i-shield", "#4d82ff", () => send("go", "fac"), { lock: Number(S.me.inFac) ? "" : "Tu ne fais partie d'aucune faction." });
+    tile(t2, "Mon groupe", "i-user", "#22c55e", () => send("go", "grp"));          // [v46] stats perso / gang / faction
+    tile(t2, "Tutoriel", "i-phone", "#ff7ac6", () => send("go", "tuto"));
     if (Number(S.hub.gov)) tile(t2, "Gouvernement", "i-gov", "#6aa5ff", () => send("go", "gov"));
     tile(t2, "Immobilier", "i-home", "#33ccff", () => send("go", "house"));
     tile(t2, "Pêche", "i-fish", "#3db5ff", () => send("go", "fish"));
+    tile(t2, "Métiers", "i-run", "#ffb84d", () => send("go", "jobs"));          // [v44]
+    tile(t2, "Bourse", "i-bill", "#3ad070", () => send("go", "bourse"));
+    tile(t2, "Casino", "i-gift", "#f5d142", () => send("go", "casino"));
+    tile(t2, "Événements", "i-sos", "#ff7a1a", () => send("go", "event"));
     tile(t2, "Carte / GPS", "i-map", "#3ad070", () => send("go", "map"));
     tile(t2, "Téléphone", "i-phone", "#3db5ff", () => send("go", "phone"));
     tile(t2, "Support", "i-help", "#ff5a6a", () => send("go", "report"));

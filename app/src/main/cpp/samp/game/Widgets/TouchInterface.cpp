@@ -44,6 +44,6 @@ void CTouchInterface::InjectHooks() {
     SET_TO(m_pWidgets, *(void**)(g_libGTASA + 0x837348));
 
     if(m_pWidgets && m_pWidgets[WIDGET_CAM_TOGGLE]) {
-        m_pWidgets[WIDGET_CAM_TOGGLE]->SetEnabled(false);
+        m_pWidgets[WIDGET_CAM_TOGGLE]->SetEnabled(true);
     }
 }

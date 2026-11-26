@@ -802,6 +802,34 @@ namespace {
             });
             wanted[item.material] = texture;
         }
+        // [v35] Homme South (skin 7) : SANS vetement choisi dans une zone, on garde la tenue
+        // d'origine du modele (t-shirt blanc, pantalon noir, baskets) au lieu des sous-vetements.
+        // Des qu'un vetement est choisi dans cette zone, il remplace la tenue d'origine.
+        if (SouthModel() == 7) {
+            auto chosen = [&](const char* key) {
+                const SouthClothes::Group* g = SouthGroup(key);
+                const uint8_t* v = SouthValue(key);
+                if (!g || !v || !*v || *v > g->count) return false;
+                return BrlTextureShader::HasTexture(std::string("south/") + g->items[*v - 1].texture);
+            };
+            auto keepOriginal = [&](const char* key, const char* const* fam, size_t famN, const auto& bodyList) {
+                for (size_t i = 0; i < famN; ++i) wanted.erase(fam[i]);
+                for (auto m : bodyList) wanted.erase(m);
+                if (const SouthClothes::Group* g = SouthGroup(key))
+                    for (int i = 0; i < g->count; ++i) wanted.erase(g->items[i].material);
+            };
+            static const char* kMTop[] = { "fantasy_m_torso1", "fantasy_m_torso2", "fantasy_m_torso3", "fantasy_m_torso4" };
+            static const char* kMBot[] = { "fantasy_m_pants1", "fantasy_m_pants2", "fantasy_m_pants3", "fantasy_m_pants4",
+                "fantasy_m_short1", "fantasy_m_short2", "fantasy_m_short3", "fantasy_m_underwear" };
+            static const char* kMShoe[] = { "fantasy_m_boot1", "fantasy_m_boot2", "fantasy_m_boot3", "fantasy_m_boot4",
+                "fantasy_m_slipper1", "fantasy_m_slipper2", "fantasy_m_slipper3" };
+            if (!chosen("southTop") && g_look.topStyle == 0) keepOriginal("southTop", kMTop, 4, kTorsoMaterials);
+            if (!chosen("southBottom") && (g_look.bottomStyle == 0 || g_look.bottomStyle == 3)) keepOriginal("southBottom", kMBot, 8, kLegMaterials);
+            if (!chosen("southShoes") && g_look.shoesStyle == 0) {
+                keepOriginal("southShoes", kMShoe, 7, kFeetMaterials);
+                wanted.erase("body_legleft5"); wanted.erase("body_legright5");
+            }
+        }
         // Union of occluded parts: one accessory cannot reveal skin under another garment.
         for (const auto* item : selected)
             SouthParts(item->remove, [&](const std::string& part) { wanted[part] = kClearTexture; });
@@ -1364,13 +1392,19 @@ bool ClothesCustomization::IsSupportedLocalSkin()
 	return IsSupportedSkin(CurrentLocalModelId());
 }
 
+void CwNativeLog(const char* fmt, ...);   // gui/SouthModelLoader.cpp
+
 void ClothesCustomization::ApplyCurrent()
 {
     const uint16_t realModel = RealLocalModelId();
     if (SkinBodies::IsCivilBody(realModel) && realModel != 289) {
         std::string error;
         // Shared model is loaded once per body, on the game thread, for local and remote players.
-        if (!SouthModelLoader::LoadForModel(realModel, error)) return;
+        if (!SouthModelLoader::LoadForModel(realModel, error)) {
+            static int s_logged = 0;
+            if (s_logged++ < 4) CwNativeLog("[clothes] vetements : corps %d pas charge : %s", (int)realModel, error.c_str());
+            return;
+        }
     }
 	const uint16_t modelId = CurrentLocalModelId();
 	if (!IsSupportedSkin(modelId) || !CurrentLocalPedReady()) {

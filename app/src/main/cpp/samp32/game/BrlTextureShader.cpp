@@ -56,6 +56,11 @@ namespace {
 		std::string sourceTexture;
 		std::string replacementTexture;
 		uint16_t modelId{kAnyShaderModelId};
+		// [v51] OPTI : cle de comparaison et texture resolue gardees en memoire (avant : 4 chaines
+		// allouees par materiau et par regle, pour chaque joueur dessine, a chaque image)
+		mutable std::string srcKey;
+		mutable bool keyReady{false};
+		mutable RwTexture* tex{nullptr};
 	};
 
 	struct ApplyContext {
@@ -69,9 +74,6 @@ namespace {
 	};
 
 	std::mutex g_shaderMutex;
-	// [v22] g_textureCache etait lu au rendu (BeginPedRender) et modifie par ResolveTexture/SetRule
-	// depuis un autre thread sans verrou commun -> table de hachage corrompue (SIGSEGV).
-	std::recursive_mutex g_texCacheMutex;
 	std::unordered_map<ShaderKey, std::vector<ShaderRule>, ShaderKeyHash> g_rules;
 	std::unordered_map<std::string, RwTexture*> g_textureCache;
 	std::unordered_map<RpMaterial*, RwTexture*> g_originalMaterialTextures;
@@ -94,6 +96,28 @@ namespace {
 		return value;
 	}
 
+	// [v51] compare un nom (sans casse, '.' == '_') a une cle deja normalisee, sans allocation
+	bool KeyEq(const char* name, const std::string& key)
+	{
+		if (!name) return false;
+		size_t i = 0;
+		for (; name[i] && i < key.size(); ++i) {
+			char c = (char) std::tolower((unsigned char) name[i]);
+			if (c == '.') c = '_';
+			if (c != key[i]) return false;
+		}
+		return name[i] == 0 && i == key.size();
+	}
+
+	const std::string& RuleKey(const ShaderRule& rule)
+	{
+		if (!rule.keyReady) {
+			rule.srcKey = (rule.sourceTexture.empty() || rule.sourceTexture == "*") ? std::string() : MaterialKey(rule.sourceTexture);
+			rule.keyReady = true;
+		}
+		return rule.srcKey;
+	}
+
 	bool TextureMatches(RwTexture* texture, const std::string& sourceTexture)
 	{
 		if (sourceTexture.empty() || sourceTexture == "*") return true;
@@ -109,12 +133,24 @@ namespace {
 		const std::string normalizedSource = MaterialKey(sourceTexture);
 
 		if (auto it = g_originalMaterialNames.find(material); it != g_originalMaterialNames.end()) {
-			if (MaterialKey(it->second) == normalizedSource) return true;
+			if (KeyEq(it->second.c_str(), normalizedSource)) return true;
 		}
 
-		if (TextureMatches(material->texture, sourceTexture)) return true;
+		return material->texture && KeyEq(material->texture->name, normalizedSource);
+	}
 
-		return false;
+	// [v51] version rapide (cle pre-calculee de la regle)
+	bool RuleMatches(RpMaterial* material, const ShaderRule& rule)
+	{
+		if (!material) return false;
+		const std::string& key = RuleKey(rule);
+		if (key.empty()) return true;
+		if (!g_originalMaterialNames.empty()) {
+			if (auto it = g_originalMaterialNames.find(material); it != g_originalMaterialNames.end()) {
+				if (KeyEq(it->second.c_str(), key)) return true;
+			}
+		}
+		return material->texture && KeyEq(material->texture->name, key);
 	}
 
 
@@ -186,7 +222,6 @@ namespace {
 	RwTexture* ResolveTexture(const std::string& textureName)
 	{
 		if (textureName.empty()) return nullptr;
-		std::lock_guard<std::recursive_mutex> texLock(g_texCacheMutex);
 
 		const std::string normalized = NormalizeName(textureName);
 		if (auto it = g_textureCache.find(normalized); it != g_textureCache.end()) {
@@ -230,7 +265,7 @@ namespace {
 
 		for (int i = 0; i < geometry->matList.numMaterials; ++i) {
 			RpMaterial* material = geometry->matList.materials[i];
-			if (!material || !MaterialMatches(material, context->modelId, i, rule->sourceTexture)) continue;
+			if (!material || !RuleMatches(material, *rule)) continue;
 
 			if (!g_originalMaterialTextures.contains(material)) {
 				g_originalMaterialTextures[material] = material->texture;
@@ -324,6 +359,7 @@ namespace {
 
 		if (it != rules.end()) {
 			it->replacementTexture = replacementTexture;
+		it->tex = nullptr;   // [v51]
 		}
 		else {
 			rules.push_back({sourceTexture, replacementTexture, modelId});
@@ -583,7 +619,6 @@ void BrlTextureShader::ClearAll()
 	}
 
 	std::lock_guard lock(g_shaderMutex);
-	std::lock_guard<std::recursive_mutex> texLockAll(g_texCacheMutex);
 	g_rules.clear();
     for (const auto& [name, bytes] : g_southBytes) {
         const auto it = g_textureCache.find(name);
@@ -733,8 +768,8 @@ namespace {
 				if (!list || done) continue;
 				for (const ShaderRule& rule : *list) {
 					if (rule.modelId != kAnyShaderModelId && rule.modelId != ctx->modelId) continue;
-					if (!MaterialMatches(material, ctx->modelId, i, rule.sourceTexture)) continue;
-					RwTexture* replacement = ResolveTexture(rule.replacementTexture);
+					if (!RuleMatches(material, rule)) continue;
+					RwTexture* replacement = rule.tex ? rule.tex : (rule.tex = ResolveTexture(rule.replacementTexture));
 					if (replacement && replacement != material->texture) {
 						g_pedSwaps.push_back({material, material->texture});
 						material->texture = replacement;
@@ -748,7 +783,43 @@ namespace {
 	}
 
 	// Id SA-MP du ped dessine : 0xFFFF = joueur local, -1 = PNJ / inconnu.
+	int PlayerIdForPedSlow(void* gtaPed);
+
+	// [v51] OPTI : avant, chaque ped dessine parcourait les 1000 emplacements de joueurs (a chaque image).
+	// Cache ped -> id verifie en O(1) ; un ped qui n'est pas un joueur est re-verifie toutes les 400 ms.
 	int PlayerIdForPed(void* gtaPed)
+	{
+		if (!gtaPed) return -1;
+		static std::unordered_map<void*, int> s_ids;
+		static uint32_t s_built = 0;
+		const uint32_t now = GetTickCount();
+		auto valid = [&](int id) -> bool {
+			if (!pNetGame || !pNetGame->GetPlayerPool()) return false;
+			CPlayerPool* pool = pNetGame->GetPlayerPool();
+			if (id == kLocalPlayerShaderId) {
+				CLocalPlayer* local = pool->GetLocalPlayer();
+				CPlayerPed* ped = local ? local->GetPlayerPed() : nullptr;
+				return ped && (void*) ped->m_pPed == gtaPed;
+			}
+			if (id < 0 || id >= MAX_PLAYERS) return false;
+			CRemotePlayer* remote = pool->GetAt(static_cast<PLAYERID>(id));
+			CPlayerPed* ped = remote ? remote->GetPlayerPed() : nullptr;
+			return ped && (void*) ped->m_pPed == gtaPed;
+		};
+		// valeur >= 0 : id joueur (verifie a chaque appel) ; valeur < 0 : "pas un joueur" jusqu'a -valeur (ms)
+		auto it = s_ids.find(gtaPed);
+		if (it != s_ids.end()) {
+			if (it->second >= 0) { if (valid(it->second)) return it->second; }
+			else if ((int32_t)((uint32_t)(-(int64_t)it->second) - now) > 0) return -1;
+		}
+		if (s_ids.size() > 4096) s_ids.clear();
+		(void) s_built;
+		const int id = PlayerIdForPedSlow(gtaPed);
+		s_ids[gtaPed] = id >= 0 ? id : -(int)((now + 400u) & 0x7FFFFFFF);
+		return id;
+	}
+
+	int PlayerIdForPedSlow(void* gtaPed)
 	{
 		if (!gtaPed) return -1;
 		if (pNetGame && pNetGame->GetPlayerPool()) {

@@ -13,6 +13,7 @@
 #include "PlayerTap.h"
 #include "WorldMarkers.h"
 #include "CombatButtons.h"
+#include "EngineButton.h"
 #define TDBSAFE_LOG FLog
 #include "Textures/TextureDatabaseSafe.h"
 #include "Scene.h"
@@ -279,7 +280,7 @@ void CEntity_Render_hook(CEntityGTA* pEntity)
         const CVector& p = pEntity->GetPosition();
         if (Crestwood_ShouldHideBuilding(pEntity->GetModelId(), p.x, p.y, p.z) &&
             *(uintptr_t*)pEntity != g_libGTASA+(VER_x32 ? 0x667D18:0x8300A0) &&
-            (!pNetGame || !pNetGame->GetObjectPool() || !pNetGame->GetObjectPool()->GetObjectFromGtaPtr(pEntity)))
+            (!pNetGame || !pNetGame->GetObjectPool() || !pNetGame->GetObjectPool()->FindObjectFromGtaPtrFast(pEntity)))
         {
             pEntity->m_bUsesCollision = 0;
             pEntity->m_bCollisionProcessed = 0;
@@ -300,7 +301,7 @@ void CObject_Render_hook(CObjectGta* thiz)
 	CObjectGta *object = thiz;
 	if(pNetGame && object != 0)
 	{
-		CObject *pObject = pNetGame->GetObjectPool()->FindObjectFromGtaPtr(object);
+		CObject *pObject = pNetGame->GetObjectPool()->FindObjectFromGtaPtrFast(object);   // [v51] opti
 		if(pObject && pObject->m_pEntity)
 		{
 			RwObject* rwObject = (RwObject*)pObject->m_pEntity->m_pRwObject;
@@ -477,6 +478,7 @@ void AND_TouchEvent_hook(int type, int num, int posX, int posY)
 	// la touche leur est reservee (elle ne va ni au jeu ni a ImGui).
 	if (WorldMarkers::OnTouch(type, num, posX, posY)) return;
 	if (CombatButtons::OnTouch(type, num, posX, posY)) return;
+	if (EngineButton::OnTouch(type, num, posX, posY)) return;   // [v35]
 
 	if (PlayerTap::OnTouch(type, num, posX, posY)) return;   // menu 3D des joueurs
 
@@ -2043,6 +2045,7 @@ bool CwRealtimeShadowsAllowed()
     return allow != 0;
 }
 void GlTexFallback_Install();
+void ModLoader_Install();
 void InstallSpecialHooks()
 {
     InjectHooks();
@@ -2053,6 +2056,7 @@ void InstallSpecialHooks()
 
     CHook::Redirect("_ZN5CGame20InitialiseRenderWareEv", &CGame::InitialiseRenderWare);
     // Crash SortEntries (texdb .dat/.tmb absent pour le format du GPU) : chargement texdb robuste.
+    ModLoader_Install();       // [v32] dossier SAMP/modloader + modeles / animations de l'appli (comme en 64 bits)
     GlTexFallback_Install();   // [Crestwood] decodage logiciel PVRTC/DXT si le GPU ne les lit pas
     TextureDatabaseSafe::Install(false);
     CHook::InstallPLT(g_libGTASA + (VER_x32 ? 0x6785FC : 0x84EC20), &StartGameScreen__OnNewGameCheck_hook, &StartGameScreen__OnNewGameCheck);

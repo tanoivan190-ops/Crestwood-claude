@@ -431,7 +431,9 @@ void CLocalPlayer::ProcessClassSelection()
 { 
 	if (!m_bSpawnDialogShowed)
 	{
-		if (pUI) pUI->spawn()->setVisible(true);
+		// [v45] Crestwood : la page de connexion fait apparaitre le joueur -> pas de boutons "<< Spawn >>"
+		// (ils se verraient a travers la scene de connexion transparente)
+		if (pUI) pUI->spawn()->setVisible(false);
 		RequestClass(m_iSelectedClass);
 		m_bSpawnDialogShowed = true;
 	}

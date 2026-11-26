@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mon groupe</title>
+<!--
+  [v46] Mon groupe (tablette RP > Mon groupe, /groupe). Serveur : include/Cw46.inc (Grp_*).
+  Donnees : {me:{n,tag,cash,bank,st}, g:{gang...,st,top,log}?, f:{faction...,st,top,log,fk}?, key}
+  st = {"cle":[total, aujourd'hui]} ; top = [[nom, valeur, en ligne]] ; log = [[ts, texte]]
+  Page -> serveur : refresh | dep <n> | ret <n> (gang) | fac (panneau de faction) | tuto
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #1e9a52; --a2: #5fd38f; }
+.panel { width: min(95vw, 800px); height: min(92vh, 400px); }
+.body { gap: 12px; }
+.left { width: 52%; }
+.right { flex: 1; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.kpi { position: relative; padding: 9px 10px 8px; border-radius: 13px; background: var(--glass2); border: 1px solid var(--line); overflow: hidden; animation: pgUp .3s ease both; }
+.kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--a1), var(--a2)); }
+.kpi small { display: block; font-size: 9.5px; font-weight: 700; color: var(--soft); text-transform: uppercase; letter-spacing: .6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi b { display: block; margin-top: 2px; font-size: 19px; font-weight: 900; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi b.sm { font-size: 15px; margin-top: 4px; }
+.kpi em { display: block; font-style: normal; font-size: 9.5px; font-weight: 700; color: var(--ok); }
+.kpi em.z { color: var(--mute); }
+.kpi.big { grid-column: span 3; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--a1) 22%, transparent), var(--glass2)); }
+.kpi.big b { font-size: 24px; }
+.crest { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 15px; font-weight: 900; color: #fff;
+  background: linear-gradient(140deg, var(--a1), var(--a2)); box-shadow: 0 6px 16px color-mix(in srgb, var(--a1) 45%, transparent); }
+.crest.tag { font-size: 13px; letter-spacing: .5px; }
+.idd { margin-left: auto; text-align: right; }
+.idd b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.row2 { display: flex; gap: 7px; }
+.row2 .btn { flex: 1; height: 36px; font-size: 11.5px; }
+.vault { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 13px; background: var(--glass2); border: 1px solid var(--line); }
+.vault .meta b { font-size: 16px; }
+.vault input { width: 92px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: #fff; padding: 0 9px; font: 700 12px "CwGame", sans-serif; outline: none; color: var(--txt); }
+.vault button { height: 32px; padding: 0 11px; border-radius: 10px; font-size: 11px; font-weight: 900; color: #fff; background: linear-gradient(140deg, var(--a1), var(--a2)); }
+.vault button.g { background: #fff; color: var(--txt); border: 1px solid var(--line); }
+.rank { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 11px; margin-bottom: 5px; background: var(--glass2); border: 1px solid var(--line); animation: pgUp .3s ease both; }
+.rank .n { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: #fff; color: var(--soft); }
+.rank:nth-child(1) .n { background: linear-gradient(140deg, #f5c542, #ffe08a); color: #6b4a00; }
+.rank:nth-child(2) .n { background: linear-gradient(140deg, #c7ccd6, #eef0f4); color: #3b4150; }
+.rank:nth-child(3) .n { background: linear-gradient(140deg, #d99863, #f3c9a2); color: #5a2e0c; }
+.rank b { flex: 1; min-width: 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank span { font-size: 12px; font-weight: 900; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #c3c7cf; flex: none; }
+.dot.on { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.log { font-size: 10.5px; color: var(--soft); padding: 5px 2px; border-bottom: 1px dashed var(--line); line-height: 1.35; }
+.log i { font-style: normal; font-weight: 700; color: var(--mute); margin-right: 5px; }
+.hint { font-size: 10.5px; color: var(--soft); line-height: 1.45; padding: 8px 10px; border-radius: 12px; background: var(--glass2); border: 1px dashed var(--line); }
+.sec { display: flex; align-items: center; justify-content: space-between; }
+</style>
+<link rel="stylesheet" href="theme.css"><!-- [v47] style perso de la page -->
+<link rel="stylesheet" href="../common/cw-perf.css">
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo" id="logo"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.4 6-5.4s5.4 2 6 5.4"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.3c2.6.2 4.4 2 4.9 4.7"/></svg></div>
+      <div class="ttl"><b id="title">Mon groupe</b><small id="sub">Tes stats et celles de ton groupe</small></div>
+      <div class="tabs" id="tabs"></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="col left">
+        <div class="lbl" id="kLbl">Statistiques</div>
+        <div class="scroll"><div class="kpis" id="kpis"></div></div>
+      </div>
+      <div class="col right" id="right"></div>
+    </div>
+    <div class="foot"><div class="sum" id="sum"></div><button class="btn ghost" id="refresh">Actualiser</button></div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.CwPage, $ = C.$, el = C.el;
+  var D = {}, tab = "";
+  var LBL = {
+    min: ["Temps de jeu", "t"], sal: ["Salaires reçus", "$"], kill: ["Éliminations", ""], mort: ["Morts", ""],
+    arr: ["Arrestations", ""], amd: ["Amendes données", ""], amdv: ["Montant des amendes", "$"], rea: ["Réanimations", ""],
+    feu: ["Incendies éteints", ""], ver: ["Verdicts rendus", ""], cap: ["Points de gang", ""], gain: ["Gains rapportés", "$"], dep: ["Déposé au coffre", "$"]
+  };
+  var SETS = {
+    gang: ["cap", "gain", "kill", "mort", "dep", "min"],
+    police: ["arr", "amd", "amdv", "kill", "sal", "min"], federal: ["arr", "amd", "amdv", "kill", "sal", "min"],
+    medic: ["rea", "feu", "sal", "min"], fire: ["feu", "rea", "sal", "min"], justice: ["ver", "sal", "min"],
+    army: ["kill", "mort", "sal", "min"], hitman: ["kill", "mort", "sal", "min"], terrorist: ["kill", "mort", "sal", "min"],
+    other: ["min", "sal", "kill", "mort"]
+  };
+  var TYPE_FR = { police: "Police", medic: "EMS / SAMU", news: "Presse", government: "Gouvernement", hitman: "Tueurs à gages", federal: "FBI",
+    mechanic: "Mécaniciens", terrorist: "Organisation", army: "Armée", cardealer: "Concession", burger: "Restauration", taxi: "Taxis", fire: "Pompiers", justice: "Justice" };
+  var TYPE_COL = { police: ["#2f62c4", "#6fa0ff"], federal: ["#1f2a44", "#5c7cbf"], medic: ["#d1343f", "#ff8a7a"], fire: ["#d0661a", "#ffb347"], justice: ["#7a4fd6", "#b89bff"],
+    army: ["#4b5d2a", "#93a95a"], government: ["#1f6f8b", "#5fb8d6"], hitman: ["#2b2f37", "#8a909b"], terrorist: ["#3a2f2f", "#a36a5a"], news: ["#c9850f", "#ffd06a"],
+    mechanic: ["#b5651d", "#f0a35b"], taxi: ["#c9a100", "#ffe066"], burger: ["#d1343f", "#ffb020"], cardealer: ["#2b2f37", "#9aa3b2"] };
+
+  function val(k, v) {
+    var t = (LBL[k] || ["", ""])[1];
+    if (t === "$") return C.money(v);
+    if (t === "t") { var h = Math.floor(v / 60), m = v % 60; return h ? h + " h " + String(m).padStart(2, "0") : m + " min"; }
+    return String(Number(v) || 0).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+  function setTheme(c1, c2) {
+    document.documentElement.style.setProperty("--a1", c1);
+    document.documentElement.style.setProperty("--a2", c2 || c1);
+  }
+  function lighten(hex) {
+    var n = parseInt(String(hex).replace("#", ""), 16); if (isNaN(n)) return hex;
+    var r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+    r = Math.round(r + (255 - r) * .45); g = Math.round(g + (255 - g) * .45); b = Math.round(b + (255 - b) * .45);
+    return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  }
+  function kpis(st, keys, head) {
+    var box = $("kpis"); box.replaceChildren();
+    if (head) box.appendChild(head);
+    keys.forEach(function (k, i) {
+      var v = (st && st[k]) || [0, 0];
+      var d = el("div", "kpi"); d.style.animationDelay = (i * 35) + "ms";
+      d.appendChild(el("small", "", LBL[k][0]));
+      var vb = el("b", "", val(k, v[0])); if (vb.textContent.length > 9) vb.className = "sm"; d.appendChild(vb);
+      var em = el("em", v[1] ? "" : "z", v[1] ? "+" + val(k, v[1]) + " aujourd'hui" : "rien aujourd'hui");
+      d.appendChild(em);
+      box.appendChild(d);
+    });
+  }
+  function bigCard(badge, isTag, title, sub, rightTop, rightSub) {
+    var d = el("div", "kpi big");
+    var c = el("div", "crest" + (isTag ? " tag" : ""), badge); d.appendChild(c);
+    var m = el("div", "meta"); m.appendChild(el("small", "", sub)); m.appendChild(el("b", "", title)); d.appendChild(m);
+    if (rightTop != null) { var r = el("div", "idd"); r.appendChild(el("small", "", rightSub)); r.appendChild(el("b", "", rightTop)); d.appendChild(r); }
+    return d;
+  }
+  function topList(box, list, key, unit) {
+    box.appendChild(el("div", "lbl", "Classement · " + (LBL[key] ? LBL[key][0] : "")));
+    var w = el("div", "");
+    if (!list || !list.length) w.appendChild(el("div", "hint", "Pas encore de stats dans le groupe : elles arrivent au fil des actions."));
+    (list || []).forEach(function (r, i) {
+      var d = el("div", "rank"); d.style.animationDelay = (i * 40) + "ms";
+      d.appendChild(el("i", "n", String(i + 1)));
+      d.appendChild(el("i", "dot" + (Number(r[2]) ? " on" : "")));
+      d.appendChild(el("b", "", r[0]));
+      d.appendChild(el("span", "", val(key, r[1])));
+      w.appendChild(d);
+    });
+    box.appendChild(w);
+  }
+  function logList(box, log) {
+    if (!log || !log.length) return;
+    box.appendChild(el("div", "lbl", "Journal"));
+    log.forEach(function (l) {
+      var d = el("div", "log"), t = new Date(Number(l[0]) * 1000);
+      d.appendChild(el("i", "", String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0")));
+      d.appendChild(document.createTextNode(l[1]));
+      box.appendChild(d);
+    });
+  }
+
+  function renderMe() {
+    var me = D.me || {};
+    setTheme("#2b2f37", "#7a828f");
+    if (D.g) setTheme(D.g.c, lighten(D.g.c));
+    else if (D.f) { var tc = TYPE_COL[D.f.t] || ["#" + D.f.c, lighten("#" + D.f.c)]; setTheme(tc[0], tc[1]); }
+    $("title").textContent = me.n || "Mon perso";
+    $("sub").textContent = "Mes statistiques · liquide " + C.money(me.cash) + " · banque " + C.money(me.bank);
+    $("kLbl").textContent = "Mes statistiques";
+    var keys = ["min", "kill", "mort"];
+    Object.keys(me.st || {}).forEach(function (k) { if (LBL[k] && keys.indexOf(k) < 0) keys.push(k); });
+    kpis(me.st, keys.slice(0, 9), bigCard(C.initials(me.n), false, me.n || "", "Citoyen de Crestwood", me.tag ? "(" + String(me.tag).padStart(4, "0") + ")" : "—", "Identifiant du jour"));
+    var R = $("right"); R.replaceChildren();
+    R.appendChild(el("div", "lbl", "Ma situation"));
+    var s = el("div", "scroll");
+    if (D.g) s.appendChild(el("div", "hint", "Tu es " + D.g.rn + " chez les " + D.g.n + ". Ouvre l'onglet « Gang » : points, coffre, gains et classement."));
+    if (D.f) s.appendChild(el("div", "hint", "Tu es " + D.f.rn + " · " + D.f.n + ". Ouvre l'onglet « Faction » : stats du service et classement."));
+    if (!D.g && !D.f) s.appendChild(el("div", "hint", "Tu n'es dans aucun gang ni aucune faction. Postule à la police, à l'EMS, aux pompiers… ou fais-toi recruter par un gang : tes stats de groupe s'afficheront ici."));
+    s.appendChild(el("div", "lbl", " "));
+    s.appendChild(el("div", "hint", "Au-dessus des têtes, chacun voit ton identifiant du jour " + (me.tag ? "(" + String(me.tag).padStart(4, "0") + ")" : "") + ", pas ton nom. Il change chaque jour."));
+    var b = el("div", "row2"); b.style.marginTop = "8px";
+    var t = el("button", "btn ghost", "Rejouer le tutoriel"); t.onclick = function () { C.send("tuto"); };
+    b.appendChild(t); s.appendChild(b);
+    R.appendChild(s);
+    $("sum").innerHTML = "";
+    $("sum").appendChild(document.createTextNode("Les stats sont enregistrées au fil de tes actions (arrestations, soins, éliminations, gains…)."));
+  }
+
+  function renderGang() {
+    var g = D.g; if (!g) return renderMe();
+    setTheme(g.c, lighten(g.c));
+    $("title").textContent = g.n;
+    $("sub").textContent = g.rn + " · saison " + g.season + " · " + g.on + " en ligne sur " + g.m;
+    $("kLbl").textContent = "Stats du gang";
+    var place = g.place === 1 ? "1er" : g.place + "e";
+    kpis(g.st, SETS.gang, bigCard(g.tag, true, val("cap", g.pts) + " points", "Classement de la saison", place, "sur 4 gangs"));
+    var R = $("right"); R.replaceChildren();
+    var v = el("div", "vault");
+    var m = el("div", "meta"); m.appendChild(el("small", "", "Coffre du gang")); var mb = el("b", "money", C.money(g.bal)); m.appendChild(mb); v.appendChild(m);
+    var inp = el("input"); inp.type = "text"; inp.inputMode = "numeric"; inp.placeholder = "Montant"; v.appendChild(inp);
+    var dep = el("button", "", "Déposer"); dep.onclick = function () { var n = parseInt(inp.value, 10); if (n > 0) C.send("dep", n); else C.toast("Entre un montant", 0); };
+    v.appendChild(dep);
+    if (Number(g.mg)) { var ret = el("button", "g", "Retirer"); ret.onclick = function () { var n = parseInt(inp.value, 10); if (n > 0) C.send("ret", n); else C.toast("Entre un montant", 0); }; v.appendChild(ret); }
+    R.appendChild(v);
+    var s = el("div", "scroll"); s.style.marginTop = "6px";
+    topList(s, g.top, "cap");
+    logList(s, g.log);
+    R.appendChild(s);
+    $("sum").innerHTML = "";
+    $("sum").appendChild(document.createTextNode("Gains : revenus du territoire toutes les 30 min (si des membres sont en ville) · +3 pts et +250 $ par rival éliminé."));
+  }
+
+  function renderFac() {
+    var f = D.f; if (!f) return renderMe();
+    var tc = TYPE_COL[f.t] || ["#" + f.c, lighten("#" + f.c)];
+    setTheme(tc[0], tc[1]);
+    $("title").textContent = f.n;
+    $("sub").textContent = (TYPE_FR[f.t] || "Faction") + " · " + f.rn + " (grade " + f.rk + "/" + f.rc + ") · " + f.on + " en service sur " + f.m;
+    $("kLbl").textContent = "Stats de la faction";
+    kpis(f.st, SETS[f.t] || SETS.other, bigCard(f.s || C.initials(f.n), true, C.money(f.bal), "Coffre de la faction", String(f.on), "en ligne"));
+    var R = $("right"); R.replaceChildren();
+    var me = (D.me && D.me.st) || {};
+    var keys = SETS[f.t] || SETS.other;
+    var mine = el("div", "vault");
+    var mm = el("div", "meta"); mm.appendChild(el("small", "", "Moi · " + (LBL[f.fk] ? LBL[f.fk][0] : "")));
+    mm.appendChild(el("b", "", val(f.fk, (me[f.fk] || [0])[0]))); mine.appendChild(mm);
+    var go = el("button", "", Number(f.mg) ? "Gérer la faction" : "Ma faction"); go.onclick = function () { C.send("fac"); };
+    mine.appendChild(go);
+    R.appendChild(mine);
+    var s = el("div", "scroll"); s.style.marginTop = "6px";
+    topList(s, f.top, f.fk);
+    logList(s, f.log);
+    R.appendChild(s);
+    $("sum").innerHTML = "";
+    $("sum").appendChild(document.createTextNode("Classement des membres sur : " + (LBL[f.fk] ? LBL[f.fk][0].toLowerCase() : "") + ". " + keys.length + " indicateurs suivis pour ce service."));
+  }
+
+  function tabs() {
+    var T = $("tabs"); T.replaceChildren();
+    var list = [["me", "Moi"]];
+    if (D.g) list.push(["gang", "Gang"]);
+    if (D.f) list.push(["fac", "Faction"]);
+    if (!tab || !list.some(function (x) { return x[0] === tab; })) tab = D.g ? "gang" : (D.f ? "fac" : "me");
+    list.forEach(function (x) {
+      var b = el("button", tab === x[0] ? "on" : "", x[1]);
+      b.onclick = function () { tab = x[0]; render(); };
+      T.appendChild(b);
+    });
+    T.hidden = list.length < 2;
+  }
+  function render() {
+    tabs();
+    document.documentElement.setAttribute("data-mode", tab === "gang" ? "gang" : (tab === "fac" ? "fac" : "me"));   // [v47] style perso
+    if (tab === "gang") renderGang(); else if (tab === "fac") renderFac(); else renderMe();
+  }
+  $("refresh").onclick = function () { C.send("refresh"); };
+  C.boot(function (d) { D = d || {}; render(); });
+
+  if (!window.SampPage) {
+    window.PageApp.openFromNative({ key: "cap",
+      me: { n: "Malik Diallo", tag: 4821, cash: 12500, bank: 84000, st: { min: [742, 95], kill: [14, 2], mort: [6, 1], cap: [42, 6], gain: [3550, 500], dep: [10000, 0] } },
+      g: { id: 3, n: "Silent Killers", tag: "SK", c: "#ff4d4d", rk: 3, rn: "Lieutenant", pts: 1265, place: 2, season: 4, m: 11, on: 3, bal: 48250, mg: 1,
+        st: { cap: [1265, 36], gain: [61200, 2900], kill: [312, 12], mort: [201, 7], dep: [25000, 0], min: [9220, 540] },
+        top: [["Malik Diallo", 42, 1], ["Ibrahim Kone", 39, 0], ["Seydou Traore", 27, 1], ["Awa Bamba", 18, 0], ["Yao Kouassi", 9, 0]],
+        log: [[1763750000, "Revenus du territoire : +725 $ au coffre (3 membre(s) en ville)"], [1763748200, "Malik Diallo a elimine un membre des Royal Vipers : +3 points, +250 $"], [1763745000, "Ibrahim Kone a depose 5 000 $ au coffre"]] },
+      f: { id: 2, n: "Los Santos Police", s: "LSPD", t: "police", c: "2f62c4", rk: 4, rn: "Sergent", rc: 8, m: 24, on: 6, bal: 210000, mg: 1, fk: "arr",
+        st: { arr: [128, 9], amd: [340, 21], amdv: [1290000, 74000], kill: [17, 0], sal: [96000, 4000], min: [22000, 1300] },
+        top: [["Jean Yao", 31, 1], ["Malik Diallo", 22, 1], ["Fatou Sow", 19, 0]], log: [[1763749000, "Jean Yao a depose 2 000 $ au coffre"]] } });
+  }
+})();
+</script>
+</body>
+</html>

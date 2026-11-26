@@ -76,12 +76,6 @@
             </intent-filter>
         </activity>
 
-        <!-- [v22] telechargement des donnees en arriere-plan (service de premier plan) -->
-        <service
-            android:name="com.rockstargames.oswrapper.DataDownloadService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
         <activity
             android:theme="@style/GameActivity"
             android:name="com.rockstargames.gtasa.DownloaderActivity"

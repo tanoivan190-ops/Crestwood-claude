@@ -179,11 +179,11 @@ void C3DTextLabelPool::Draw(ImGuiRenderer* renderer, TEXT_LABEL* label, CVector 
 			std::stringstream ss_data(text);
 			std::string s_row;
 			while (std::getline(ss_data, s_row, '\n')) {
-				ImVec2 sz = renderer->calculateTextSize(s_row, UISettings::fontSize() / 2);
+				ImVec2 sz = renderer->calculateTextSize(s_row, (UISettings::fontSize() * 0.40f));
 				renderer->drawText(ImVec2(vecOut.x - (sz.x / 2), vecOut.y),
 								   __builtin_bswap32(dwColor | (0x000000FF)), s_row, true,
-								   UISettings::fontSize() / 2);
-				vecOut.y += UISettings::fontSize() / 2;
+								   (UISettings::fontSize() * 0.40f));
+				vecOut.y += (UISettings::fontSize() * 0.40f);
 			}
 		}
 	}

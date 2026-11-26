@@ -322,7 +322,7 @@
     if (vehicleSpeedometer) {
       vehicleSpeedometer.hidden = !state.inVehicle && !showBothForEditor;
     }
-    vehicleSpeedometerFrame?.contentWindow?.postMessage({
+    const speedoMsg = {
       hud: true,
       vehicle: state.inVehicle || showBothForEditor,
       speed: clampInt(state.speed, 0, 999),
@@ -337,18 +337,22 @@
       oxigen: 0,
       showbelt: state.inVehicle,
       seatbelt: state.belt,
-      engineOn: state.engineOn,
-      locked: state.vehicleKeyLocked,
       direction: "",
       street: ""
-    }, "*");
+    };
+    // [v31] le compteur (iframe) n'est redessine que si une valeur a change
+    const speedoKey = JSON.stringify(speedoMsg);
+    if (speedoKey !== renderDrivingHud.lastKey) {
+      renderDrivingHud.lastKey = speedoKey;
+      vehicleSpeedometerFrame?.contentWindow?.postMessage(speedoMsg, "*");
+    }
     const wasDriving = root?.classList.contains("vehicle-hud-active");
     root?.classList.toggle("vehicle-hud-active", state.inVehicle);
     // Les boutons de conduite apparaissent/disparaissent : on met à jour les zones tactiles.
     if (wasDriving !== state.inVehicle) syncTouchBounds();
   }
 
-  vehicleSpeedometerFrame?.addEventListener("load", renderDrivingHud);
+  vehicleSpeedometerFrame?.addEventListener("load", () => { renderDrivingHud.lastKey = ""; renderDrivingHud(); });
 
   function setInfo(name, value) {
     const item = infoFields.get(name);
@@ -625,6 +629,7 @@
     add("cw23", document.querySelector("#cw23:not([hidden])"));
     add("mdt", document.querySelector("#cwMdt:not([hidden])"));
     add("bike", document.querySelector("#cwBike:not([hidden])"));
+    add("tuto", document.querySelector("#cwTuto:not([hidden])"));   // [v46] tutoriel par appel
     bridge.setTouchBounds(entries.join(";"));
   }
   // touch-controls.js recalcule les zones quand ses boutons apparaissent / disparaissent
@@ -685,7 +690,8 @@
     if (state.chatOpen) {
       setRadialMenu(false);
       // [v18] clavier de jeu Crestwood (hud-kb.js) ; le clavier Android ne sert que si on le demande (touche ⌨)
-      if (!(window.CwKb && window.CwKb.open())) showKeyboard();
+      // [v31] clavier du telephone (Android) par defaut : champ du chat actif + clavier systeme
+      if (!(window.CwKb && window.CwKb.open())) { focusChatInput(); showKeyboard(); }
     } else {
       window.CwKb?.close?.();
       hideKeyboard();
@@ -871,7 +877,7 @@
       bridge.engineAction(action);
       return;
     }
-    sendMessage("/motor");
+    sendMessage("/moteur");
   }
 
   function startRadioTalk() {
@@ -1165,6 +1171,17 @@
   function pcSetStatus(text) {
     if (pcPill) pcPill.textContent = window.CwI18n ? CwI18n.t(text || "Ambiance") : (text || "Ambiance");
   }
+  // [v34] message bien visible (erreurs de capture, photo enregistree)
+  let pcToastTimer = 0;
+  function pcToast(text, ms) {
+    const el = document.querySelector("#pcToast");
+    if (!el) return;
+    window.clearTimeout(pcToastTimer);
+    if (!text) { el.hidden = true; return; }
+    el.textContent = text;
+    el.hidden = false;
+    pcToastTimer = window.setTimeout(() => { el.hidden = true; }, ms || 2600);
+  }
 
   function pcLayout() {
     if (!pcView || !pcStage) return;
@@ -1198,7 +1215,14 @@
       void pcFlash.offsetWidth;
       pcFlash.classList.add("go");
     }
-    const rect = pcView.getBoundingClientRect();
+    let rect = pcView.getBoundingClientRect();
+    // [v45] selfie : on prend le MILIEU de l'ecran (la ou se trouve le perso), meme format que le viseur
+    if (pcMode === "selfie" && rect.width > 0 && rect.height > 0) {
+      const iw = window.innerWidth, ih = window.innerHeight, ar = rect.width / rect.height;
+      let h = ih * 0.72, w = h * ar;
+      if (w > iw * 0.9) { w = iw * 0.9; h = w / ar; }
+      rect = { left: (iw - w) / 2, top: (ih - h) / 2, width: w, height: h };
+    }
     pcSetStatus("Capture en cours...");
     bridge?.captureRgPhoto?.(
       Math.round(rect.left),
@@ -1208,6 +1232,7 @@
       Math.round(window.innerWidth),
       Math.round(window.innerHeight)
     );
+    if (!bridge?.captureRgPhoto) { pcBusy = false; pcToast("Appareil photo indisponible sur cette version.", 3000); return; }
     window.setTimeout(() => { pcBusy = false; }, 4000);
   }
 
@@ -1474,17 +1499,26 @@
     }
 
     if (cleanStatus === "captured" && url && phoneCameraMode) {
+      // [v34] on reste dans l'appareil photo (comme un vrai telephone) : vignette + message, la galerie s'ouvre avec le bouton
       savePhonePhoto(url);
-      bridge?.phoneCameraDone?.(true);
+      pcBusy = false;
+      pcSetStatus("Ambiance");
+      pcToast("Photo enregistrée dans Photos", 1600);
+      const th = document.querySelector("#pcGallery");
+      if (th) { th.classList.remove("pop"); void th.offsetWidth; th.classList.add("pop"); }
+      try { localStorage.removeItem("crestwoodPhoneOpenApp"); } catch (_) {}
       return;
     }
+    // [v34] le panneau recopie ses scripts dans le HUD cache : sans camera d'identite ouverte, rien a faire ici
+    // (avant : une photo du telephone remplacait la photo de la carte d'identite)
+    if (!phoneCameraMode && !state.idCameraOpen) return;
     if (cleanStatus === "captured" && url) {
       setStoredIdValue("photo", url);
       closeIdCamera(false);
       renderIdentity();
     } else if (cleanStatus === "error") {
       pcBusy = false;
-      if (phoneCameraMode) pcSetStatus(message || "Impossible d'enregistrer.");
+      if (phoneCameraMode) { pcSetStatus("Ambiance"); pcToast(message || "Impossible d'enregistrer.", 3600); }
       else if (idCameraStatus) idCameraStatus.textContent = message || "Impossible d'enregistrer.";
       window.setTimeout(() => {
         if (phoneCameraMode) pcSetStatus("Ambiance");
@@ -1905,6 +1939,8 @@
           </span>
         </article>
       `;
+      try { window.CwRingtone && window.CwRingtone.play(); } catch (_) {}   // [v46] sonnerie
+      window.setTimeout(() => { try { window.CwRingtone && window.CwRingtone.stop(); } catch (_) {} }, 30000);
       const toast = phoneNotificationLayer.querySelector(".phone-toast");
       phoneNotificationTimer = window.setTimeout(() => {
         toast?.classList.add("leaving");
@@ -1985,8 +2021,9 @@
   //  ou SA-MP ({RRGGBB}), petit bip. Une seule boite a la fois, les suivantes attendent.
   //  Serveur : dialogue 9644 "@note" {"type":"..","title":"..","message":"..","duration":6000,"sound":1}
   // =====================================================================
-  const SA_COLORS = { r: "#e2484c", g: "#5cc85f", b: "#6f9cff", y: "#f3c75c", p: "#b98cff", o: "#ff9d3c", l: "#9aa0a8" };
-  const SA_TYPE_COLOR = { success: "#2fb768", denied: "#e2484c", warning: "#e0a526", admin: "#8b6cf0", restart: "#e2484c", system: "#3b82ff" };
+  // [v45] notifications sur carte blanche : couleurs plus foncees (lisibles), info en graphite (plus de bleu)
+  const SA_COLORS = { r: "#d1343f", g: "#1e9a52", b: "#2f62c4", y: "#b57a12", p: "#7a4fd6", o: "#d0661a", l: "#6c727d" };
+  const SA_TYPE_COLOR = { success: "#1e9a52", denied: "#d1343f", warning: "#d08a12", admin: "#7a4fd6", restart: "#d1343f", system: "#3a3f4a" };
   const gameNotifyQueue = [];
   let gameNotifyCurrent = null;
   let gameNotifyShownAt = 0;
@@ -2436,7 +2473,7 @@
 
   chatComposer?.addEventListener("submit", (event) => {
     event.preventDefault();
-    sendMessage(chatInput?.value);
+    { const typed = String(chatInput?.value || "").trim(); sendMessage(typed.startsWith("/") ? "/tc " + typed : typed); }   // [v42] commande tapee : filtree par le serveur
     if (chatInput) chatInput.value = "";
     setChatComposer(false);
   });
@@ -2451,6 +2488,7 @@
     const phone = button.dataset.phone || "";
     const action = button.dataset.callAction === "accept" ? "accept" : "reject";
     bridge?.phoneCallAction?.(action, phone);
+    try { window.CwRingtone && window.CwRingtone.stop(); } catch (_) {}   // [v46]
     const toast = button.closest(".phone-toast");
     toast?.classList.add("leaving");
     window.setTimeout(() => {
@@ -2866,7 +2904,7 @@
     });
   }
   // [v18] rangée rapide : paramètres, téléphone
-  [["#cwQaSettings", "settings"], ["#cwQaPhone", "phone"], ["#cwQaInv", "inventory"]].forEach(([sel, action]) => {
+  [["#cwQaSettings", "settings"], ["#cwQaPhone", "phone"]].forEach(([sel, action]) => {
     const b = document.querySelector(sel);
     if (!b) return;
     ["pointerdown", "mousedown"].forEach((ev) => b.addEventListener(ev, holdHudTouch));

@@ -219,7 +219,6 @@ bool Crestwood_IsReplacedWidget(const void* pWidget)
         case WIDGET_VEHICLE_SHOOT_RIGHT:
         case WIDGET_HYDRAULICS:
         case WIDGET_AUTO_HYDRAULICS:
-        case WIDGET_CAM_TOGGLE:   // [v31] bouton "changer de vue" retire
             return true;
         default:
             return false;
@@ -239,7 +238,20 @@ static bool s_cwOrigSaved[NUM_WIDGETS];
 static const char* Crestwood_ButtonIcon(int id)
 {
     switch (id) {
-        case WIDGET_ENTER_CAR: return "models/buttons/car.png";
+        case WIDGET_ENTER_CAR: {
+            // [v35] en vehicule : portiere (descendre) ; a pied : voiture dans un cercle de verre
+            CPlayerPed* ped = pGame ? pGame->FindPlayerPed() : nullptr;
+            return (ped && ped->IsInVehicle()) ? "models/buttons/v_door.png" : "models/buttons/v_car.png";
+        }
+        // [v35] boutons de conduite natifs : cercle de verre + icone blanche (style demande par Anzo)
+        case WIDGET_VEHICLE_STEER_LEFT: return "models/buttons/v_left.png";
+        case WIDGET_VEHICLE_STEER_RIGHT: return "models/buttons/v_right.png";
+        case WIDGET_ACCELERATE: return "models/buttons/v_accel.png";
+        case WIDGET_BRAKE: return "models/buttons/v_brake.png";
+        case WIDGET_HANDBRAKE: return "models/buttons/v_handbrake.png";
+        case WIDGET_HORN: return "models/buttons/v_horn.png";
+        case WIDGET_NITRO: return "models/buttons/v_nitro.png";
+        case WIDGET_CAM_TOGGLE: return "models/buttons/v_camera.png";
         case WIDGET_ATTACK: {
             CPlayerPed* ped = pGame ? pGame->FindPlayerPed() : nullptr;
             const int w = ped ? (int)ped->GetCurrentWeapon() : 0;
@@ -315,9 +327,9 @@ void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
     }
     WidgetIDs widgetType = GetWidgetTypeFromWidget(pWidget);
 
-    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {   // [v31] bouton "changer de vue" : toujours masque
-        CWidget__SetEnabled(pWidget, false);
-        pWidget->m_bEnabled = false;
+    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {
+        CWidget__SetEnabled(pWidget, true);
+        pWidget->m_bEnabled = true;
         return;
     }
 
@@ -342,8 +354,11 @@ void CWidgetButton__Update_hook(CWidgetButton* thiz) {
     }
     WidgetIDs widgetType = GetWidgetTypeFromWidget(thiz);
 
-    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {   // [v31] masque
-        thiz->m_bEnabled = false;
+    if(widgetType == WidgetIDs::WIDGET_CAM_TOGGLE) {
+        if (!thiz->m_bEnabled) {
+            thiz->SetEnabled(true);
+        }
+        CWidgetButton__Update(thiz);
         return;
     }
 
@@ -401,8 +416,8 @@ eWidgetState ProcessFixedWidgetFromId(int iWidgetId)
 int (*CTouchInterface__IsTouched)(int iWidgetId, CVector2D *pVecOut, int nFrameCount);
 int CTouchInterface__IsTouched_hook(int iWidgetId, CVector2D *pVecOut, int nFrameCount)
 {
-    if(iWidgetId == WIDGET_CAM_TOGGLE) {   // [v31] masque
-        return 0;
+    if(iWidgetId == WIDGET_CAM_TOGGLE) {
+        return CTouchInterface__IsTouched(iWidgetId, pVecOut, nFrameCount);
     }
 
     if(pNetGame)

@@ -5,7 +5,7 @@
     --panel:rgba(21,23,28,.78); --rail:rgba(16,18,22,.74); --raised:rgba(40,43,50,.62); --field:rgba(14,16,20,.70);
     --line:#2a2e37; --line-strong:rgba(255,255,255,0.121);
     --text:#eceef2; --soft:#c4c9d4; --muted:#a0a0a0;
-    --accent:#3b82ff; --accent-ink:#ffffff; --accent-soft:#142544;   /* [v18] bleu Crestwood */
+    --accent:#a78bfa; --accent-ink:#ffffff; --accent-soft:#2a1f4d;   /* [v30b] violet admin */
     --danger:#ff6370; --danger-soft:#33191d; --warn:#f2b13c;
     --r-admin:#ababab; --r-rcon:#b7b7b7; --r-dev:#ffb454;
     --radius:4px;

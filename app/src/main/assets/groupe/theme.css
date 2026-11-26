@@ -1,0 +1,59 @@
+/* [v47] STYLE PERSO : MON GROUPE
+   html[data-mode="gang"] : la rue (beton sombre, titre a la bombe de peinture, couleur du gang qui coule)
+   html[data-mode="fac"]  : dossier officiel (bleu nuit, liseret dore, insigne, police large)
+   html[data-mode="me"]   : carte de joueur (degrade de la couleur du groupe) */
+@import url("../common/cw-fonts-v47.css");
+:root { --txt: #f5f5f4; --soft: #c4c0b8; --mute: #8e8a82; --line: rgba(255, 255, 255, .12); --glass2: rgba(255, 255, 255, .06); }
+.ov { background: radial-gradient(ellipse at center, rgba(0, 0, 0, .3), rgba(0, 0, 0, .72)) !important; }
+.panel { border: 0 !important; box-shadow: 0 24px 70px rgba(0, 0, 0, .7) !important; }
+.kpi { background: rgba(255, 255, 255, .06) !important; border-color: rgba(255, 255, 255, .1) !important; }
+.kpi small { color: #c4c0b8 !important; } .kpi em.z { color: #8e8a82 !important; } .kpi em { color: #4ade80 !important; }
+.rank, .vault, .hint { background: rgba(255, 255, 255, .06) !important; border-color: rgba(255, 255, 255, .12) !important; color: #f5f5f4; }
+.rank .n { background: rgba(255, 255, 255, .12); color: #f5f5f4; }
+.log { color: #c4c0b8 !important; border-bottom-color: rgba(255, 255, 255, .1) !important; }
+.vault input { background: rgba(0, 0, 0, .4) !important; color: #fff !important; border-color: rgba(255, 255, 255, .2) !important; }
+.vault button.g, .btn.ghost { background: rgba(255, 255, 255, .08) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, .2) !important; }
+.x { background: rgba(255, 255, 255, .08) !important; border-color: rgba(255, 255, 255, .2) !important; } .x svg { stroke: #fff !important; }
+.tabs { background: rgba(0, 0, 0, .35) !important; border-color: rgba(255, 255, 255, .15) !important; }
+.tabs button { color: #c4c0b8 !important; }
+.money { color: #4ade80 !important; }
+
+/* ---- gang : la rue ---- */
+html[data-mode="gang"] .panel { border-radius: 8px !important;
+  background: radial-gradient(ellipse at 85% 10%, color-mix(in srgb, var(--a1) 35%, transparent), transparent 45%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 5px),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, .04), transparent 40%), linear-gradient(170deg, #2a2a2c, #19191b 60%, #101011) !important; }
+html[data-mode="gang"] .panel::before { height: 14px !important; animation: none !important; opacity: .9;
+  background: radial-gradient(circle at 8% 0, var(--a1) 6px, transparent 7px) 0 0 / 46px 14px, radial-gradient(circle at 60% 0, var(--a1) 4px, transparent 5px) 0 0 / 31px 12px, linear-gradient(var(--a1), var(--a1)) 0 0 / 100% 4px no-repeat !important; }
+html[data-mode="gang"] .ttl b { font: 900 26px/1 "CwAkro", sans-serif !important; text-transform: uppercase; letter-spacing: .04em; color: var(--a1) !important;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--a1) 60%, transparent), 2px 2px 0 #000; transform: rotate(-2deg); display: inline-block !important; }
+html[data-mode="gang"] .logo { border-radius: 50% !important; background: radial-gradient(circle at 35% 30%, #fff 0 8%, var(--a1) 9% 100%) !important; box-shadow: 0 0 0 3px #111, 0 0 18px var(--a1) !important; }
+html[data-mode="gang"] .crest { border-radius: 6px !important; transform: rotate(-4deg); font-family: "CwAkro", sans-serif; font-size: 18px !important; box-shadow: 3px 3px 0 #000 !important; }
+html[data-mode="gang"] .kpi::before { background: var(--a1) !important; width: 4px !important; }
+html[data-mode="gang"] .kpi b { font-family: "CwAkro", sans-serif; font-size: 21px !important; letter-spacing: .02em; }
+html[data-mode="gang"] .tabs button.on { background: var(--a1) !important; color: #111 !important; }
+html[data-mode="gang"] .vault button:not(.g) { background: var(--a1) !important; color: #111 !important; font-family: "CwAkro", sans-serif; font-size: 13px !important; text-transform: uppercase; }
+
+/* ---- faction : dossier officiel ---- */
+html[data-mode="fac"] .panel { border-radius: 14px !important; border: 2px solid rgba(212, 175, 55, .55) !important;
+  background: radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--a1) 40%, transparent), transparent 50%),
+    linear-gradient(165deg, #121a2e 0%, #0c1222 60%, #070b16 100%) !important; }
+html[data-mode="fac"] .panel::before { height: 3px !important; background: linear-gradient(90deg, transparent, #d4af37, transparent) !important; animation: none !important; }
+html[data-mode="fac"] .logo { border-radius: 50% 50% 46% 46% / 40% 40% 60% 60% !important; background: linear-gradient(160deg, #f3d77a, #b8902a) !important; box-shadow: 0 0 0 2px #0c1222, 0 0 0 4px #d4af37 !important; }
+html[data-mode="fac"] .logo svg { stroke: #3a2a00 !important; }
+html[data-mode="fac"] .ttl b { font: 900 18px/1.1 "CwWide", sans-serif !important; text-transform: uppercase; letter-spacing: .04em; color: #f3e2a8 !important; }
+html[data-mode="fac"] .crest { border-radius: 50% !important; background: linear-gradient(160deg, var(--a1), var(--a2)) !important; box-shadow: 0 0 0 2px #d4af37 !important; font-family: "CwWide", sans-serif; font-size: 10px !important; }
+html[data-mode="fac"] .kpi::before { background: linear-gradient(180deg, #d4af37, var(--a1)) !important; }
+html[data-mode="fac"] .kpi b { font-family: "CwDin", sans-serif; }
+html[data-mode="fac"] .lbl { color: #d4af37 !important; letter-spacing: .18em !important; }
+html[data-mode="fac"] .tabs button.on { background: linear-gradient(160deg, #f3d77a, #b8902a) !important; color: #2a1d00 !important; }
+
+/* ---- moi : carte de joueur ---- */
+html[data-mode="me"] .panel { border-radius: 24px !important;
+  background: radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--a1) 55%, transparent), transparent 55%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--a2) 35%, transparent), transparent 55%), linear-gradient(160deg, #1c1f27, #111319) !important; }
+html[data-mode="me"] .ttl b { font: 900 22px/1 "CwRound", sans-serif !important; }
+html[data-mode="me"] .crest { border-radius: 50% !important; font-family: "CwRound", sans-serif; }
+html[data-mode="me"] .kpi { border-radius: 16px !important; }
+html[data-mode="me"] .kpi b { font-family: "CwRound", sans-serif; }
+html[data-mode="me"] .tabs button.on { background: #fff !important; color: #111 !important; }

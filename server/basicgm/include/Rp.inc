@@ -749,9 +749,15 @@ stock Rp_Go(playerid, const target[])
 	else if (!strcmp(target, "veh", true)) format(cmd, sizeof cmd, "/vmenu");
 	else if (!strcmp(target, "outfit", true)) format(cmd, sizeof cmd, "/tenues");
 	else if (!strcmp(target, "garage", true)) format(cmd, sizeof cmd, "/garage");   // [v15b]
-	else if (!strcmp(target, "fac", true)) format(cmd, sizeof cmd, "/faction");
+	else if (!strcmp(target, "fac", true)) format(cmd, sizeof cmd, "/factionpanel");   // [v42] panneau de faction (page)
 	else if (!strcmp(target, "gov", true)) format(cmd, sizeof cmd, "/gouv");
 	else if (!strcmp(target, "house", true)) format(cmd, sizeof cmd, "/maison");
+	else if (!strcmp(target, "bourse", true)) format(cmd, sizeof cmd, "/bourse");        // [v44]
+	else if (!strcmp(target, "event", true)) format(cmd, sizeof cmd, "/evenements");
+	else if (!strcmp(target, "casino", true)) format(cmd, sizeof cmd, "/casino");
+	else if (!strcmp(target, "jobs", true)) format(cmd, sizeof cmd, "/emplois");
+	else if (!strcmp(target, "grp", true)) format(cmd, sizeof cmd, "/groupe");          // [v46]
+	else if (!strcmp(target, "tuto", true)) format(cmd, sizeof cmd, "/tutoriel");
 	if (cmd[0] == 0)
 	{
 		// pas de page serveur pour ce raccourci : on garde le menu RP ouvert

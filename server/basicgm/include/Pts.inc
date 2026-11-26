@@ -158,6 +158,44 @@ stock Pts_OpenDB()
 }
 
 // Recharge tous les points et remplit les tableaux des systemes (banque, 24/7, essence, location, emplois)
+// [v30b] nos systemes poses aux emplacements du gamemode MTA ECLIPSE (une seule fois ; un point deja
+//        pose a moins de 12 m par le staff n'est pas double). Deplacables ensuite avec /points.
+stock Pts_SeedOne(type, const name[], Float:x, Float:y, Float:z, Float:a)
+{
+	new q[260], DBResult:r, n = 0;
+	format(q, sizeof q, "SELECT COUNT(*) FROM cw_points WHERE type = %d AND (x - %f) * (x - %f) + (y - %f) * (y - %f) < 144.0", type, x, x, y, y);
+	r = db_query(g_PtDB, q);
+	if (r != DBResult:0)
+	{
+		new f[12];
+		if (db_num_rows(r) > 0)
+		{
+			db_get_field(r, 0, f, sizeof f);
+			n = strval(f);
+		}
+		db_free_result(r);
+	}
+	if (n > 0) return 0;
+	format(q, sizeof q, "INSERT INTO cw_points (type, sub, name, x, y, z, a) VALUES (%d, 0, '%s', %f, %f, %f, %f)", type, name, x, y, z, a);
+	db_free_result(db_query(g_PtDB, q));
+	return 1;
+}
+
+stock Pts_SeedMta()
+{
+	new n = 0;
+	// superettes / magasins (EC-ShopSystem : saved_shops.json)
+	n += Pts_SeedOne(PT_SHOP, "Superette Idlewood", 1925.9453, -1769.9150, 13.5468, 178.2);
+	n += Pts_SeedOne(PT_SHOP, "Superette Glen Park", 2056.0352, -1097.1826, 24.6085, 180.0);
+	n += Pts_SeedOne(PT_SHOP, "Tabac Ganton", 2140.5049, -1731.0840, 13.5615, 178.4);
+	n += Pts_SeedOne(PT_SHOP, "Bar de la plage", 416.2129, -1846.8018, 4.4611, 271.6);
+	// pompes de la station Idlewood (mapping MTA Igs)
+	n += Pts_SeedOne(PT_PUMP, "", 1941.6560, -1768.9000, 13.6406, 0.0);
+	n += Pts_SeedOne(PT_PUMP, "", 1941.6560, -1776.4000, 13.6406, 0.0);
+	printf("[POINTS] v30b : %d point(s) du MTA ajoute(s) (superettes, pompes).", n);
+	return n;
+}
+
 stock Pts_LoadAll()
 {
 	if (!g_PtJobOrigDone)
@@ -173,6 +211,7 @@ stock Pts_LoadAll()
 	g_BankCount = 0; g_ShopCount = 0; g_SvcPumpCount = 0; g_SvcRentCount = 0;
 	for (new j = 1; j <= JOB_COUNT; j++) g_JobPlaced[j] = 0;
 	if (!Pts_OpenDB()) return 0;
+	if (Cw_OnceDB(g_PtDB, "mta_points_v30")) Pts_SeedMta();   // [v30b] emplacements du gamemode MTA ECLIPSE
 	new DBResult:res = db_query(g_PtDB, "SELECT id, type, sub, name, x, y, z, a FROM cw_points ORDER BY id");
 	if (res == DBResult:0) return 0;
 	new rows = db_num_rows(res), f[40];
@@ -347,17 +386,6 @@ stock Pts_Send(playerid, dialogid, ok = 1, const msg[] = "")
 			strcat(json, part); n++;
 		}
 	}
-	else if (view == 3)
-	{
-		// [v22] interieurs predefinis : [n, nom, categorie, interieur, batiment suggere (0/1), deja place (0/1), icone]
-		for (new k = 0; k < sizeof(g_IntPre); k++)
-		{
-			Pts_JsonStr(g_IntPre[k][ipName], esc, sizeof esc);
-			format(part, sizeof part, "%s[%d,\"%s\",\"%s\",%d,%d,%d,%d]", n ? (",") : (""), k, esc, g_IntPre[k][ipCat], g_IntPre[k][ipInt], (g_IntPre[k][ipEX] != 0.0), IntPre_Placed(k), g_IntPre[k][ipBlip]);
-			if (strlen(json) + strlen(part) > sizeof(json) - 400) break;
-			strcat(json, part); n++;
-		}
-	}
 	else
 	{
 		for (new p = 0; p < g_PtCount; p++)
@@ -374,7 +402,7 @@ stock Pts_Send(playerid, dialogid, ok = 1, const msg[] = "")
 		}
 	}
 	strcat(json, "],\"jobs\":[");
-	if (view == 2) for (new j = 1; j <= JOB_COUNT; j++)
+	for (new j = 1; j <= JOB_COUNT; j++)
 	{
 		format(part, sizeof part, "%s[%d,\"%s\",%d]", (j > 1) ? (",") : (""), j, g_Jobs[j][jbName], g_JobPlaced[j]);
 		strcat(json, part);
@@ -447,7 +475,7 @@ stock Pts_Action(playerid, const params[])
 		Bank_NextToken(params, idx, a1, sizeof a1);
 		Bank_NextToken(params, idx, a2, sizeof a2);
 		g_PtsView[playerid] = strval(a1);
-		if (g_PtsView[playerid] < 0 || g_PtsView[playerid] > 3) g_PtsView[playerid] = 0;
+		if (g_PtsView[playerid] < 0 || g_PtsView[playerid] > 2) g_PtsView[playerid] = 0;
 		g_PtsFilter[playerid] = strval(a2);
 		if (g_PtsFilter[playerid] < 0 || g_PtsFilter[playerid] > PT_TYPES) g_PtsFilter[playerid] = 0;
 		return Pts_Send(playerid, PTS_DIALOG_UPDATE);
@@ -472,35 +500,6 @@ stock Pts_Action(playerid, const params[])
 		format(q, sizeof q, "INSERT OR REPLACE INTO map_arrivals (name, x, y, z, a) VALUES ('%s', %f, %f, %f, %f)", g_MapRegName[mi], x, y, z, a);
 		db_free_result(db_query(g_PtDB, q));
 		format(m, sizeof m, "Arrivee de \"%s\" = ta position.", g_MapRegName[mi]);
-		return Pts_Refresh(playerid, 1, m);
-	}
-	// ---- [v22] interieurs predefinis
-	if (!strcmp(action, "ipre", true) || !strcmp(action, "ipgo", true))
-	{
-		Bank_NextToken(params, idx, a1, sizeof a1);
-		new k = strval(a1);
-		if (k < 0 || k >= sizeof(g_IntPre)) return Pts_Refresh(playerid, 0, "Interieur inconnu.");
-		if (!strcmp(action, "ipgo", true))
-		{
-			if (g_IntPre[k][ipEX] == 0.0) return Pts_Refresh(playerid, 0, "Pas de batiment suggere : place-toi devant la porte et touche Placer ici.");
-			Pts_Teleport(playerid, g_IntPre[k][ipEX], g_IntPre[k][ipEY], g_IntPre[k][ipEZ], 0.0);
-			return Pts_Refresh(playerid, 1, "Teleporte devant le batiment suggere (ne bouge pas, le sol se charge).");
-		}
-		if (IntPre_Placed(k)) return Pts_Refresh(playerid, 0, "Deja place (supprime-le dans Entrees / sorties pour le replacer).");
-		if (!IntPre_Create(k, x, y, z)) return Pts_Refresh(playerid, 0, "Trop de portails.");
-		format(m, sizeof m, "\"%s\" place ici.", g_IntPre[k][ipName]);
-		return Pts_Refresh(playerid, 1, m);
-	}
-	if (!strcmp(action, "ipall", true))
-	{
-		new made = 0;
-		for (new k = 0; k < sizeof(g_IntPre); k++)
-		{
-			if (g_IntPre[k][ipEX] == 0.0 || IntPre_Placed(k)) continue;
-			if (!IntPre_Create(k, g_IntPre[k][ipEX], g_IntPre[k][ipEY], g_IntPre[k][ipEZ])) break;
-			made++;
-		}
-		format(m, sizeof m, "%d interieur(s) places sur les batiments suggeres.", made);
 		return Pts_Refresh(playerid, 1, m);
 	}
 	// ---- portails

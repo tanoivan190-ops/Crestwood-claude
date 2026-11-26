@@ -15,7 +15,7 @@ import java.util.Locale;
 
 /**
  * Journal du client 32 bits, ecrit AVANT le natif (chargement des .so, plantages Java).
- * Fichier : /storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_log.txt
+ * Fichier : /storage/emulated/0/Android/data/com.crestwoodroleplay/files/crestwood_log.txt
  * (dossier propre a l'appli : toujours accessible en ecriture, sans permission).
  * C'est ce fichier qu'il faut recuperer quand un telephone 32 bits n'arrive pas a jouer.
  */
@@ -31,8 +31,8 @@ public final class CrashLog {
     private static File file() {
         if (sFile != null) return sFile;
         String[] dirs = {
-                "/storage/emulated/0/Android/data/com.crestwood.rp/files",
-                "/sdcard/Android/data/com.crestwood.rp/files",
+                "/storage/emulated/0/Android/data/com.crestwoodroleplay/files",
+                "/sdcard/Android/data/com.crestwoodroleplay/files",
         };
         for (String d : dirs) {
             try {

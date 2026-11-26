@@ -264,3 +264,124 @@
 
 ## v29 (17/11/2026) : style "jeu" (GTA V / FiveM) sur les panneaux
 - common/cw-pro.css section [v29] : fond image common/img/bg-city-1.webp + voile, police CwGame (common/fonts), titres italique gras, coins 9-12 px, boutons principaux bleus. Exclus : pages html[data-flat] et html[data-sg] (inventaire : le joueur a prefere l'ancien style, garde tel quel).
+
+## v30 (19/11/2026)
+- Marqueurs 3D (WorldMarkers.cpp 32/64) : visibles < 12 m, noms < 5 m, textes ~fs*0.4. Textes 3D d'interaction a 4 m.
+- Vetements : reset unique (`Cw_OnceDB(db, cle)` + table `cw_meta`), creation = visage/cheveux seulement (`CLOTH_FIRST_CLOTHING`), s'habiller seulement en magasin (`Cloth_CanDress` / `Cs_NearShop` dans Cw21.inc).
+- Streaming : profils par RAM (`Ms_SetProfile`, /cwdev) ; client : budget streaming 300-384 Mo et distance 65/80 % si <= 4 Go.
+- Compilation (x86_64) : pawncc 3.10.10 construit depuis les sources, `pawncc basicgm1.pwn -iinclude -i../../tools/pawn-windows/include -d0` -> 0 erreur, 8 warnings.
+
+## v30c (20/11/2026)
+- Les DEUX classes Java doivent recevoir chaque page : `com.gta.game.SAMP` (64 bits) ET `com.gta.game32.SAMP` (32 bits). Store + pages generiques portes dans game/SAMP.java.
+- Pages generiques : `include/Pages.inc` (`Pg_Send`, dialogues 9970/9971/9972, titre `@page <nom>`, retour `/pageact <nom> <action> [args]`), pages `assets/ticket|repair|bodycam` (+ `common/cw-page.css/js`). Ajouter un nom a `CW_PAGES` (les deux SAMP.java) pour une nouvelle page.
+- Prefixes deja pris : `Rep_` = reports (basicgm1.pwn) -> le garage utilise `Rpr_`. Un nom en double fait planter pawncc (segfault dans newfunc), pas d'erreur claire.
+- Pawn : `strcmp` renvoie 0 si une chaine est vide -> toujours tester `x[0]` avant.
+- Animations MTA : `include/MtaAnims.inc` (genere), cles `m1..m151` (anim-mini.js). Bloc "SNM" remplace par `assets/cwmodels/snm.ifp` (ModLoader lit aussi `SAMP/cwmodels/*.ifp`). `CPlayerPed::ApplyAnimation` ignore une animation absente (`CwAnimExists`, 32/64).
+
+## v31 (20/11/2026)
+- Fin de OnPlayerCommandText : `Cmp_OnCommand` puis `Cmp_Unknown` (message FR + scriptfiles/commandes_inconnues.log). Commandes envoyees par l'appli sans handler : ajouter dans include/Compat.inc.
+- Corps 7/12 : `CwPreloadBodiesTick` (SouthModelLoader.cpp 32/64) installe le corps des que `CStreaming::GetInfo(id).IsLoaded()` (jamais bloquant).
+- Compteur : hud/speedo-cw = copie de original-speedometer + speedo-plus.css/js.
+- Telephone : phone/apps-v31.js (carte Uber : /phoneact pos|gps ; Instagram : /phoneact ig -> jeton, puis HTTP direct vers server/instagram/ig-server.js). Pawn : include/Insta.inc (HTTP natif, IG_SECRET). Java SampPhone : serverHost(), actions ig/pos/gps (les deux SAMP.java).
+- Clavier : hud-kb.js desactive par defaut (useHtml), CwKb.open/openFor renvoient false -> clavier Android.
+- Nouvelles commandes citoyennes : toujours les ajouter dans Aide_Cat (basicgm1.pwn).
+
+## v32 (20/11/2026)
+- PLUS de modeles/animations personnalises du MTA dans l'appli (assets/cwmodels supprime, ApplyCwModels retire) : plantages. Ne pas les remettre sans test sur telephone.
+- samp32 utilise FLog (pas Log). Toujours verifier les deux dossiers samp/samp32.
+- Streaming client + streamer serveur = versions d'origine (zip Crestwood-claude-22). MS_MAX_OBJ 12500.
+- Corps South : APK en priorite (prepareClothesModel, cache crestwood-clothes-v2 + apk.stamp) ; CwPreloadBodiesTick reessaie toutes les 3 s ; modeles 7/12 demandes au demarrage (game.cpp).
+- Uber : include/Uber.inc (dispatch au plus proche, taximetre C23_Send {"m":"meter"}), phone/apps-v32.js, hud/uber-meter.js ; Java SampPhone action "uber" (sub/arg).
+
+## v33-v34 (20/11/2026)
+- Bodycam : g_BcOn=1 a la connexion, Bc_SpecAgain (300/1200 ms), Bc_ViewPos utilise par Ms_Tick (streamer autour de la cible regardee).
+- Camera du telephone : dans le telephone (v35 a retire le plein ecran). Java pixelCopyTry = 3 essais. rgCameraNativeStatus ignore les messages hors camera (le panneau recopie ses scripts dans le HUD cache via setMirror).
+- Telephone : style iPhone 17 Pro dans <style id="cw34-iphone17"> (phone/index.html), #lockClockBox.
+- Uber : phone/apps-v34.js remplace uberHTML/uberBodyHTML ; lit CwUber.state (apps-v31) et CwUberApp.state (apps-v32). Tarifs copies de Uber.inc (TARIF) : les garder synchronises.
+- Boutique : apercu vehicule = PlayerTextDraw font 5 (Store_PvShow/Store_PvHide), coordonnees en pour-mille -> x0.640 / x0.448. SampStoreBridge accepte pv/pvoff (les deux SAMP.java).
+
+## v35 (20/11/2026)
+- .hud-root est en pointer-events:none : tout element cliquable du HUD doit remettre pointer-events:auto (bug camera, hud/hud-v35.css).
+- Anzo ne veut PAS de HTML pour les controles : boutons natifs = textures APK (models/buttons/v_*.png, Crestwood_ButtonIcon dans Widgets/WidgetGta.cpp) ou ImGui (EngineButton, CombatButtons). Generateur : tools/buttons/gen_buttons.py <dossier> <car.png>.
+- EngineButton : game/EngineButton.cpp identique samp/samp32, Render dans UI::drawList, OnTouch dans AND_TouchEvent_hook.
+- Homme South (7) : ApplySouth garde la tenue d'origine du modele pour chaque zone sans vetement choisi (topStyle 0, bottomStyle 0/3, shoesStyle 0).
+- Moteurs MTA Mobile (libGTASA/libMobileSA) : incompatibles (autre build de libGTASA, protocole MTA) -> ne pas les integrer.
+
+## v36 (20/11/2026) : debut de la sortie du HTML
+- DECISION d'Anzo : TOUT l'affichage (HUD, telephone, pages) passe en vues Android natives (layouts XML), puis suppression de la WebView. Ne plus creer de nouvelle page HTML.
+- Code natif partage 32/64 : package com.crestwood.ui (app/src/main/java/com/crestwood/ui), R = com.gta.game.R.
+- NativeHud.attach(activity, hudParent, hudMain) ajoute res/layout/cw_native_hud.xml SOUS hudMain ; suit la visibilite de hudMain (panneau ouvert = cache).
+- Donnees : SAMP.updateHudState(floats) -> NativeHud.setPlayer ; updateHudMoney -> setMoney ; dialogue 9516 (@hudv) -> setInfo(JSONObject) ; updateHudNeeds -> setNeeds.
+- La page hud/index.html recoit NativeHud.HIDE_HTML_JS a onPageFinished (classe cw-native-hud, iframe du compteur retire).
+- Fait : SpeedoView, InfoPanelView. A faire (etape 1) : minimap, notifications, chat, boutons HUD, menu rapide.
+- v37 : MinimapView (port de minimap.js + hud-ring.js) + CrestGps (port de gps-route.js, assets/hud/gps/roads.bin genere depuis roads.js). La minimap HTML est neutralisee par HIDE_HTML_JS (Minimap/MinimapBridge vides). SampHudBridge.nativeMinimap(bool) suit l'option de la roue. replayMapState() pousse aussi blips + GPS au HUD natif.
+
+## v38 (21/11/2026)
+- gameSettingDefault("cw_buttons") = 1 dans les DEUX SAMP.java (64 bits etait a 0 -> boutons restyles invisibles en 64 bits).
+- PlayerTap : vehicule = appui long kVehHoldMs (5 s), aussi depuis l'interieur (LocalAny) ; joueur = appui court comme avant.
+- EngineButton visible seulement si moteur coupe (et pas velo 481/509/510).
+- SAMP.cwLog(String) : journal natif -> crestwood_log.txt (60 lignes max). C++ : CwNativeLog(fmt, ...) dans gui/SouthModelLoader.cpp.
+
+## v39 (21/11/2026)
+- isLowEndDevice() (RAM <= ~4,2 Go ou isLowRamDevice) dans les deux SAMP.java : 60 Hz + fps_limit 60 par defaut.
+- updateHudState(floats) : JSON "lite" pour la page HTML quand nativeHud existe et que le HUD principal est affiche.
+
+## v40 (21/11/2026)
+- ATTENTION : CTxdStore::ms_pTxdPool (game/TxdStore.h) est une variable du client JAMAIS remplie. Utiliser GameTxdPool() (gui/SouthModelLoader.cpp, dlsym _ZN9CTxdStore11ms_pTxdPoolE).
+- RwHelper GetAnimHierarchyFromSkinClump = hierarchie de l'ATOME (apres SetClump seulement). Pour un clump fraichement lu : FindClumpHierarchy (frames).
+- Recreer un ped apres remplacement de modele : CPed::SetModelIndex (pas CreateRwObject seul : os vides -> crash).
+
+## v41 (21/11/2026) - factions RP
+- include/Frp.inc (inclus a la FIN de basicgm1.pwn). Types FACTION_FIRE 13 / FACTION_JUSTICE 14 (FACTION_TYPE_MAX 14) : penser a g_FxTypeNames, g_RpXUniSkin, admin.js FAC_TYPES.
+- Seed des factions : table faction_seed (crestwood_factions.db). Donnees justice/pompiers/reglages : crestwood_justice.db.
+- CreateDynamicObject de basicgm est un SHIM (Ms_Add, pas de DestroyDynamicObject) : objets temporaires = CreateObject/DestroyObject.
+- Hooks : Pol_Jail -> Jus_OnJail, Fine_Give -> Jus_Record, Phone_Sms/Accept -> Frp_OnSms/OnCall, FacX_Pay -> Frp_PayMult, Ui menus -> Frp_Ui*.
+
+## v42 (21/11/2026) - creation + interactions
+- include/Cw41.inc (inclus en dernier). Studio : Crea_Begin (Cloth_OpenFirst) / Crea_End (Cloth_DoSave 1re fois). 18981 = bloc 1x25x25 fin sur X.
+- Vetements de depart : southTop = index 39, southBottom = 40 (g_ClothKeys), valeurs = rang catalogue South + 1.
+- Menu joueur : 5e champ peut commencer par "req_yes:...;req_no:...;" (Int_ReqItems). PlayerTap : ParseOptions 24 max, colonnes auto.
+- Actions client : a-z et _ seulement, 16 car. max (ValidAction) ; serveur : action[16].
+
+## v43 (21/11/2026)
+- Chat tape -> "/tc <cmd>" (hud.js submit, SAMP.java submitChatInput, chat.cpp). Serveur : Tc_Handle (Cw41.inc). NE PAS prefixer les commandes internes des pages.
+- Panneau de faction : serveur dans Cw41.inc (Fp_*), dialogues "@fac" 9680/9681/9682, tables faction_bank/log/events (crestwood_factions.db). Nouvelles actions page : tool, invite (liste blanche Java 32/64).
+- Textes 3D : textlabelpool fontSize*0.40 ; WorldMarkers : rond 0.45 m, kMaxDist 22.
+
+## v44 (21/11/2026)
+- include/Cw44.inc (inclus en dernier) : casino (Cas_), bourse (Bs_/St_), evenements (Ev_). Base crestwood_v44.db.
+- Nouvelles pages generiques : ajouter le nom dans CW_PAGES (SAMP.java 32 ET 64) + router dans Pg_OnCommand (Cw44_PageAction).
+- Marqueur avec nom : Mk_AddN(type, x, y, z, nom). Type 20 = casino (WorldMarkers.cpp 32/64).
+- JOB_COUNT = 9 (JOB_SWEEPER, JOB_TRUCKER, JOB_CASH, JOB_POST) ; assets/job/job.js JOBS 6-9.
+- Attention : "state" est un mot reserve en Pawn (ne pas l'utiliser comme nom de parametre).
+
+## v45 (21/11/2026)
+- include/Cw45.inc : scene de connexion (Lg_Begin/Lg_End), VW 7000+id, objets CreateObject detruits au spawn. AddPlayerClass skin 7. OnPlayerRequestClass -> Lg_Begin si pas connecte.
+- Client : spawn()->setVisible(false) (localplayer.cpp 32/64, main.cpp).
+- Theme pages : verre blanc + police CwGame (common/cw-font.css). Notifs : hud/hud-v45.css, palette SA_COLORS foncee.
+- Phone : apps-v45.js (statuts WhatsApp, override window.waStatusPaneHTML), ig-server.js routes /status /statuses /simg. Selfie = centre ecran (hud.js pcShoot).
+
+## v46 (21/11/2026)
+- include/Cw46.inc (inclus apres Cw45) : Gs_ stats (gs), page generique "groupe" (Grp_), coffre des gangs (gbank/glog, Gang_Income 30 min), identifiants du jour (Dt_, dialogue 9518 "@tags" -> "1|id:tag,..."), tutoriel (Tt_, HUD 9860 {"m":"tuto"}, commandes /tuto accept|decline|next|skip|gps|stop).
+- Accroches : Pol arrest (Cw46_OnArrest), verdict Frp, Tk_Give (OnFine), /reanimer (OnRevive), Fire_End (OnFire), FacX_Pay (OnSalary), OnPlayerDeath (OnDeath), Pages router (Cw46_PageAction), Rp_Go "grp"/"tuto".
+- Client : CwSettings.cpp Crestwood_SetPlayerTags / Crestwood_FormatPlayerTag, playertags.cpp, main.cpp JNI setPlayerTags (32/64), SAMP.java 9518 + CW_PAGES "groupe".
+- Assets : groupe/index.html, hud/tuto.js + tuto.css + assets/ringtone.mp3 + tuto-ok.mp3, clothes/clothes-v46.css (silhouettes masquees), cw-page.css tons (color-mix, data-tone="dark"), admin.js CMDS v46.
+
+## v47 (23/11/2026)
+- Pages protegees : app/build.gradle.kts (cwEncryptAssets apres merge*Assets, propriete crestwood.protectPages) + com/crestwood/ui/CwAssets.java (shouldInterceptRequest dans SAMP 64/32, MainActivity, LoadingScreen, DialogManager ; NativeClothesPanel lit catalogue.json via CwAssets.open). Format "CWX1"+IV+AES/CTR, cle SHA-256 de la graine (identique Gradle/Java).
+- MTA : tools/mta/mta_vers_apk.py (+cwtxd.py) -> assets/mta ; natif gui/MtaModels.cpp (32 et 64, appele par SouthModelLoader::PreloadBodies) ; Java SAMP.mtaModelsList/mtaStateDir/prepareMtaModel ; garde files/crestwood-mta/guard.txt + off.txt. Ne PAS charger au demarrage.
+- MapFile.inc : commentaire en fin de ligne autorise dans liste.txt.
+- HUD : InfoPanelView reecrit (haut gauche), hud/hud-v47.css. Styles perso : <page>/theme.css, login/v47.css, cw-welcome.js.
+- include/Cw47.inc : interactions (Cw47_PlayerItems/VehItems/UiAction/Accept/ReqLabel), REQ 20+.
+- v47b : HUD de la v46 remis (InfoPanelView en haut a droite, cw_native_hud.xml) + animations seulement (aucune couleur ajoutee). hud-v47.css = animations (proprietes scale/translate, pas transform, a cause des !important de hud-v45.css).
+- REGLE Anzo : toujours mettre a jour le panel admin (admin.js CMDS) et /aide a chaque nouvelle commande.
+- v49 : pages HTML existantes remises en v44 (ne plus les restyler sans demande explicite). cw-page.css v44 + bloc opti (pas de backdrop-filter). Dt_ broadcast groupe (g_DtDirty, C46_Tick).
+- v50 : connexion Google. com.crestwood.ui.CwGoogleAuth (Credential Manager + Firebase Auth, FirebaseApp nomme "crestwood" initialise a la main depuis les resValues generees par cwFirebaseConfig() dans app/build.gradle.kts a partir de google-services.json ; pas de plugin google-services). SampAuth.google/googleAccount/googleSignOut (SAMP 32+64). Node server/instagram/gauth.js (/gauth/verify RS256 + /gauth/redeem ticket). Pawn include/Cw50.inc (Gg_*, google_links, /gunlink), Auth_LoginOk commun. Signature fixe app/crestwood-debug.jks. Page login refaite (login.css), demande explicite d'Anzo.
+- v54 : applicationId com.crestwoodroleplay (projet Firebase crestwoodrp-3e53d), chemins natifs/journaux mis a jour, CwGoogleAuth.res() via getResourcePackageName.
+- v51 : Google uniquement. Launcher : assets/play/ (bridge AndroidPlay dans MainActivity, CwGoogleAuth.signIn). Pseudo de connexion = saved_nickname (ecrit par SAMP.rememberCharacterName au salon) sinon Citoyen_XXXX ; le serveur renomme (Gg_BecomeCharacter : SetPlayerName + Bank_LoadPlayer/Gang_Load + reset des *_Loaded). Cw50.inc : cinematique Gg_Intro*, creation Gg_Create, ancien compte Gg_LinkOld, salon Sp_Lobby, spawn Sp_Preview/Sp_Go (SetSpawnInfo puis remise a zero dans Cw50_OnSpawn), spawn_last. g_LgLobby declare dans basicgm1.pwn (Cw45 l'utilise). Anti-lag C++ : BrlTextureShader (KeyEq/RuleKey/tex cache/PlayerIdForPed cache), FindObjectFromGtaPtrFast, ProcessAttach distance.
+- v59 : ecran noir apres connexion. samp32 gere maintenant InterpolateCamera (RPC 82, scriptrpc.cpp + Camera.cpp). Cw50 : SetPlayerCameraPos/LookAt fixes avant chaque InterpolateCamera (Gg_IntroShot, Sp_Preview), Sp_SafeCam 1,5 s apres Sp_Go. SouthModelLoader : tenues 250/275 seulement si le modele est deja en memoire (plus de chargement force).
+- v60 : pages chiffrees affichees en clair-chiffre (CWX1) : CwAssets.checkPage(view,url) dans chaque onPageFinished (5 WebViewClient) -> buildPage (HTML + CSS/JS dechiffres integres) + loadDataWithBaseURL ; intercept tolere les // et journalise les echecs dans crestwood_log.txt. Toute nouvelle WebView : intercept + checkPage.
+- v61 : lanceur (LOADING_URL, PLAY_URL) et LoadingScreen chargent via CwAssets.load(view,url) (page en clair, loadDataWithBaseURL), plus de dependance a shouldInterceptRequest pour ces pages.
+- Skill Hallmark (MIT, Nutlope) copie dans tools/hallmark/ (references, themes, scripts). Pages du jeu = portee "app" : `node tools/hallmark/scripts/sloplint.mjs <page.html> --scope app`. Seulement pour les NOUVELLES pages ou quand Anzo dit Hallmark ; jamais de restyle d'une page existante sans demande.
+- v62 : Hallmark polish sur play, loading, login, locker (0 FAIL sloplint --scope app). Tampon Hallmark en ligne 1 des CSS, tokens :root (--c-*, --font-*, --c-focus). Le reste des pages : pas encore.
+- v63 : toutes les navigations WebView du jeu (SAMP 32/64 hudMain/hudPanel, DialogManager) passent par CwAssets.load(view,url) ; pendingAuthJson n'est consomme que si window.DXAuth existe (sinon remis). Ne plus utiliser view.loadUrl() pour une page d'asset.

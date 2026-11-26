@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bourse</title>
+<!--
+  [v44] Bourse de Crestwood. Serveur : include/Cw44.inc (Bs_* / St_*).
+  cos : [id, nom, ticker, prix, prix precedent, [historique 24], quantite possedee, prix moyen]
+  Page -> serveur : buy <id> <qte> | sell <id> <qte> | refresh
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #1fa971; --a2: #5be3a8; }
+.left { width: 44%; } .right { flex: 1; }
+.co .tk { flex: none; width: 46px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-size: 10px; font-weight: 900; background: rgba(255,255,255,.08); }
+.co .px { flex: none; text-align: right; }
+.co .px b { display: block; font-size: 12.5px; }
+.co .px small { font-size: 10px; font-weight: 900; }
+.up { color: #5be3a8; } .down { color: #ff8a95; }
+.spark { flex: none; width: 54px; height: 24px; }
+.chart { width: 100%; height: 120px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+.big { display: flex; align-items: baseline; gap: 10px; }
+.big b { font-size: 22px; font-weight: 900; }
+.kv { display: flex; gap: 8px; flex-wrap: wrap; }
+.kv div { flex: 1 1 30%; padding: 7px 9px; border-radius: 10px; background: var(--glass2); border: 1px solid var(--line); font-size: 10px; color: var(--soft); }
+.kv b { display: block; font-size: 12.5px; color: var(--txt); }
+.qty { display: flex; align-items: center; gap: 6px; }
+.qty button { height: 32px; min-width: 40px; padding: 0 8px; border-radius: 9px; font-size: 11px; font-weight: 900; background: var(--glass2); border: 1px solid var(--line); }
+.qty input { flex: 1; min-width: 0; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: #fff; text-align: center; font: inherit; font-weight: 900; }
+.news { font-size: 10.5px; color: #cfeede; padding: 7px 10px; border-radius: 10px; background: rgba(31, 169, 113, .12); border: 1px solid rgba(91, 227, 168, .2); }
+</style>
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+      <div class="ttl"><b>Bourse de Crestwood</b><small id="sub">Cours mis à jour toutes les 5 minutes</small></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="col left">
+        <div class="lbl">Entreprises cotées</div>
+        <div class="scroll" id="list"></div>
+      </div>
+      <div class="col right" id="detail"></div>
+    </div>
+    <div class="foot">
+      <div class="sum" id="sum"></div>
+      <button class="btn red" id="sell">Vendre</button>
+      <button class="btn" id="buy">Acheter</button>
+    </div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var Cw = window.CwPage, $ = Cw.$;
+  var st = { d: { cos: [] }, sel: 0, qty: 1, nextAt: 0 };
+
+  function pct(a, b) { return b ? ((a - b) / b) * 100 : 0; }
+  function path(h, w, hgt) {
+    if (!h || !h.length) return "";
+    var mn = Math.min.apply(null, h), mx = Math.max.apply(null, h), r = mx - mn || 1;
+    return h.map(function (v, i) { return (i ? "L" : "M") + (i * w / (h.length - 1)).toFixed(1) + " " + (hgt - 2 - (v - mn) / r * (hgt - 4)).toFixed(1); }).join(" ");
+  }
+  function svg(h, w, hgt, col, fill) {
+    var p = path(h, w, hgt);
+    return '<svg viewBox="0 0 ' + w + ' ' + hgt + '" preserveAspectRatio="none" style="width:100%;height:100%">' +
+      (fill ? '<path d="' + p + ' L' + w + ' ' + hgt + ' L0 ' + hgt + ' Z" fill="' + col + '" opacity=".14"/>' : "") +
+      '<path d="' + p + '" fill="none" stroke="' + col + '" stroke-width="' + (fill ? 2 : 1.6) + '" stroke-linejoin="round"/></svg>';
+  }
+
+  function render() {
+    var d = st.d, cos = d.cos || [];
+    var list = $("list"); list.innerHTML = "";
+    cos.forEach(function (c, i) {
+      var ch = pct(c[3], c[4]), up = ch >= 0;
+      var e = Cw.el("button", "card co" + (c[0] === st.sel ? " on" : ""));
+      e.style.animationDelay = (i * 0.03) + "s";
+      e.appendChild(Cw.el("div", "tk", c[2]));
+      var m = Cw.el("div", "meta"); m.appendChild(Cw.el("b", null, c[1])); m.appendChild(Cw.el("small", null, c[6] ? c[6] + " action(s)" : "—")); e.appendChild(m);
+      var sp = Cw.el("div", "spark"); sp.innerHTML = svg(c[5], 54, 24, up ? "#5be3a8" : "#ff8a95"); e.appendChild(sp);
+      var px = Cw.el("div", "px"); px.appendChild(Cw.el("b", null, Cw.money(c[3]))); px.appendChild(Cw.el("small", up ? "up" : "down", (up ? "+" : "") + ch.toFixed(2) + " %")); e.appendChild(px);
+      e.addEventListener("click", function () { st.sel = c[0]; render(); });
+      list.appendChild(e);
+    });
+    var c = cos.filter(function (x) { return x[0] === st.sel; })[0];
+    var det = $("detail"); det.innerHTML = "";
+    if (c) {
+      var ch = pct(c[3], c[4]), up = ch >= 0;
+      det.appendChild(Cw.el("div", "lbl", c[1] + " · " + c[2]));
+      var big = Cw.el("div", "big"); big.appendChild(Cw.el("b", null, Cw.money(c[3]))); big.appendChild(Cw.el("span", up ? "up" : "down", (up ? "▲ +" : "▼ ") + ch.toFixed(2) + " %")); det.appendChild(big);
+      var chart = Cw.el("div", "chart"); chart.innerHTML = svg(c[5], 300, 120, up ? "#5be3a8" : "#ff8a95", true); det.appendChild(chart);
+      var pl = c[6] ? (c[3] - c[7]) * c[6] : 0;
+      var kv = Cw.el("div", "kv");
+      kv.innerHTML = "<div>Tu possèdes<b>" + c[6] + "</b></div><div>Prix moyen<b>" + (c[6] ? Cw.money(c[7]) : "—") + "</b></div><div>Plus-value<b class='" + (pl >= 0 ? "up" : "down") + "'>" + (pl >= 0 ? "+" : "") + Cw.money(pl) + "</b></div>";
+      det.appendChild(kv);
+      var q = Cw.el("div", "qty");
+      [-10, -1].forEach(function (n) { var b = Cw.el("button", null, String(n)); b.addEventListener("click", function () { setQty(st.qty + n); }); q.appendChild(b); });
+      var inp = Cw.el("input"); inp.type = "number"; inp.min = "1"; inp.value = st.qty; inp.addEventListener("change", function () { setQty(parseInt(inp.value, 10) || 1); }); q.appendChild(inp);
+      [1, 10, 100].forEach(function (n) { var b = Cw.el("button", null, "+" + n); b.addEventListener("click", function () { setQty(st.qty + n); }); q.appendChild(b); });
+      var mx = Cw.el("button", null, "Max"); mx.addEventListener("click", function () { setQty(Math.max(1, Math.floor((d.bank || 0) / (c[3] * (1 + (d.fee || 1) / 100))))); }); q.appendChild(mx);
+      det.appendChild(q);
+      if (d.news) det.appendChild(Cw.el("div", "news", "📰 " + d.news));
+      $("buy").disabled = (d.bank || 0) < c[3] * st.qty;
+      $("sell").disabled = c[6] < st.qty;
+    }
+    tick();
+  }
+  function setQty(n) { st.qty = Math.max(1, Math.min(100000, n || 1)); render(); }
+  function tick() {
+    var d = st.d, left = Math.max(0, Math.round((st.nextAt - Date.now()) / 1000));
+    var c = (d.cos || []).filter(function (x) { return x[0] === st.sel; })[0];
+    $("sum").innerHTML = "Banque <b>" + Cw.money(d.bank || 0) + "</b> · Portefeuille <b>" + Cw.money(d.pf || 0) + "</b>" +
+      (c ? " · Ordre <b>" + Cw.money(c[3] * st.qty) + "</b>" : "") + " · prochain cours " + Math.floor(left / 60) + ":" + ("0" + left % 60).slice(-2);
+  }
+  setInterval(tick, 1000);
+  $("buy").addEventListener("click", function () { Cw.send("buy", st.sel + " " + st.qty); });
+  $("sell").addEventListener("click", function () { Cw.send("sell", st.sel + " " + st.qty); });
+  Cw.boot(function (d) { st.d = d; st.nextAt = Date.now() + (d.next || 0) * 1000; render(); });
+  if (!window.SampPage) window.PageApp.openFromNative({ bank: 125000, next: 240, fee: 1, pf: 8400, news: "Seance calme.", cos: [[0, "Crestwood Petroleum", "CWP", 430, 420, [400, 410, 415, 405, 420, 430], 20, 400], [1, "Wave Telecom", "WAVE", 170, 180, [190, 185, 182, 175, 180, 170], 0, 0]] });
+})();
+</script>
+</body>
+</html>

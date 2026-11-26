@@ -1,0 +1,4 @@
+/* [v45] police "jeu" de Crestwood (Muller, comme les interfaces des serveurs RP mobiles) */
+@font-face { font-family: "CwGame"; src: url("fonts/muller_regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "CwGame"; src: url("fonts/muller_medium.ttf") format("truetype"); font-weight: 500 600; font-display: swap; }
+@font-face { font-family: "CwGame"; src: url("fonts/muller_bold.ttf") format("truetype"); font-weight: 700 900; font-display: swap; }

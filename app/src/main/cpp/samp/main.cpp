@@ -242,7 +242,7 @@ void DoInitStuff()
 		pUI->chat()->setVisible(false); // chat SA-MP classique desactive (le HUD gere la saisie, l'envoi passe toujours par sendChatInput)
 		pUI->buttonpanel()->setVisible(false);  // [Crestwood] barre de touches SA-MP (TAB, Y, N, H, ALT...) supprimee
 		pUI->voicebutton()->setVisible(false);
-		pUI->spawn()->setVisible(true);
+		pUI->spawn()->setVisible(false);   // [v45] la page de connexion fait apparaitre le joueur
 
 		pGame->Initialize();
 		pGame->SetMaxStats();
@@ -305,6 +305,7 @@ void DoInitStuff()
 // [v15] game/CwSettings.cpp
 void Crestwood_ApplyGameSetting(int key, int value);
 void Crestwood_SetHiddenPlayers(const char* csv);
+void Crestwood_SetPlayerTags(const char* data);   // [v46]
 void Crestwood_ProcessHiddenPlayers();
 
 extern "C" {
@@ -398,6 +399,14 @@ extern "C" {
 			if (!data) { Crestwood_SetHiddenPlayers(nullptr); return; }
 			const char* text = pEnv->GetStringUTFChars(data, nullptr);
 			Crestwood_SetHiddenPlayers(text);
+			if (text) pEnv->ReleaseStringUTFChars(data, text);
+		}
+		// [v46] identifiants du jour au-dessus des tetes : "1|3:4821,7:1290" (dialogue serveur "@tags" 9518)
+		JNIEXPORT void JNICALL Java_com_gta_game_SAMP_setPlayerTags(JNIEnv *pEnv, jobject thiz, jstring data)
+		{
+			if (!data) { Crestwood_SetPlayerTags(nullptr); return; }
+			const char* text = pEnv->GetStringUTFChars(data, nullptr);
+			Crestwood_SetPlayerTags(text);
 			if (text) pEnv->ReleaseStringUTFChars(data, text);
 		}
 		JNIEXPORT void JNICALL Java_com_gta_game_SAMP_setVoiceTalk(JNIEnv *pEnv, jobject thiz, jboolean talk)
@@ -723,7 +732,7 @@ void Log(const char* fmt, ...)
 	if (g_logMirror)
 	{
 		static FILE* flCrash = nullptr;
-		if (!flCrash) flCrash = fopen("/storage/emulated/0/Android/data/com.crestwood.rp/files/crestwood_log.txt", "a");
+		if (!flCrash) flCrash = fopen("/storage/emulated/0/Android/data/com.crestwoodroleplay/files/crestwood_log.txt", "a");
 		if (flCrash) { fprintf(flCrash, "  [natif] %s\n", buffer); fflush(flCrash); }
 	}
 	if (flLog == nullptr) return;

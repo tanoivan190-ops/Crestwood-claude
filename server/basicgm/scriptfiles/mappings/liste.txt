@@ -7,3 +7,28 @@
 # LSPD (Agha_Talabani / Team 18-81) : 522 objets + 8 batiments retires, vers 1571,-1675
 # lspd_1_retire_ancien.txt   (retire l'ancien LSPD : a activer seulement quand les modeles 18762/18766... sont dans le jeu)
 lspd_2_nouveau.txt
+
+# [v30b] mappings MTA ECLIPSE - [v47] modeles dans l'appli : assets/mta
+mta_basket.map
+mta_binco.map   # [v47] modeles APK
+# [v32] retire (objets personnalises du MTA : plantage) : mta_dos_d_ane.map
+mta_fix1.map
+mta_fix2.map
+mta_gym.map
+mta_hopital_sf.map
+mta_labo_weed.map   # [v47] modeles APK
+mta_lsn.map
+mta_lsn_barrieres.map
+mta_lsn_interieur.map
+# [v32] retire (objets personnalises du MTA : plantage) : mta_mairie.map
+mta_mecano2.map
+mta_parc_watts.map
+mta_parking_albert.map   # [v47] modeles APK
+mta_police2.map
+mta_poteaux.map   # [v47] modeles APK
+mta_routier_depot.map
+mta_routier_parking.map
+mta_station_idlewood.map   # [v47] modeles APK
+mta_station_idlewood_objets.map   # [v47] modeles APK
+mta_suburban.map
+mta_tabac.map

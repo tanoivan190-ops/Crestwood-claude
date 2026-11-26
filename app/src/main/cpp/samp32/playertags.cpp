@@ -9,6 +9,7 @@
 
 extern CGame* pGame;
 extern CNetGame* pNetGame;
+bool Crestwood_FormatPlayerTag(int id, char* out, size_t size);   // [v46] game/CwSettings.cpp
 
 CPlayerTags::CPlayerTags()
 {
@@ -76,9 +77,11 @@ void CPlayerTags::Render(ImGuiRenderer* renderer)
 
 						if (!pNetGame->m_pNetSet->bNameTagLOS || dwHitEntity && !pRemotePlayer->IsNPC())
 						{
-							sprintf(szNickBuf, "%s (%d)", pPlayerPool->GetPlayerName(playerId), playerId);
+							// [v46] identifiant du jour "(4821)" au lieu du pseudo (serveur : dialogue "@tags" 9518)
+							const bool cwTagged = Crestwood_FormatPlayerTag((int)playerId, szNickBuf, sizeof(szNickBuf));
+							if (!cwTagged) sprintf(szNickBuf, "%s (%d)", pPlayerPool->GetPlayerName(playerId), playerId);
 							this->Draw(renderer,&vecPos, szNickBuf,
-								pRemotePlayer->GetPlayerColor(),
+								cwTagged ? 0xF2F2F2FF : pRemotePlayer->GetPlayerColor(),
 								pPlayerPed->m_pPed->GetDistanceFromCamera(),
 								pRemotePlayer->m_fReportedHealth,
 								pRemotePlayer->m_fReportedArmour,

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Écran Jouer de Crestwood Roleplay : connexion Google et entrée en jeu.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Crestwood RP</title>
+  <link rel="stylesheet" href="play.css">
+  <link rel="stylesheet" href="../common/cw-perf.css">
+  <script src="../common/i18n.js"></script>
+</head>
+<body>
+<!--
+  Crestwood RP v51 : ecran JOUER du launcher (MainActivity, WebView de l'ecran de chargement).
+  Connexion Google ici, une seule fois par telephone : le compte Google EST le compte du joueur.
+  Pont : window.AndroidPlay.account() / signIn(choisir) / signOut() / play()
+  Natif -> page : PlayPage.refresh() / PlayPage.onSignedIn(email, nom) / PlayPage.onError(message, annule)
+-->
+<main class="pl" id="pl">
+  <div class="pl-art pl-art-a"></div>
+  <div class="pl-art pl-art-b"></div>
+  <div class="pl-art pl-art-c"></div>
+  <div class="pl-veil"></div>
+
+  <header class="pl-top">
+    <img class="pl-logo" src="../login/assets/images/cw-logo.png" alt="Crestwood Roleplay">
+    <p class="pl-live"><b>En ligne</b><span>Roleplay francophone</span></p>
+  </header>
+
+  <section class="pl-hero">
+    <h1 class="pl-title"><span>Ta ville.</span><span>Ta vie.</span></h1>
+  </section>
+
+  <section class="pl-panel">
+    <div class="pl-account" id="acct">
+      <i class="g-logo"></i>
+      <div class="pl-acc-text"><small id="accLabel">Compte Google</small><b id="accMail">Non connecté</b></div>
+      <button type="button" class="pl-switch" id="accSwitch" hidden>Changer</button>
+    </div>
+    <button type="button" class="pl-google" id="signIn"><i class="g-logo"></i><span>Se connecter avec Google</span></button>
+    <button type="button" class="pl-play" id="play" hidden><span>Jouer</span><i></i></button>
+    <p class="pl-note" id="note">Ton compte Google garde ton personnage, ton argent et tout le reste.</p>
+  </section>
+
+  <div class="pl-busy" id="busy" hidden><span></span></div>
+  <div class="pl-toast" id="toast" hidden></div>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const T = (x) => (window.CwI18n ? window.CwI18n.t(x) : x);
+  const $ = (id) => document.getElementById(id);
+  const B = window.AndroidPlay || null;
+  let signed = false, waiting = false, toastT = 0;
+
+  function mask(e) {
+    const m = /^([^@]+)@(.+)$/.exec(String(e || ""));
+    if (!m) return "";
+    const keep = m[1].length >= 3 ? 2 : 1;
+    return m[1].slice(0, keep) + "•".repeat(Math.min(4, Math.max(1, m[1].length - keep))) + "@" + m[2];
+  }
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg; t.hidden = false;
+    t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 5200);
+  }
+  function busy(on) { $("busy").hidden = !on; waiting = !!on; $("signIn").disabled = !!on; $("play").disabled = !!on; }
+  function render(email, name) {
+    signed = !!email;
+    $("accMail").textContent = signed ? mask(email) : T("Non connecté");
+    $("accLabel").textContent = signed ? (name ? name : T("Compte Google")) : T("Compte Google");
+    $("acct").classList.toggle("on", signed);
+    $("accSwitch").hidden = !signed;
+    $("signIn").hidden = signed;
+    $("play").hidden = !signed;
+  }
+  function refresh() {
+    busy(false);
+    let a = {};
+    try { a = B && B.account ? JSON.parse(B.account() || "{}") || {} : {}; } catch (_) { a = {}; }
+    render(a.email || "", a.name || "");
+  }
+  $("signIn").addEventListener("click", () => {
+    if (waiting) return;
+    if (!B) { render("anzo.dev@gmail.com", "Anzo"); return; }
+    busy(true);
+    B.signIn(false);
+  });
+  $("accSwitch").addEventListener("click", () => {
+    if (waiting || !B) return;
+    busy(true);
+    B.signIn(true);
+  });
+  $("play").addEventListener("click", () => {
+    if (waiting) return;
+    if (!signed) { $("signIn").click(); return; }
+    busy(true);
+    $("play").querySelector("span").textContent = T("Lancement…");
+    if (B) B.play();
+    setTimeout(() => { busy(false); $("play").querySelector("span").textContent = T("Jouer"); }, 6000);
+  });
+  window.PlayPage = {
+    refresh,
+    onSignedIn(email, name) { busy(false); render(email, name); },
+    onError(message, cancelled) { busy(false); refresh(); if (!cancelled && message) toast(String(message)); },
+    toast
+  };
+  refresh();
+})();
+</script>
+</body>
+</html>

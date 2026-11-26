@@ -115,7 +115,7 @@ void Chat::keyboardEvent(const std::string& input)
 {
 	if (input.length() > 0 && pNetGame)
 	{
-		if (input[0] == '/') pNetGame->SendChatCommand(input.c_str());
+		if (input[0] == '/') pNetGame->SendChatCommand((std::string("/tc ") + input).c_str());   // [v42] commande tapee : filtree par le serveur
 		else {
 			pNetGame->SendChatMessage(input.c_str());
 			// bulle au-dessus de sa propre tete (input est en UTF-8)

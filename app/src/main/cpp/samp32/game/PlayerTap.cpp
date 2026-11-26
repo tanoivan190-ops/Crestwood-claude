@@ -42,6 +42,9 @@ namespace
     constexpr uint32_t kCooldownMs    = 900;
     constexpr uint32_t kMenuTimeoutMs = 25000;
     constexpr uint32_t kRequestWaitMs = 2500;   // reponse serveur attendue
+    constexpr uint32_t kVehHoldMs     = 5000;   // [v38] appui LONG (5 s) sur un vehicule -> roue (Anzo)
+    constexpr uint32_t kVehHoldShowMs = 350;    // l'anneau de progression n'apparait qu'apres ce delai
+    constexpr float    kVehHoldMove   = 40.0f;  // le doigt peut un peu bouger pendant l'appui long
 
     struct Tap { bool active = false; int finger = -1; int target = -1; uint32_t startMs = 0; float x = 0, y = 0; };
 
@@ -113,6 +116,15 @@ namespace
         return ped;
     }
 
+    // [v38] joueur local, a pied OU dans un vehicule (roue du vehicule depuis l'interieur)
+    CPlayerPed* LocalAny()
+    {
+        if (!pGame) return nullptr;
+        CPlayerPed* local = pGame->FindPlayerPed();
+        if (!local || !local->m_pPed) return nullptr;
+        return local;
+    }
+
     CVehicleGTA* VehicleEnt(int id)
     {
         if (!pNetGame || id <= 0 || id >= MAX_VEHICLES) return nullptr;
@@ -134,7 +146,7 @@ namespace
 
     int FindVehicleAt(float x, float y)
     {
-        if (!pNetGame || !LocalPed()) return -1;
+        if (!pNetGame || !LocalAny()) return -1;
         int best = -1;
         float bestDist = kHitRadius * 1.35f;
         for (int id = 1; id < MAX_VEHICLES; id++)
@@ -237,7 +249,7 @@ namespace
             o.action = item.substr(0, c);
             o.label = item.substr(c + 1, 40);
             if (ValidAction(o.action) && !o.label.empty()) s_options.push_back(o);
-            if (s_options.size() >= 10) break;
+            if (s_options.size() >= 24) break;   // [v41b] beaucoup plus d'actions (2 ou 3 colonnes)
         }
         bool hasClose = false;
         for (const Option& o : s_options) if (o.action == "close") hasClose = true;
@@ -368,6 +380,36 @@ namespace
             const ImVec2 sh6[6] = { P(0.0f, -8.0f), P(7.0f, -5.0f), P(6.0f, 3.0f), P(0.0f, 8.0f), P(-6.0f, 3.0f), P(-7.0f, -5.0f) };
             dl->AddPolyline(sh6, 6, w, true, th);
         }
+        else if (a == "flip")         // [v41b] fleche circulaire
+        {
+            dl->PathClear();
+            dl->PathArcTo(c, 6.5f * u, -2.6f, 2.2f, 24);
+            dl->PathStroke(w, false, th);
+            dl->AddTriangleFilled(P(-5.2f, -6.5f), P(-1.0f, -5.0f), P(-5.8f, -2.0f), w);
+        }
+        else if (a == "lockpick")     // cle
+        {
+            dl->AddCircle(P(-4.0f, 0.0f), 3.2f * u, w, 16, th);
+            dl->AddLine(P(-0.8f, 0.0f), P(8.0f, 0.0f), w, th);
+            dl->AddLine(P(5.0f, 0.0f), P(5.0f, 3.0f), w, th);
+            dl->AddLine(P(7.5f, 0.0f), P(7.5f, 2.5f), w, th);
+        }
+        else if (a == "m_repair")     // cle a molette
+        {
+            dl->AddLine(P(-6.0f, 6.0f), P(3.0f, -3.0f), w, th * 1.6f);
+            dl->PathClear();
+            dl->PathArcTo(P(4.5f, -4.5f), 3.4f * u, 2.4f, 7.0f, 16);
+            dl->PathStroke(w, false, th);
+        }
+        else if (a == "fbi_trk" || a == "trk_scan")   // cible GPS
+        {
+            dl->AddCircle(c, 6.5f * u, w, 24, th);
+            dl->AddCircleFilled(c, 2.2f * u, w, 12);
+            dl->AddLine(P(0.0f, -9.0f), P(0.0f, -5.0f), w, th);
+            dl->AddLine(P(0.0f, 5.0f), P(0.0f, 9.0f), w, th);
+            dl->AddLine(P(-9.0f, 0.0f), P(-5.0f, 0.0f), w, th);
+            dl->AddLine(P(5.0f, 0.0f), P(9.0f, 0.0f), w, th);
+        }
         else dl->AddCircleFilled(c, 2.4f * u, w, 12);
     }
 
@@ -435,12 +477,12 @@ bool PlayerTap::OnTouch(int type, int finger, int x, int y)
         return false;
     }
 
-    // ---- appui court sur un joueur ----
+    // ---- appui court sur un joueur / appui LONG (5 s) sur un vehicule ----
     if (type == 2)
     {
         if (s_tap.active) return false;
         if (NowMs() - s_lastSendMs < kCooldownMs) return false;
-        int id = FindPlayerAt(fx, fy);
+        int id = LocalPed() ? FindPlayerAt(fx, fy) : -1;
         s_tapVehicle = false;
         if (id < 0) { id = FindVehicleAt(fx, fy); s_tapVehicle = id >= 0; }
         if (id < 0) return false;
@@ -455,7 +497,14 @@ bool PlayerTap::OnTouch(int type, int finger, int x, int y)
     if (!s_tap.active) return false;
     if (type == 3)
     {
-        if (finger == s_tap.finger && (std::fabs(fx - s_tap.x) > kTapMaxMove || std::fabs(fy - s_tap.y) > kTapMaxMove)) s_tap = Tap();
+        const float lim = s_tapVehicle ? kVehHoldMove : kTapMaxMove;
+        if (finger == s_tap.finger && (std::fabs(fx - s_tap.x) > lim || std::fabs(fy - s_tap.y) > lim)) s_tap = Tap();
+        return false;
+    }
+    if (type == 1 && s_tapVehicle)
+    {
+        // [v38] doigt leve avant les 5 s : rien (la roue s'ouvre dans Render quand le temps est atteint)
+        if (finger == s_tap.finger || NowMs() - s_tap.startMs < kVehHoldMs) s_tap = Tap();
         return false;
     }
     if (type == 1)
@@ -480,6 +529,43 @@ bool PlayerTap::OnTouch(int type, int finger, int x, int y)
 
 void PlayerTap::Render(ImGuiRenderer* renderer)
 {
+    // [v38] appui long sur un vehicule : anneau de progression sous le doigt, roue au bout de 5 s
+    if (!s_open && s_tap.active && s_tapVehicle)
+    {
+        const uint32_t held = NowMs() - s_tap.startMs;
+        if (!VehicleEnt(s_tap.target)) s_tap = Tap();
+        else if (held >= kVehHoldMs)
+        {
+            char cmd[40];
+            snprintf(cmd, sizeof(cmd), "/interaction3dv %d", s_tap.target);
+            SendCmd(cmd);
+            s_lastSendMs = NowMs();
+            s_pendingTarget = s_tap.target;
+            s_pendingMs = s_lastSendMs;
+            s_tap = Tap();
+        }
+        else if (held >= kVehHoldShowMs)
+        {
+            ImDrawList* fg = ImGui::GetForegroundDrawList();
+            if (fg)
+            {
+                const float r = UISettings::fontSize() * 1.25f;
+                const float t = (float)(held - kVehHoldShowMs) / (float)(kVehHoldMs - kVehHoldShowMs);
+                const ImVec2 c(s_tap.x, s_tap.y - r * 1.6f);
+                fg->AddCircleFilled(c, r + 3.0f, IM_COL32(8, 10, 14, 150), 48);
+                fg->AddCircle(c, r, IM_COL32(255, 255, 255, 50), 48, r * 0.16f);
+                fg->PathClear();
+                fg->PathArcTo(c, r, -1.5707963f, -1.5707963f + 6.2831853f * std::min(1.0f, t), 48);
+                fg->PathStroke(IM_COL32(59, 130, 255, 240), false, r * 0.18f);
+                // petite voiture au centre
+                const float u = r * 0.08f;
+                fg->AddRectFilled(ImVec2(c.x - 6 * u, c.y), ImVec2(c.x + 6 * u, c.y + 3 * u), IM_COL32(255, 255, 255, 230), u);
+                const ImVec2 cab[4] = { ImVec2(c.x - 3.5f * u, c.y), ImVec2(c.x - 2.2f * u, c.y - 2.8f * u), ImVec2(c.x + 2.2f * u, c.y - 2.8f * u), ImVec2(c.x + 3.5f * u, c.y) };
+                fg->AddConvexPolyFilled(cab, 4, IM_COL32(255, 255, 255, 230));
+            }
+        }
+    }
+
     // reponse du serveur (thread Java) -> ouverture sur le thread du jeu
     if (s_hasInbox.exchange(false))
     {
@@ -510,7 +596,7 @@ void PlayerTap::Render(ImGuiRenderer* renderer)
     }
     if (!s_open) return;
 
-    CPlayerPed* local = LocalPed();
+    CPlayerPed* local = s_vehicle ? LocalAny() : LocalPed();   // [v38] roue du vehicule aussi depuis l'interieur
     CPlayerPed* ped = s_vehicle ? nullptr : RemotePed(s_target);
     CVehicleGTA* veh = s_vehicle ? VehicleEnt(s_target) : nullptr;
     if (!local || (!ped && !veh) || now - s_openMs > kMenuTimeoutMs) { CloseMenu(); return; }
@@ -538,8 +624,17 @@ void PlayerTap::Render(ImGuiRenderer* renderer)
     float ax, ay, bx, by;
     if (!ToScreen(anchor, ax, ay) || !ToScreen(anchorLow, bx, by)) return;   // derriere la camera : on attend
     float unit = std::fabs(by - ay);
-    const float minH = fs * 1.55f, maxH = fs * 2.6f;
+    const float minH = fs * 2.15f, maxH = fs * 3.3f;   // [v41b] boutons plus grands (Anzo : "trop petit")
     float btnH = std::max(minH, std::min(maxH, unit));
+    const ImVec2 dsz = ImGui::GetIO().DisplaySize;
+    // [v41b] beaucoup d'actions : 2 ou 3 colonnes ; les boutons se reduisent pour tenir dans l'ecran
+    const int nOpt = (int)s_options.size();
+    const int cols = nOpt <= 8 ? 1 : (nOpt <= 16 ? 2 : 3);
+    const int rows = (nOpt + cols - 1) / cols;
+    {
+        const float fitH = (dsz.y - 16.0f) / (rows * 1.16f);
+        if (btnH > fitH) btnH = std::max(fs * 1.5f, fitH);
+    }
     const float gap = btnH * 0.16f;
     const float txt = btnH * 0.42f;
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
@@ -549,12 +644,18 @@ void PlayerTap::Render(ImGuiRenderer* renderer)
     for (const Option& o : s_options) btnW = std::max(btnW, renderer->calculateTextSize(o.label, txt).x);
     btnW += btnH * 1.35f;
     btnW = std::max(btnW, btnH * 5.2f);
+    {
+        const float fitW = (ds.x - 16.0f - gap * (cols - 1)) / (float)cols;
+        if (btnW > fitW) btnW = fitW;
+    }
+    const float totalW = btnW * cols + gap * (cols - 1);
 
     // pile verticale centree sur le point d'ancrage (decalee pendant l'apparition)
-    const float total = s_options.size() * btnH + (s_options.size() - 1) * gap;
+    const float total = rows * btnH + (rows - 1) * gap;
     float x0 = ax + (1.0f - ease) * btnH * 0.8f;
     float y0 = ay - btnH * 0.4f;
-    if (x0 + btnW > ds.x - 8.0f) x0 = ds.x - 8.0f - btnW;
+    if (x0 + totalW > ds.x - 8.0f) x0 = ds.x - 8.0f - totalW;
+    if (x0 < 8.0f) x0 = 8.0f;
     if (y0 + total > ds.y - 8.0f) y0 = ds.y - 8.0f - total;
     if (y0 < 8.0f) y0 = 8.0f;
     const int alpha = (int)(255.0f * ease);
@@ -610,7 +711,7 @@ void PlayerTap::Render(ImGuiRenderer* renderer)
             const ImVec2 c(cx + std::cos(mid) * mr, cy + std::sin(mid) * mr);
             const float band = rout - rin;
             ActionGlyph(dl, s_options[i].action, ImVec2(c.x, c.y - band * 0.12f), band * 0.17f, alpha);
-            float lf = std::max(fs * 0.62f, band * 0.135f);
+            float lf = std::max(fs * 0.75f, band * 0.15f);   // [v41b] libelles plus lisibles
             ImVec2 ls = renderer->calculateTextSize(s_options[i].label, lf);
             const float maxW = std::min(band * 1.05f, 2.0f * mr * std::sin((ea - sa) * 0.5f) * 0.92f);
             if (ls.x > maxW) { lf *= maxW / ls.x; ls = renderer->calculateTextSize(s_options[i].label, lf); }
@@ -664,16 +765,20 @@ void PlayerTap::Render(ImGuiRenderer* renderer)
     std::vector<Rect> rects;
     for (size_t i = 0; i < s_options.size(); i++)
     {
-        const float y = y0 + i * (btnH + gap);
-        ImVec2 p0(x0, y), p1(x0 + btnW, y + btnH);
+        const int col = (int)i / rows, row = (int)i % rows;
+        const float y = y0 + row * (btnH + gap);
+        const float bx = x0 + col * (btnW + gap);
+        ImVec2 p0(bx, y), p1(bx + btnW, y + btnH);
         const bool pressed = s_pressed == (int)i;
         const bool isClose = s_options[i].action == "close";
         dl->AddRectFilled(p0, p1, pressed ? IM_COL32(59, 130, 255, alpha) : IM_COL32(10, 11, 14, (int)(206 * ease)), 3.0f);
         dl->AddRect(p0, p1, IM_COL32(255, 255, 255, (int)(34 * ease)), 3.0f);
         if (!pressed && !isClose) dl->AddRectFilled(p0, ImVec2(p0.x + 3.0f, p1.y), IM_COL32(59, 130, 255, alpha));
-        ImVec2 ts = renderer->calculateTextSize(s_options[i].label, txt);
+        float tsz = txt;
+        ImVec2 ts = renderer->calculateTextSize(s_options[i].label, tsz);
+        if (ts.x > btnW - btnH * 1.1f && ts.x > 0.0f) { tsz *= (btnW - btnH * 1.1f) / ts.x; ts = renderer->calculateTextSize(s_options[i].label, tsz); }
         const ImColor tc = pressed ? ImColor(11, 11, 13, alpha) : (isClose ? ImColor(160, 166, 174, alpha) : ImColor(243, 244, 246, alpha));
-        renderer->drawText(ImVec2(p0.x + btnH * 0.5f, y + (btnH - ts.y) * 0.5f), tc, s_options[i].label, false, txt);
+        renderer->drawText(ImVec2(p0.x + btnH * 0.5f, y + (btnH - ts.y) * 0.5f), tc, s_options[i].label, false, tsz);
         // chevron
         if (!isClose)
         {

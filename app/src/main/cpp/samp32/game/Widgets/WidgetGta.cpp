@@ -177,7 +177,6 @@ bool Crestwood_IsReplacedWidget(const void* pWidget)
         case WIDGET_VEHICLE_SHOOT_RIGHT:
         case WIDGET_HYDRAULICS:
         case WIDGET_AUTO_HYDRAULICS:
-        case WIDGET_CAM_TOGGLE:   // [v31] bouton "changer de vue" retire
             return true;
         default:
             return false;
@@ -197,7 +196,20 @@ static bool s_cwOrigSaved[NUM_WIDGETS];
 static const char* Crestwood_ButtonIcon(int id)
 {
     switch (id) {
-        case WIDGET_ENTER_CAR: return "models/buttons/car.png";
+        case WIDGET_ENTER_CAR: {
+            // [v35] en vehicule : portiere (descendre) ; a pied : voiture dans un cercle de verre
+            CPlayerPed* ped = pGame ? pGame->FindPlayerPed() : nullptr;
+            return (ped && ped->IsInVehicle()) ? "models/buttons/v_door.png" : "models/buttons/v_car.png";
+        }
+        // [v35] boutons de conduite natifs : cercle de verre + icone blanche (style demande par Anzo)
+        case WIDGET_VEHICLE_STEER_LEFT: return "models/buttons/v_left.png";
+        case WIDGET_VEHICLE_STEER_RIGHT: return "models/buttons/v_right.png";
+        case WIDGET_ACCELERATE: return "models/buttons/v_accel.png";
+        case WIDGET_BRAKE: return "models/buttons/v_brake.png";
+        case WIDGET_HANDBRAKE: return "models/buttons/v_handbrake.png";
+        case WIDGET_HORN: return "models/buttons/v_horn.png";
+        case WIDGET_NITRO: return "models/buttons/v_nitro.png";
+        case WIDGET_CAM_TOGGLE: return "models/buttons/v_camera.png";
         case WIDGET_ATTACK: {
             CPlayerPed* ped = pGame ? pGame->FindPlayerPed() : nullptr;
             const int w = ped ? (int)ped->GetCurrentWeapon() : 0;
@@ -275,7 +287,7 @@ uintptr_t CWidget_hook(CWidgetButton* thiz, const char* name, uintptr_t*  a3, in
 void (*CWidget__SetEnabled)(CWidgetGta* pWidget, bool bEnabled);
 void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
 {
-    if (Crestwood_WidgetId(pWidget) == WIDGET_CAM_TOGGLE || Crestwood_IsReplacedWidget(pWidget)) {   // [v31] bouton vue camera toujours masque
+    if (Crestwood_IsReplacedWidget(pWidget)) {
         CWidget__SetEnabled(pWidget, false);
         pWidget->m_bEnabled = false;
         return;
@@ -296,7 +308,7 @@ void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
 
 void (*CWidgetButton__Update)(CWidgetButton* thiz);
 void CWidgetButton__Update_hook(CWidgetButton* thiz) {
-    if (Crestwood_WidgetId(thiz) == WIDGET_CAM_TOGGLE || Crestwood_IsReplacedWidget(thiz)) {
+    if (Crestwood_IsReplacedWidget(thiz)) {
         ((CWidgetGta*)thiz)->m_bEnabled = false;
         return;
     }

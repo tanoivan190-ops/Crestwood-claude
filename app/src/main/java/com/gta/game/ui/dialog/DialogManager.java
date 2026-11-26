@@ -189,6 +189,11 @@ public class DialogManager {
         ws.setSupportZoom(false);
         web.addJavascriptInterface(new DialogBridge(), "AndroidDialog");
         web.setWebViewClient(new WebViewClient() {
+            // [v47] pages protegees : HTML/JS/CSS/JSON chiffres dans l'APK, dechiffres ici (com.crestwood.ui.CwAssets)
+            @Override public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, android.webkit.WebResourceRequest request) {
+                android.webkit.WebResourceResponse cwr = com.crestwood.ui.CwAssets.intercept(view.getContext(), request);
+                return cwr != null ? cwr : super.shouldInterceptRequest(view, request);
+            }
             // [v19] Le moteur de rendu des WebView est PARTAGE (HUD, panneaux, dialogues, chargement).
             // S'il meurt (manque de memoire), Android ferme TOUTE l'application si une seule WebView
             // ne gere pas cet evenement. Ici : on jette la WebView et on passe aux dialogues natifs.
@@ -213,6 +218,7 @@ public class DialogManager {
                 return true;
             }
             @Override public void onPageFinished(WebView view, String url) {
+                com.crestwood.ui.CwAssets.checkPage(view, url);   // [v60] page restee chiffree -> reconstruite en clair
                 mWebReady = true;
                 if (mPendingJson != null && isShow) {
                     view.evaluateJavascript("window.SampDialog && SampDialog.show(" + mPendingJson + ")", null);
@@ -224,7 +230,7 @@ public class DialogManager {
         activity.addContentView(web, lp);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) web.setZ(50);
         web.setVisibility(View.GONE);
-        web.loadUrl(DIALOG_PAGE);
+        com.crestwood.ui.CwAssets.load(web, DIALOG_PAGE);
         mWeb = web;
     }
 

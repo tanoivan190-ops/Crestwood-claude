@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-sg>
+<html lang="fr" data-sg data-rp="mapadmin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -64,7 +64,6 @@ button{border:0;background:none;cursor:pointer}
       <button class="tab" data-v="0" type="button">Mappings</button>
       <button class="tab" data-v="1" type="button">Entrées / sorties</button>
       <button class="tab" data-v="2" type="button">Points</button>
-      <button class="tab" data-v="3" type="button">Intérieurs</button>
     </nav>
     <div class="bar" id="bar"></div>
     <div class="list" id="list"></div>
@@ -121,11 +120,6 @@ button{border:0;background:none;cursor:pointer}
       const p = document.createElement("small"); p.style.cssText = "color:var(--muted);font-size:10.5px;flex-basis:100%";
       p.textContent = "1) Dehors, crée le portail (l'entrée est posée là où tu es). 2) Va dans le mapping (onglet Mappings) et touche « Sortie ici ». Le portail marche quand les deux sont posés.";
       bar.appendChild(p);
-    } else if (S.view === 3) {
-      bar.appendChild(btn("Tout placer sur les bâtiments suggérés", "main", () => send("ipall", "")));
-      const p = document.createElement("small"); p.style.cssText = "color:var(--muted);font-size:10.5px;flex-basis:100%";
-      p.textContent = "Pour chaque intérieur : « Aller » te téléporte devant le bâtiment suggéré (vraie porte du jeu), « Placer ici » crée l'entrée là où tu te trouves. La sortie est déjà dans l'intérieur. L'icône apparaît sur la carte.";
-      bar.appendChild(p);
     } else {
       const chips = document.createElement("div"); chips.className = "chips"; chips.style.flexBasis = "100%";
       [0, 1, 2, 3, 4, 5].forEach((t) => {
@@ -155,7 +149,7 @@ button{border:0;background:none;cursor:pointer}
     const L = $("list"); L.innerHTML = "";
     const list = Array.isArray(S.list) ? S.list : [];
     if (!list.length) {
-      L.innerHTML = '<div class="empty">' + (S.view === 0 ? "Aucun mapping chargé." : S.view === 1 ? "Aucun portail. Crée le premier ci-dessus." : S.view === 3 ? "Liste vide." : "Aucun point. Place-toi au bon endroit et touche « Poser ici ».") + "</div>";
+      L.innerHTML = '<div class="empty">' + (S.view === 0 ? "Aucun mapping chargé." : S.view === 1 ? "Aucun portail. Crée le premier ci-dessus." : "Aucun point. Place-toi au bon endroit et touche « Poser ici ».") + "</div>";
       return;
     }
     list.forEach((it) => {
@@ -173,12 +167,6 @@ button{border:0;background:none;cursor:pointer}
           btn("→ Entrée", "", () => send("ptpout", id)),
           btn("→ Sortie", "", () => send("ptpin", id)),
           confirmTap(btn("Supprimer", "red", () => {}), "Supprimer", () => send("pdel", id))
-        ]));
-      } else if (S.view === 3) {
-        const [k, name, cat, int, ext, done] = it;
-        L.appendChild(row(name, cat + " · intérieur " + int, [[done ? "placé ✓" : "non placé", done ? "ok" : "no"], [ext ? "bâtiment suggéré" : "à placer à la main", ext ? "" : "no"]], [
-          ext ? btn("Aller", "", () => send("ipgo", k)) : btn("Aller", "dis", () => {}),
-          btn("Placer ici", "main", () => send("ipre", k))
         ]));
       } else {
         const [id, type, name, x, y] = it;

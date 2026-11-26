@@ -240,6 +240,7 @@ stock Anim_Quick(playerid, const key[])
 		format(g_RpCur[playerid], 12, "%s", g_RpAnim[i][0]);
 		return 1;
 	}
+	if (MtaAnim_Play(playerid, key)) return 1;   // [v30c] animations du MTA (m1..m151)
 	return Cw_Notify(playerid, "denied", "Animations", "Animation inconnue.", 3000), 1;
 }
 

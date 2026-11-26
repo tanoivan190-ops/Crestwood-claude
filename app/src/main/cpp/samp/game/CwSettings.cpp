@@ -13,6 +13,7 @@
 #include "net/netgame.h"
 #include "settings.h"
 #include <atomic>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
@@ -129,4 +130,50 @@ void Crestwood_ProcessHiddenPlayers()
 	for (int id : cur)
 		Cw_SetPedVisible(pool, id, false);
 	s_applied.swap(cur);
+}
+
+
+// ============================================================================
+//  [v46] Identifiant du jour au-dessus des tetes (au lieu du pseudo)
+//    Crestwood_SetPlayerTags("1|3:4821,7:1290")  <- JNI setPlayerTags (dialogue serveur "@tags" 9518)
+//      1 = afficher "(4821)" ; 0 = pseudos normaux (staff avec /nomsstaff)
+//    Crestwood_FormatPlayerTag(id, buf, taille)  <- playertags.cpp (texte a dessiner, false = pseudo)
+// ============================================================================
+static std::mutex s_cwTagMx;
+static int s_cwTagMode = 0;
+static int s_cwTags[1024];
+
+void Crestwood_SetPlayerTags(const char* data)
+{
+	std::lock_guard<std::mutex> lock(s_cwTagMx);
+	for (int i = 0; i < 1024; i++) s_cwTags[i] = 0;
+	s_cwTagMode = 0;
+	if (!data || !*data) return;
+	const char* p = data;
+	s_cwTagMode = (*p == '1') ? 1 : 0;
+	while (*p && *p != '|') p++;
+	if (*p == '|') p++;
+	while (*p) {
+		char* end = nullptr;
+		long id = strtol(p, &end, 10);
+		if (!end || end == p) break;
+		p = end;
+		if (*p != ':') { while (*p && *p != ',') p++; if (*p == ',') p++; continue; }
+		p++;
+		long tag = strtol(p, &end, 10);
+		if (end && end != p) p = end;
+		if (id >= 0 && id < 1024 && tag > 0 && tag < 100000) s_cwTags[id] = (int)tag;
+		while (*p && *p != ',') p++;
+		if (*p == ',') p++;
+	}
+}
+
+bool Crestwood_FormatPlayerTag(int id, char* out, size_t size)
+{
+	std::lock_guard<std::mutex> lock(s_cwTagMx);
+	if (!s_cwTagMode || !out || size < 8) return false;
+	int t = (id >= 0 && id < 1024) ? s_cwTags[id] : 0;
+	if (t > 0) snprintf(out, size, "(%04d)", t);
+	else snprintf(out, size, "(....)");
+	return true;
 }

@@ -19,7 +19,7 @@ public class GTASA extends WarMedia {
 
     static {
         // Journal ecrit avant tout le reste : si une bibliotheque manque sur un telephone 32 bits,
-        // l'erreur exacte est dans Android/data/com.crestwood.rp/files/crestwood_log.txt
+        // l'erreur exacte est dans Android/data/com.crestwoodroleplay/files/crestwood_log.txt
         CrashLog.startSession("chargement des bibliotheques");
         try {
             ShadowHook.init(new ShadowHook.ConfigBuilder()

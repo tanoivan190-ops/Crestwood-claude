@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr" data-color>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bodycam</title>
+<!--
+  [v30c] Bodycam (EC-Bodycam du MTA). Serveur : include/Pages.inc (Bc_*).
+  JSON : {me, rank, fac, on, lead, watch, list:[{id, n, rk, cam, st:"car|ped", hp}]}
+  Actions : toggle | watch <id> | stop | refresh
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #3d6bff; --a2: #e8b84a; }
+.rec { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  background: rgba(255, 255, 255, .06); border: 1px solid var(--line); color: var(--mute); }
+.rec i { width: 8px; height: 8px; border-radius: 50%; background: #59607a; }
+.rec.on { color: #ff9ba5; border-color: rgba(255, 77, 99, .4); }
+.rec.on i { background: #ff4d63; box-shadow: 0 0 8px #ff4d63; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.me { width: 36%; }
+.cam { position: relative; flex: 1; min-height: 0; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(160deg, rgba(61, 107, 255, .16), rgba(232, 184, 74, .08)), var(--glass2); border: 1px solid var(--line); }
+.cam .lens { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 35%, #4a5675, #10141f 70%);
+  border: 3px solid rgba(255, 255, 255, .12); box-shadow: inset 0 0 18px rgba(0, 0, 0, .8); transition: box-shadow .3s, border-color .3s; }
+.cam .lens i { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #8fb0ff, #1d2a55 70%); }
+.cam.on .lens { border-color: rgba(255, 77, 99, .7); box-shadow: inset 0 0 18px rgba(0, 0, 0, .8), 0 0 22px rgba(255, 77, 99, .35); }
+.cam .scan { position: absolute; left: 0; right: 0; height: 40%; top: -40%; background: linear-gradient(180deg, transparent, rgba(143, 176, 255, .1), transparent); }
+.cam.on .scan { animation: scan 2.6s linear infinite; }
+@keyframes scan { to { top: 100%; } }
+.who { text-align: center; } .who b { display: block; font-size: 13px; font-weight: 900; } .who small { font-size: 10px; color: var(--soft); }
+.sw { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: var(--glass2); border: 1px solid var(--line); font-size: 11.5px; font-weight: 700; }
+.sw span { flex: 1; }
+.tg { width: 44px; height: 24px; border-radius: 99px; background: rgba(255, 255, 255, .12); position: relative; transition: background .25s; }
+.tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .25s cubic-bezier(.3, 1.4, .5, 1); }
+.tg.on { background: linear-gradient(140deg, #ff4d63, #ff8a5c); }
+.tg.on::after { transform: translateX(20px); }
+.list { flex: 1; }
+.watch { flex: none; height: 30px; padding: 0 12px; border-radius: 9px; font-size: 11px; font-weight: 900; color: #10131c; background: linear-gradient(140deg, #e8b84a, #ffd98a); }
+.watch[disabled] { opacity: .3; pointer-events: none; }
+.watching { display: none; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px; border-radius: 12px; font-size: 11px; font-weight: 700;
+  background: rgba(255, 77, 99, .12); border: 1px solid rgba(255, 77, 99, .35); }
+.watching.show { display: flex; animation: pgUp .3s ease both; }
+.watching span { flex: 1; }
+.lock { padding: 26px 14px; text-align: center; font-size: 11.5px; color: var(--mute); line-height: 1.55; }
+.lock .ic { display: block; font-size: 26px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10l5-3v10l-5-3z"/></svg></div>
+      <div class="ttl"><b>Bodycam</b><small id="sub">Forces de l'ordre</small></div>
+      <div class="rec" id="rec"><i></i><span id="recTxt">OFF</span></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="col me">
+        <div class="lbl">Ma caméra</div>
+        <div class="cam" id="cam"><div class="scan"></div><div class="lens"><i></i></div><div class="who"><b id="me">—</b><small id="rank">—</small></div></div>
+        <button class="sw" id="sw"><span id="swTxt">Caméra éteinte</span><i class="tg" id="tg"></i></button>
+      </div>
+      <div class="col list">
+        <div class="lbl" id="listLbl">Agents en ville</div>
+        <div class="watching" id="watching"><span id="watchTxt"></span><button class="btn ghost" style="height:30px" id="stop">Arrêter</button></div>
+        <div class="scroll" id="list"></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="sum" id="sum">Allume ta caméra pendant tes interventions.</div>
+      <button class="btn ghost" id="ref">Actualiser</button>
+    </div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var Cw = window.CwPage, $ = Cw.$;
+  function render(d) {
+    $("me").textContent = d.me || "—";
+    $("rank").textContent = (d.rank || "") + (d.fac ? " · " + d.fac : "");
+    $("sub").textContent = d.fac || "Forces de l'ordre";
+    var on = !!d.on;
+    $("cam").className = "cam" + (on ? " on" : "");
+    $("rec").className = "rec" + (on ? " on" : "");
+    $("recTxt").textContent = on ? "REC" : "OFF";
+    $("tg").className = "tg" + (on ? " on" : "");
+    $("swTxt").textContent = on ? "Caméra allumée" : "Caméra éteinte";
+    var box = $("list"); box.innerHTML = "";
+    var w = $("watching");
+    w.className = "watching" + (d.watch >= 0 ? " show" : "");
+    if (!d.lead) {
+      $("listLbl").textContent = "Supervision";
+      var l = Cw.el("div", "lock"); l.innerHTML = '<span class="ic">🔒</span>Seuls les deux plus hauts grades voient les caméras des agents.';
+      box.appendChild(l);
+      $("sum").textContent = "Allume ta caméra pendant tes interventions.";
+      return;
+    }
+    var list = d.list || [], live = list.filter(function (a) { return a.cam; }).length;
+    $("listLbl").textContent = "Agents en ville · " + live + " caméra" + (live > 1 ? "s" : "") + " en direct";
+    $("sum").textContent = "Touche « Regarder » pour suivre un agent. /bodycam stop pour revenir.";
+    var watched = list.filter(function (a) { return a.id === d.watch; })[0];
+    $("watchTxt").textContent = "En direct : " + (watched ? watched.n : "agent");
+    if (!list.length) { var e = Cw.el("div", "empty"); e.innerHTML = '<span class="ic">👮</span>Aucun autre agent connecté.'; box.appendChild(e); }
+    list.sort(function (a, b) { return b.cam - a.cam; }).forEach(function (a, i) {
+      var c = Cw.el("div", "card"); c.style.animationDelay = (i * 0.04) + "s";
+      c.appendChild(Cw.el("div", "av", Cw.initials(a.n)));
+      var m = Cw.el("div", "meta"); m.appendChild(Cw.el("b", null, a.n)); m.appendChild(Cw.el("small", null, a.rk + " · " + (a.st === "car" ? "en patrouille" : "à pied") + " · " + a.hp + " PV"));
+      c.appendChild(m);
+      c.appendChild(Cw.el("span", "tag " + (a.cam ? "bad" : ""), a.cam ? "● REC" : "OFF"));
+      var b = Cw.el("button", "watch", "Regarder"); b.disabled = !a.cam;
+      b.addEventListener("click", function () { Cw.send("watch", a.id); });
+      c.appendChild(b);
+      box.appendChild(c);
+    });
+  }
+  $("sw").addEventListener("click", function () { Cw.send("toggle", ""); });
+  $("stop").addEventListener("click", function () { Cw.send("stop", ""); });
+  $("ref").addEventListener("click", function () { Cw.send("refresh", ""); });
+  Cw.boot(function (d) { render(d); });
+
+  if (!window.SampPage && /[?&]demo/.test(location.search)) {
+    PageApp.openFromNative(JSON.stringify({ me: "Marcus Hill", rank: "Capitaine", fac: "LSPD", on: 1, lead: 1, watch: -1,
+      list: [{ id: 4, n: "Aya Kone", rk: "Officier", cam: 1, st: "car", hp: 100 }, { id: 9, n: "Diego Ramos", rk: "Sergent", cam: 0, st: "ped", hp: 76 }, { id: 15, n: "Lena Brooks", rk: "Cadet", cam: 1, st: "ped", hp: 100 }] }));
+  }
+})();
+</script>
+</body>
+</html>

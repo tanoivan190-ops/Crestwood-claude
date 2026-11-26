@@ -68,11 +68,6 @@
   setVolume(vol.value);
   loadTrack(trackIndex);
   playAudio();
-  // [v22] lecteur masque : si le systeme refuse quand meme la lecture automatique, le premier toucher sur l'ecran
-  // (ou le retour dans l'application) relance la musique.
-  const kickMusic=()=>{if(!stopped&&audio.paused)playAudio();};
-  ['pointerdown','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,kickMusic,{passive:true}));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)kickMusic();});
 
   const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
   const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -112,7 +107,7 @@
     });
   }
   function setBar(pct){
-    bar.style.width=pct+'%';
+    bar.style.clipPath='inset(0 '+(100-pct)+'% 0 0 round 999px)';
     percentEl.textContent=Math.round(pct)+' %';
     track.setAttribute('aria-valuenow',String(Math.round(pct)));
   }
@@ -185,10 +180,10 @@
     if(key==='download'&&smoothSpeed>0){
       dlSpeed.textContent=fmtBytes(smoothSpeed)+'/s';
       speedHist.push(smoothSpeed);if(speedHist.length>60)speedHist.shift();
-      dlEta.textContent=total>done?fmtTime((total-done)/smoothSpeed):'—';
+      dlEta.textContent=total>done?fmtTime((total-done)/smoothSpeed):'…';
     }else{
-      dlSpeed.textContent='—';
-      dlEta.textContent=key==='download'?'…':'—';
+      dlSpeed.textContent='…';
+      dlEta.textContent='…';
     }
     drawSpark();
   }
@@ -300,71 +295,31 @@
     const s=slides[slideIndex];
     s.style.animation='none';void s.offsetWidth;s.style.animation='';   // relance le zoom lent
     s.classList.add('on');
-  },5500);
+  },7000);
   // [v20] plus d'affiche avec logo integre : le nouveau logo PNG reste affiche en haut
   const TIPS=[
-    'Le roleplay, c’est d’abord ton personnage : parle et agis comme lui. /me et /do décrivent tes actions.',
-    'Nouveau en ville ? Saisis un code promo à l’inscription pour recevoir un véhicule et un peu d’argent.',
-    'Pense à manger et à boire : la faim et la soif s’affichent autour de ta mini-carte, et ta santé en dépend.',
-    'Chaque heure passée en ville te rapporte de l’expérience. /niveau t’indique où tu en es.',
-    'Donne vie à ton personnage avec /apparence. Les autres joueurs le découvrent avec /examiner.',
-    'Un coup de chance ? Le loto de Crestwood se joue dans les supérettes 24/7 avec /loto.',
-    'Ta carte d’identité s’obtient à l’état civil. Tape /papiers : le GPS te guide jusqu’à l’accueil.',
-    'Tes véhicules t’attendent : retrouve-les avec /garage ou depuis la roue du HUD.',
-    'Une question, un souci ? /report prévient le staff et /aide liste les commandes utiles.',
-    'Les zones vertes sont protégées : aucune violence n’y est tolérée. Respecte-les.',
-    'Le respect avant tout : ici, on joue ensemble. Les insultes hors personnage ne sont pas tolérées.',
-    'Une belle scène vaut mieux qu’un duel : laisse toujours aux autres joueurs la possibilité de réagir.',
-    'Garde ton calme : en roleplay, une situation tendue se résout d’abord par le dialogue.',
-    'Un bon personnage a une histoire : métier, passé, qualités et défauts. Prends le temps de l’imaginer.',
-    'Ne mélange pas le HRP et le RP : ce que tu apprends hors du jeu, ton personnage ne le sait pas.',
-    'Si ta vie est en danger, joue-le : un personnage blessé ne court pas, il appelle les secours.',
-    'Respecte le code de la route : un bon conducteur évite les amendes et les accidents.',
-    'Lance ton activité ou rejoins une faction : métiers, entreprises et organisations font vivre la ville.',
-    'Pas de précipitation : prends le temps de découvrir Los Santos, ses quartiers et ses rencontres.',
-    'Un souci avec un joueur ? Garde des preuves (capture, vidéo) et signale-le avec /report.'
+    'Utilise /me et /do pour décrire tes actions : c’est la base du roleplay.',
+    'Nouveau ? Entre un code promo à l’inscription pour recevoir un véhicule et de l’argent.',
+    'Mange et bois régulièrement : la faim et la soif s’affichent autour de ta carte.',
+    'Chaque heure de jeu te rapporte de l’expérience. Tape /niveau pour voir ta progression.',
+    'Décris ton personnage avec /apparence : les autres le découvrent avec /examiner.',
+    'Tente ta chance au loto de Crestwood dans les superettes 24/7 : /loto.',
+    'Ta carte d’identité se fait à l’état civil. Sans elle, /papiers t’y guide au GPS.',
+    'Tes véhicules t’attendent partout : /garage ou la roue du HUD.',
+    'Besoin d’aide ? /report contacte le staff, /aide liste les commandes.',
+    'Les zones vertes interdisent toute violence : respecte-les.'
   ];
   const TIPS_I18N={
-    en:['Roleplay starts with your character: speak and act as they would. /me and /do describe your actions.',
-      'New in town? Enter a promo code at sign-up to receive a vehicle and some money.',
-      'Remember to eat and drink: hunger and thirst are shown around your minimap, and your health depends on them.',
-      'Every hour in the city earns you experience. /niveau shows how far you have come.',
-      'Bring your character to life with /apparence. Other players discover it with /examiner.',
-      'Feeling lucky? The Crestwood lottery is played in 24/7 stores with /loto.',
-      'Your ID card is issued at the civil registry. Type /papiers: the GPS guides you to the front desk.',
-      'Your vehicles are waiting for you: find them with /garage or from the HUD wheel.',
-      'A question or a problem? /report alerts the staff and /aide lists the useful commands.',
-      'Green zones are protected: no violence is tolerated there. Respect them.',
-      'Respect above all: we play together here. Out-of-character insults are not tolerated.',
-      'A good scene beats a fight: always give other players the chance to react.',
-      'Stay calm: in roleplay, a tense situation is first settled through dialogue.',
-    'A good character has a story: job, past, strengths and flaws. Take the time to imagine it.',
-    'Don\'t mix OOC and IC: what you learn outside the game, your character does not know.',
-    'If your life is in danger, play it out: a wounded character doesn\'t run, they call for help.',
-    'Follow the rules of the road: a good driver avoids fines and accidents.',
-    'Start your own business or join a faction: jobs, companies and organizations bring the city to life.',
-    'No rush: take the time to discover Los Santos, its neighborhoods and its encounters.',
-    'A problem with a player? Keep proof (screenshot, video) and report it with /report.'],
-    pt:['O roleplay começa pelo seu personagem: fale e aja como ele. /me e /do descrevem suas ações.',
-      'Novo na cidade? Digite um código promocional no cadastro para receber um veículo e algum dinheiro.',
-      'Lembre-se de comer e beber: fome e sede aparecem ao redor do minimapa, e sua saúde depende disso.',
-      'Cada hora na cidade rende experiência. /niveau mostra o quanto você já avançou.',
-      'Dê vida ao seu personagem com /apparence. Os outros jogadores o descobrem com /examiner.',
-      'Quer tentar a sorte? A loteria de Crestwood é jogada nas lojas 24/7 com /loto.',
-      'Sua identidade é emitida no cartório. Digite /papiers: o GPS leva você até o balcão.',
-      'Seus veículos estão esperando: encontre-os com /garage ou pela roda do HUD.',
-      'Uma dúvida ou um problema? /report avisa a staff e /aide lista os comandos úteis.',
-      'Zonas verdes são protegidas: nenhuma violência é tolerada lá. Respeite-as.',
-      'Respeito acima de tudo: aqui jogamos juntos. Insultos fora do personagem não são tolerados.',
-      'Uma boa cena vale mais que uma briga: sempre dê aos outros jogadores a chance de reagir.',
-      'Mantenha a calma: no roleplay, uma situação tensa se resolve primeiro com diálogo.',
-    'Um bom personagem tem uma história: profissão, passado, qualidades e defeitos. Reserve um tempo para imaginá-lo.',
-    'Não misture o OOC e o IC: o que você aprende fora do jogo, seu personagem não sabe.',
-    'Se sua vida estiver em perigo, interprete: um personagem ferido não corre, ele pede socorro.',
-    'Respeite o código de trânsito: um bom motorista evita multas e acidentes.',
-    'Abra seu negócio ou entre numa facção: profissões, empresas e organizações dão vida à cidade.',
-    'Sem pressa: reserve um tempo para descobrir Los Santos, seus bairros e seus encontros.',
-    'Problema com um jogador? Guarde provas (captura, vídeo) e denuncie com /report.']
+    en:['Use /me and /do to describe your actions: the basis of roleplay.','New? Enter a promo code at sign-up to get a vehicle and money.',
+      'Eat and drink regularly: hunger and thirst are shown around your map.','Every hour played gives you XP. Type /niveau to see your progress.',
+      'Describe your character with /apparence: others see it with /examiner.','Try the Crestwood lottery in 24/7 stores: /loto.',
+      'Your ID card is made at the civil registry. Without it, /papiers guides you there.','Your vehicles wait for you everywhere: /garage or the HUD wheel.',
+      'Need help? /report reaches the staff, /aide lists the commands.','Green zones forbid any violence: respect them.'],
+    pt:['Use /me e /do para descrever suas ações: a base do roleplay.','Novo? Digite um código promocional no cadastro para ganhar veículo e dinheiro.',
+      'Coma e beba sempre: fome e sede aparecem em volta do mapa.','Cada hora de jogo dá XP. Digite /niveau para ver seu progresso.',
+      'Descreva seu personagem com /apparence: os outros veem com /examiner.','Tente a loteria de Crestwood nas lojas 24/7: /loto.',
+      'Sua identidade é feita no cartório. Sem ela, /papiers te guia até lá.','Seus veículos te esperam em todo lugar: /garage ou a roda do HUD.',
+      'Precisa de ajuda? /report chama a staff, /aide lista os comandos.','Zonas verdes proíbem qualquer violência: respeite.']
   };
   const L=window.CwI18n&&window.CwI18n.lang;
   if(TIPS_I18N[L])TIPS.splice(0,TIPS.length,...TIPS_I18N[L]);
@@ -376,22 +331,8 @@
     window.setInterval(()=>{
       tipBox.classList.add('out');
       window.setTimeout(()=>{tipIndex=(tipIndex+1)%TIPS.length;tipText.textContent=TIPS[tipIndex];tipBox.classList.remove('out');},360);
-    },6000);
+    },6500);
   }
-
-
-  // [v22] l'astuce se cale toujours juste au-dessus de la barre, quelle que soit la hauteur de l'ecran
-  (function(){
-    const card=$('card');
-    if(!card)return;
-    const sync=()=>{
-      const pt=parseFloat(window.getComputedStyle(card).paddingTop)||0;
-      document.documentElement.style.setProperty('--cardh',Math.max(40,card.offsetHeight-pt*0.55)+'px');
-    };
-    sync();
-    if(window.ResizeObserver)new ResizeObserver(sync).observe(card);
-    window.addEventListener('resize',sync);
-  })();
 
   window.LoadingBridge={setProgress,ready,error,storageAccessRequired,storageAccessGranted,stopMusic,connecting};
   setSteps(1,false);

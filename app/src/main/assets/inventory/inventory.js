@@ -48,42 +48,13 @@
   }
   const qtyOf = (id) => { const it = S.items.find((x) => x.id === id); return it ? it.qty : 0; };
 
-  /* ---------- v3 : 3 panneaux ---------- */
-  const SLOT_ICONS = [
-    '<path d="M4 14c0-5 3.5-8 8-8s8 3 8 8z"/><path d="M3 14h18v2H3z"/>',
-    '<path d="M8 4 3 7l2 4 2-1v10h10V10l2 1 2-4-5-3a4 4 0 0 1-8 0Z"/>',
-    '<path d="M8 3h8l1 5H7zM7 8v13h4v-7h2v7h4V8"/>',
-    '<path d="M6 12V5a1.5 1.5 0 0 1 3 0v5V4a1.5 1.5 0 0 1 3 0v6V5a1.5 1.5 0 0 1 3 0v8c0 4-2 7-5 7s-5-3-5-6z"/>',
-    '<path d="M4 20l3-3h10l3 3M7 17V9l5-4 5 4v8"/>',
-    '<path d="M12 3a8 8 0 0 0-8 8v4a3 3 0 0 0 3 3h1v-7H5M12 3a8 8 0 0 1 8 8v4a3 3 0 0 1-3 3h-1v-7h3"/>',
-    '<circle cx="8" cy="12" r="3.5"/><circle cx="16" cy="12" r="3.5"/><path d="M11.5 12h1"/>',
-    '<path d="M12 3a6 6 0 0 0-3 11l-1 7h8l-1-7a6 6 0 0 0-3-11z"/>',
-    '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
-    '<path d="M12 3l3 6 6 1-4.5 4.5L18 21l-6-3-6 3 1.5-6.5L3 10l6-1z"/>'
-  ];
-  function renderSlots() {
-    ["ivSlotsL", "ivSlotsR"].forEach((id, side) => {
-      const c = $(id); if (c.childElementCount) return;
-      for (let k = 0; k < 5; k++) {
-        const d = document.createElement("div"); d.className = "sl";
-        d.innerHTML = '<svg viewBox="0 0 24 24">' + SLOT_ICONS[side * 5 + k] + "</svg>";
-        c.appendChild(d);
-      }
-    });
-  }
-  function closePop() { S.sel = null; S.giving = false; $("ivPop").hidden = true; render(); }
-  function renderTop() {
+  /* ---------- gauche ---------- */
+  function renderLeft() {
+    $("ivAv").textContent = (nm(S.name).trim()[0] || "?").toUpperCase();
     $("ivName").textContent = nm(S.name) || "—";
     $("ivId").textContent = "#" + String(S.id).padStart(5, "0");
     $("ivCash").textContent = money(S.cash);
-    $("ivGroundN").textContent = S.ground.length;
-    $("ivW").textContent = kg(S.w);
-    $("ivWmax").textContent = "/" + Math.round(S.wmax / 1000) + " kg";
-    const pct = Math.min(100, (S.w / Math.max(1, S.wmax)) * 100);
-    $("ivBar").style.width = pct + "%";
-    $("ivBar").parentElement.classList.toggle("heavy", pct > 90);
-  }
-  function renderPockets() {
+    $("ivWtTotal").textContent = kg(S.w) + " kg";
     const q = $("ivQuick"); q.textContent = "";
     S.slots.forEach((id, k) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "qs";
@@ -94,84 +65,105 @@
       }
       const n = document.createElement("span"); n.className = "n"; n.textContent = k + 1; b.appendChild(n);
       b.addEventListener("click", () => {
-        if (id && qtyOf(id) > 0) { S.sel = id; S.tab = "bag"; S.amount = 1; S.giving = false; render(); }
+        if (S.sel && S.tab === "bag") { send("slot", { slot: k + 1, item: S.slots[k] === S.sel ? "" : S.sel }); return; }
+        if (id && qtyOf(id) > 0) { if (info(id).use) send("use", { item: id, qty: 1 }); else { S.sel = id; S.tab = "bag"; render(); } }
       });
       q.appendChild(b);
     });
   }
-  function fillGrid(el, list, bag) {
-    el.textContent = "";
-    for (let i = 0; i < Math.max(bag ? 24 : 20, list.length); i++) {
+
+  /* ---------- centre ---------- */
+  function renderCenter() {
+    document.querySelectorAll(".iv-tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === S.tab));
+    $("ivGroundN").textContent = S.ground.length;
+    $("ivW").textContent = kg(S.w);
+    $("ivWmax").textContent = "/" + Math.round(S.wmax / 1000) + " kg";
+    const pct = Math.min(100, (S.w / Math.max(1, S.wmax)) * 100);
+    $("ivBar").style.width = pct + "%";
+    $("ivBar").parentElement.classList.toggle("heavy", pct > 90);
+    const g = $("ivGrid"); g.textContent = "";
+    const list = S.tab === "bag" ? S.items.map((x) => ({ id: x.id, qty: x.qty, key: x.id })) : S.ground.map((x) => ({ id: x[1], qty: x[2], key: "g" + x[0], gid: x[0] }));
+    for (let i = 0; i < Math.max(CELLS, list.length); i++) {
       const it = list[i];
       const c = document.createElement("button"); c.type = "button"; c.className = "cell";
       if (it) {
         c.classList.add("filled");
-        if (S.sel === it.key) c.classList.add("sel");
+        if (S.sel === it.key || (S.tab === "bag" && S.sel === it.id)) c.classList.add("sel");
         c.appendChild(img(it.id));
         const q = document.createElement("span"); q.className = "q"; q.textContent = it.qty + "x"; c.appendChild(q);
         const w = document.createElement("span"); w.className = "w"; w.textContent = kg(info(it.id).w * it.qty); c.appendChild(w);
-        c.addEventListener("click", () => { S.tab = bag ? "bag" : "ground"; S.sel = it.key; S.amount = 1; S.giving = false; render(); });
+        c.addEventListener("click", () => { S.sel = S.tab === "bag" ? it.id : it.key; S.amount = 1; S.giving = false; render(); });
       } else c.disabled = true;
-      el.appendChild(c);
+      g.appendChild(c);
     }
+    $("ivNote").textContent = S.tab === "bag"
+      ? (S.sel ? "Touche un raccourci (1 à 5) à gauche pour y placer l'objet." : "")
+      : (S.ground.length ? "Objets posés au sol autour de toi (ils disparaissent après 10 min)." : "Rien au sol autour de toi.");
   }
-  function renderPop() {
-    const p = $("ivPop"); p.textContent = "";
-    const ground = S.sel && S.sel[0] === "g" && S.ground.some((x) => "g" + x[0] === S.sel);
-    const bagIt = !ground && S.sel && qtyOf(S.sel) > 0;
-    if (!ground && !bagIt) { p.hidden = true; if (S.sel) S.sel = null; return; }
-    p.hidden = false;
-    const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "✕"; x.addEventListener("click", closePop); p.appendChild(x);
-    if (ground) {
-      const it = S.ground.find((y) => "g" + y[0] === S.sel), inf = info(it[1]);
-      const t = document.createElement("div"); t.className = "pt"; t.appendChild(img(it[1]));
-      const tt = document.createElement("div"); tt.innerHTML = "<b></b><small></small>"; tt.querySelector("b").textContent = inf.name; tt.querySelector("small").textContent = it[2] + "x · au sol"; t.appendChild(tt); p.appendChild(t);
-      const b = document.createElement("button"); b.type = "button"; b.className = "act main"; b.textContent = "Ramasser";
-      b.addEventListener("click", () => { b.disabled = true; send("pick", { gid: it[0] }); }); p.appendChild(b);
+
+  /* ---------- droite ---------- */
+  function renderRight() {
+    const d = $("ivDetail"); d.textContent = "";
+    if (S.tab === "ground") {
+      const it = S.ground.find((x) => "g" + x[0] === S.sel);
+      if (!it) { d.innerHTML = '<p class="d-empty">Touche un objet au sol<br>pour le ramasser.</p>'; return; }
+      const inf = info(it[1]);
+      const box = document.createElement("div"); box.className = "d-img"; box.appendChild(img(it[1])); d.appendChild(box);
+      d.insertAdjacentHTML("beforeend", '<div class="d-name"></div><div class="d-meta"></div>');
+      d.querySelector(".d-name").textContent = inf.name;
+      d.querySelector(".d-meta").textContent = it[2] + "x · " + kg(inf.w * it[2]) + " kg · au sol";
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn main"; b.textContent = "Ramasser";
+      b.addEventListener("click", () => { b.disabled = true; send("pick", { gid: it[0] }); });
+      d.appendChild(b);
       return;
     }
-    const id = S.sel, inf = info(id), have = qtyOf(id);
+    const have = S.sel ? qtyOf(S.sel) : 0;
+    if (!S.sel || have <= 0) { S.sel = null; d.innerHTML = '<p class="d-empty">Touche un objet<br>pour voir ce que tu peux en faire.</p>'; return; }
+    const inf = info(S.sel);
     if (S.amount > have) S.amount = have;
-    const t = document.createElement("div"); t.className = "pt"; t.appendChild(img(id));
-    const tt = document.createElement("div"); tt.innerHTML = "<b></b><small></small>"; tt.querySelector("b").textContent = inf.name; tt.querySelector("small").textContent = inf.tag + " · " + have + "x · " + kg(inf.w * have) + " kg"; t.appendChild(tt); p.appendChild(t);
-    if (inf.desc) { const d = document.createElement("div"); d.className = "pd"; d.textContent = inf.desc; p.appendChild(d); }
-    if (have > 1) {
-      const q = document.createElement("div"); q.className = "qt"; q.innerHTML = '<button type="button">−</button><b></b><button type="button">+</button>';
-      q.querySelector("b").textContent = S.amount;
-      const [mi, pl] = q.querySelectorAll("button");
-      mi.addEventListener("click", () => { S.amount = Math.max(1, S.amount - 1); renderPop(); });
-      pl.addEventListener("click", () => { S.amount = Math.min(have, S.amount + 1); renderPop(); });
-      p.appendChild(q);
-    }
-    const use = document.createElement("button"); use.type = "button"; use.className = "act main"; use.textContent = inf.use || "Utiliser"; use.disabled = !inf.use;
-    use.addEventListener("click", () => { use.disabled = true; send("use", { item: id, qty: 1 }); }); p.appendChild(use);
-    const give = document.createElement("button"); give.type = "button"; give.className = "act"; give.textContent = S.giving ? "Annuler" : "Donner";
-    give.addEventListener("click", () => { S.giving = !S.giving; if (S.giving) send("refresh"); renderPop(); }); p.appendChild(give);
+    const box = document.createElement("div"); box.className = "d-img"; box.appendChild(img(S.sel)); d.appendChild(box);
+    const n = document.createElement("div"); n.className = "d-name"; n.textContent = inf.name; d.appendChild(n);
+    const m = document.createElement("div"); m.className = "d-meta"; m.textContent = inf.tag + " · " + have + "x · " + kg(inf.w * have) + " kg"; d.appendChild(m);
+    if (inf.desc) { const p = document.createElement("div"); p.className = "d-desc"; p.textContent = inf.desc; d.appendChild(p); }
+    const q = document.createElement("div"); q.className = "d-qty";
+    q.innerHTML = '<button type="button">−</button><b></b><button type="button">+</button><small>sur ' + have + "</small>";
+    q.querySelector("b").textContent = S.amount;
+    const [mi, pl] = q.querySelectorAll("button");
+    mi.addEventListener("click", () => { S.amount = Math.max(1, S.amount - 1); renderRight(); });
+    pl.addEventListener("click", () => { S.amount = Math.min(have, S.amount + 1); renderRight(); });
+    d.appendChild(q);
+    const use = document.createElement("button"); use.type = "button"; use.className = "btn main"; use.textContent = inf.use || "Utiliser"; use.disabled = !inf.use;
+    use.addEventListener("click", () => { use.disabled = true; send("use", { item: S.sel, qty: 1 }); });
+    d.appendChild(use);
+    const give = document.createElement("button"); give.type = "button"; give.className = "btn"; give.textContent = S.giving ? "Annuler" : "Donner";
+    give.addEventListener("click", () => { S.giving = !S.giving; if (S.giving) send("refresh"); renderRight(); });
+    d.appendChild(give);
     if (S.giving) {
-      const pp = document.createElement("div"); pp.className = "ppl";
-      if (!S.near.length) pp.innerHTML = '<small style="color:var(--muted);font-size:10px">Personne à côté de toi.</small>';
-      S.near.forEach((n) => {
-        const b = document.createElement("button"); b.type = "button"; b.innerHTML = "<span></span><small>#" + n[0] + "</small>"; b.firstChild.textContent = nm(n[1]);
-        b.addEventListener("click", () => { S.giving = false; send("give", { item: id, qty: S.amount, to: n[0] }); }); pp.appendChild(b);
+      const pp = document.createElement("div"); pp.className = "d-people";
+      if (!S.near.length) pp.innerHTML = '<p class="d-empty" style="margin:4px 0">Personne à côté de toi.</p>';
+      S.near.forEach((p) => {
+        const b = document.createElement("button"); b.type = "button";
+        b.innerHTML = "<span></span><small>#" + p[0] + "</small>"; b.firstChild.textContent = nm(p[1]);
+        b.addEventListener("click", () => { S.giving = false; send("give", { item: S.sel, qty: S.amount, to: p[0] }); });
+        pp.appendChild(b);
       });
-      p.appendChild(pp);
+      d.appendChild(pp);
     }
-    const drop = document.createElement("button"); drop.type = "button"; drop.className = "act red"; drop.textContent = "Jeter au sol";
-    drop.addEventListener("click", () => { drop.disabled = true; send("drop", { item: id, qty: S.amount }); }); p.appendChild(drop);
-    const r5 = document.createElement("div"); r5.className = "row5";
+    const drop = document.createElement("button"); drop.type = "button"; drop.className = "btn red"; drop.textContent = "Jeter au sol";
+    drop.addEventListener("click", () => { drop.disabled = true; send("drop", { item: S.sel, qty: S.amount }); });
+    d.appendChild(drop);
+    const l = document.createElement("div"); l.className = "d-lbl"; l.textContent = "Raccourci"; d.appendChild(l);
+    const sl = document.createElement("div"); sl.className = "d-slots";
     for (let k = 0; k < 5; k++) {
-      const b = document.createElement("button"); b.type = "button"; b.textContent = k + 1; if (S.slots[k] === id) b.classList.add("on");
-      b.addEventListener("click", () => send("slot", { slot: k + 1, item: S.slots[k] === id ? "" : id })); r5.appendChild(b);
+      const b = document.createElement("button"); b.type = "button"; b.textContent = k + 1;
+      if (S.slots[k] === S.sel) b.classList.add("on");
+      b.addEventListener("click", () => send("slot", { slot: k + 1, item: S.slots[k] === S.sel ? "" : S.sel }));
+      sl.appendChild(b);
     }
-    p.appendChild(r5);
+    d.appendChild(sl);
   }
-  function render() {
-    renderSlots(); renderTop(); renderPockets();
-    fillGrid($("ivGrid"), S.items.map((x) => ({ id: x.id, qty: x.qty, key: x.id })), true);
-    fillGrid($("ivGround"), S.ground.map((x) => ({ id: x[1], qty: x[2], key: "g" + x[0] })), false);
-    $("ivNote").textContent = S.ground.length ? "Objets posés autour de toi (10 min)." : "Rien au sol autour de toi.";
-    renderPop();
-  }
+
+  function render() { renderLeft(); renderCenter(); renderRight(); }
 
   function apply(d) {
     if (Array.isArray(d.items)) S.items = d.items.filter((x) => x && x.id && Number(x.qty) > 0).map((x) => ({ id: String(x.id), qty: Number(x.qty) }));
@@ -183,11 +175,14 @@
     if (d.cash !== undefined) S.cash = Number(d.cash) || 0;
     if (d.id !== undefined) S.id = Number(d.id) || 0;
     if (d.name) S.name = String(d.name);
-    if (S.sel && S.sel[0] === "g" && !S.ground.some((x) => "g" + x[0] === S.sel)) S.sel = null;
+    if (S.tab === "ground" && S.sel && !S.ground.some((x) => "g" + x[0] === S.sel)) S.sel = null;
     render();
     if (d.msg) toast(d.msg, Number(d.ok) === 1);
   }
 
+  document.querySelectorAll(".iv-tab").forEach((t) => t.addEventListener("click", () => {
+    S.tab = t.dataset.tab; S.sel = null; S.giving = false; render(); send("refresh");
+  }));
   $("ivClose").addEventListener("click", () => { if (bridge && typeof bridge.close === "function") { try { bridge.close(); } catch (_) {} } });
 
   window.InvApp = { openFromNative(raw) { S.tab = "bag"; S.sel = null; apply(parse(raw)); }, onUpdateFromNative(raw) { apply(parse(raw)); } };

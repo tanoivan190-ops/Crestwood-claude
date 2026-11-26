@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Casino</title>
+<!--
+  [v44] Casino de Crestwood. Serveur : include/Cw44.inc (Cas_*).
+  Page -> serveur : slot <mise> | roul <mise> <rouge|noir|pair|impair|nX> | bjdeal <mise> | bjhit | bjstand | bjdouble
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #c9971c; --a2: #ffd54a; }
+.cash { flex: none; text-align: right; font-size: 10px; color: var(--soft); }
+.cash b { display: block; font-size: 15px; color: #8ff0b4; }
+.body { flex-direction: column; gap: 8px; }
+.stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 14px;
+  background: radial-gradient(ellipse at center, rgba(16, 92, 52, .55), rgba(6, 30, 18, .75)); border: 1px solid rgba(255, 213, 74, .18); position: relative; overflow: hidden; }
+.reel { width: 74px; height: 86px; border-radius: 14px; display: grid; place-items: center; font-size: 38px; font-weight: 900;
+  background: linear-gradient(180deg, #fff, #e8e2d4); color: #1b1b1b; box-shadow: inset 0 -6px 12px rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.4); }
+.reel.spin { animation: reelSpin .12s linear infinite; }
+@keyframes reelSpin { 50% { transform: translateY(-4px); filter: blur(1px); } }
+.reel.win { box-shadow: 0 0 0 3px #ffd54a, 0 0 22px rgba(255, 213, 74, .7); }
+.bar { font-size: 20px; letter-spacing: 1px; }
+.res { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 12px; font-weight: 900; color: #ffe9a6; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.ball { width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; font-weight: 900; color: #fff;
+  background: #1a1a1a; border: 4px solid #ffd54a; box-shadow: 0 8px 22px rgba(0,0,0,.5); transition: background .3s; }
+.ball.red { background: #c62828; } .ball.green { background: #1b8f4a; }
+.ball.spin { animation: ballSpin .5s linear infinite; }
+@keyframes ballSpin { to { transform: rotate(360deg); } }
+.rgrid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; }
+.rgrid button { height: 22px; border-radius: 6px; font-size: 9.5px; font-weight: 900; color: #fff; background: #222; border: 1px solid rgba(255,255,255,.08); }
+.rgrid button.r { background: #b71c1c; } .rgrid button.z { background: #1b8f4a; }
+.rgrid button.on { outline: 2px solid #ffd54a; }
+.rbets { display: flex; gap: 6px; }
+.rbets button { flex: 1; height: 30px; border-radius: 9px; font-size: 11px; font-weight: 900; background: var(--glass2); border: 1px solid var(--line); }
+.rbets button.on { border-color: #ffd54a; background: rgba(255, 213, 74, .16); }
+.hand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hand small { font-size: 10px; color: #cfe8d6; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.cards { display: flex; gap: 5px; min-height: 66px; }
+.cardx { width: 46px; height: 66px; border-radius: 8px; background: #fff; color: #111; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 5px;
+  font-size: 15px; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,.4); animation: pgUp .25s ease both; }
+.cardx.red { color: #c62828; } .cardx i { font-style: normal; align-self: flex-end; font-size: 16px; }
+.cardx.back { background: repeating-linear-gradient(45deg, #8b1a1a, #8b1a1a 5px, #a52a2a 5px, #a52a2a 10px); }
+.chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.chip { height: 30px; min-width: 46px; padding: 0 8px; border-radius: 99px; font-size: 10.5px; font-weight: 900; color: #fff;
+  background: radial-gradient(circle, #2b2b2b 55%, #444 56%); border: 2px dashed rgba(255, 213, 74, .55); }
+.chip.on { border-style: solid; border-color: #ffd54a; box-shadow: 0 0 12px rgba(255, 213, 74, .5); }
+.bet { font-size: 11px; color: var(--soft); margin-left: auto; } .bet b { color: #ffd54a; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="15" cy="9" r="1.2"/><circle cx="9" cy="15" r="1.2"/></svg></div>
+      <div class="ttl"><b id="title">Casino</b><small id="sub">Jouez de façon responsable · mises de 100 à 50 000 $</small></div>
+      <div class="tabs" id="tabs"><button data-v="slot" class="on">Machine</button><button data-v="roul">Roulette</button><button data-v="bj">Blackjack</button></div>
+      <div class="cash">Liquide<b id="cash">0 $</b></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="body">
+      <div class="stage" id="stage"></div>
+      <div id="extra"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="foot">
+      <div class="sum" id="sum">Choisis ta mise puis joue.</div>
+      <div id="acts" style="display:flex;gap:8px"></div>
+    </div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var Cw = window.CwPage, $ = Cw.$;
+  var SYM = ["🍒", "🍋", "🔔", "BAR", "💎", "7"];
+  var CHIPS = [100, 500, 1000, 5000, 10000, 50000];
+  var st = { v: "slot", d: {}, bet: 500, roul: "rouge", busy: false };
+
+  function chips() {
+    var box = $("chips"); box.innerHTML = "";
+    CHIPS.forEach(function (c) {
+      var b = Cw.el("button", "chip" + (c === st.bet ? " on" : ""), c >= 1000 ? (c / 1000) + "k" : String(c));
+      b.addEventListener("click", function () { st.bet = c; chips(); });
+      box.appendChild(b);
+    });
+    var t = Cw.el("div", "bet"); t.innerHTML = "Mise <b>" + Cw.money(st.bet) + "</b>"; box.appendChild(t);
+  }
+  function btn(txt, cls, fn, dis) { var b = Cw.el("button", "btn " + (cls || ""), txt); if (dis) b.disabled = true; b.addEventListener("click", fn); return b; }
+  function cardEl(v, i) {
+    if (!v) return Cw.el("div", "cardx back");
+    var suits = ["♠", "♥", "♦", "♣"], s = suits[(v * 7 + i * 3) % 4];
+    var n = v === 1 ? "A" : v === 11 ? "J" : v === 12 ? "Q" : v === 13 ? "K" : String(v);
+    var c = Cw.el("div", "cardx" + (s === "♥" || s === "♦" ? " red" : "")); c.appendChild(Cw.el("span", null, n)); c.appendChild(Cw.el("i", null, s));
+    c.style.animationDelay = (i * 0.08) + "s"; return c;
+  }
+
+  function render() {
+    var d = st.d, r = d.res || {}, stage = $("stage"), extra = $("extra"), acts = $("acts");
+    $("cash").textContent = Cw.money(d.cash || 0);
+    $("title").textContent = d.name || "Casino";
+    stage.innerHTML = ""; extra.innerHTML = ""; acts.innerHTML = "";
+    var tb = $("tabs").querySelectorAll("button");
+    for (var i = 0; i < tb.length; i++) tb[i].className = tb[i].getAttribute("data-v") === st.v ? "on" : "";
+    var res = Cw.el("div", "res");
+    if (st.v === "slot") {
+      var reels = (r.g === "slot" && r.r) ? r.r : [5, 5, 5];
+      reels.forEach(function (s) {
+        var e = Cw.el("div", "reel" + (SYM[s] === "BAR" ? " bar" : "") + (r.g === "slot" && r.win > 0 ? " win" : "") + (st.busy ? " spin" : ""), SYM[s]);
+        stage.appendChild(e);
+      });
+      if (r.g === "slot") res.textContent = r.win > 0 ? "GAGNÉ " + Cw.money(r.win) + " !" : "Perdu… retente ta chance";
+      acts.appendChild(btn("Lancer", "", function () { spin("slot", String(st.bet)); }, st.busy));
+      $("sum").innerHTML = "3 × 7 = <b>×25</b> · 3 × 💎 = <b>×12</b> · 3 × BAR = <b>×8</b> · 3 identiques = <b>×5</b> · 2 × 🍒 = <b>×2</b>";
+    } else if (st.v === "roul") {
+      var n = r.g === "roul" ? r.n : "?";
+      var ball = Cw.el("div", "ball" + (st.busy ? " spin" : "") + (r.g === "roul" ? (r.n === 0 ? " green" : (r.red ? " red" : "")) : ""), String(n));
+      stage.appendChild(ball);
+      if (r.g === "roul") res.textContent = r.win > 0 ? "GAGNÉ " + Cw.money(r.win) + " !" : "Le " + r.n + " sort. Perdu.";
+      var rb = Cw.el("div", "rbets");
+      [["rouge", "Rouge ×2"], ["noir", "Noir ×2"], ["pair", "Pair ×2"], ["impair", "Impair ×2"]].forEach(function (o) {
+        var b = Cw.el("button", st.roul === o[0] ? "on" : "", o[1]); b.addEventListener("click", function () { st.roul = o[0]; render(); }); rb.appendChild(b);
+      });
+      extra.appendChild(rb);
+      var g = Cw.el("div", "rgrid"); g.style.marginTop = "6px";
+      var REDS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+      for (var k = 0; k <= 36; k++) (function (k) {
+        var b = Cw.el("button", (k === 0 ? "z" : REDS.indexOf(k) >= 0 ? "r" : "") + (st.roul === "n" + k ? " on" : ""), String(k));
+        b.addEventListener("click", function () { st.roul = "n" + k; render(); }); g.appendChild(b);
+      })(k);
+      extra.appendChild(g);
+      acts.appendChild(btn("Lancer la bille", "", function () { spin("roul", st.bet + " " + st.roul); }, st.busy));
+      $("sum").innerHTML = "Pari : <b>" + (st.roul.charAt(0) === "n" ? "numéro " + st.roul.slice(1) + " (×36)" : st.roul + " (×2)") + "</b>";
+    } else {
+      var bj = d.bj || {};
+      var dh = Cw.el("div", "hand"); dh.appendChild(Cw.el("small", null, "Croupier · " + (bj.dv || 0)));
+      var dc = Cw.el("div", "cards"); (bj.d || []).forEach(function (v, i) { dc.appendChild(cardEl(v, i)); }); dh.appendChild(dc);
+      var ph = Cw.el("div", "hand"); ph.appendChild(Cw.el("small", null, "Toi · " + (bj.pv || 0)));
+      var pc = Cw.el("div", "cards"); (bj.p || []).forEach(function (v, i) { pc.appendChild(cardEl(v, i + 3)); }); ph.appendChild(pc);
+      stage.appendChild(dh); stage.appendChild(ph);
+      if (r.g === "bj") res.textContent = ({ blackjack: "BLACKJACK ! ", gagne: "Gagné ! ", egalite: "Égalité. ", perdu: "Perdu. " }[r.res] || "") + (r.win > 0 ? Cw.money(r.win) : "");
+      if (bj.on) {
+        acts.appendChild(btn("Tirer", "", function () { Cw.send("bjhit", ""); }));
+        acts.appendChild(btn("Rester", "ghost", function () { Cw.send("bjstand", ""); }));
+        acts.appendChild(btn("Doubler", "red", function () { Cw.send("bjdouble", ""); }, (bj.p || []).length !== 2));
+        $("sum").innerHTML = "Mise en jeu : <b>" + Cw.money(bj.bet) + "</b>";
+      } else {
+        acts.appendChild(btn("Distribuer", "", function () { Cw.send("bjdeal", String(st.bet)); }));
+        $("sum").innerHTML = "Blackjack payé <b>×2,5</b> · le croupier tire jusqu'à 17";
+      }
+    }
+    stage.appendChild(res);
+  }
+
+  function spin(act, arg) {
+    if (st.busy) return;
+    st.busy = true; render();
+    setTimeout(function () { Cw.send(act, arg); }, 650);
+    setTimeout(function () { if (st.busy) { st.busy = false; render(); } }, 3500);   // pas de blocage si le serveur ne repond pas
+  }
+
+  $("tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; st.v = b.getAttribute("data-v"); render(); });
+  chips();
+  Cw.boot(function (d) { st.d = d; st.busy = false; render(); });
+  if (!window.SampPage) window.PageApp.openFromNative({ name: "Casino Alhambra", cash: 48200, bj: { on: 0, p: [], d: [] }, res: {} });
+})();
+</script>
+</body>
+</html>

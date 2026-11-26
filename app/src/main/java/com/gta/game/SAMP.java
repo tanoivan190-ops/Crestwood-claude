@@ -111,6 +111,18 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private volatile boolean shopReady;
     private volatile String pendingShopJson;
     private Runnable shopWatchdog;
+    // [v30c] pages generiques (amendes, reparation, bodycam...) : dialogues 9970-9972, titre "@page <nom>"
+    private static final java.util.Set<String> CW_PAGES = new java.util.HashSet<>(java.util.Arrays.asList("ticket", "repair", "bodycam", "casino", "bourse", "event", "groupe"));
+    private boolean pageOpen;
+    private volatile String pageName = "";
+    private volatile boolean pageReady;
+    private volatile String pendingPageJson;
+    private Runnable pageWatchdog;
+    // [v30] Crestwood Store (assets/store/index.html), dialogues "@store" (ids 9960-9962)
+    private boolean storeOpen;
+    private volatile boolean storeReady;
+    private volatile String pendingStoreJson;
+    private Runnable storeWatchdog;
     // Contrat de travail / agence pour l'emploi HTML (assets/job/index.html), dialogues "@job" (ids 9600-9602)
     private boolean jobOpen;
     private volatile boolean jobReady;
@@ -223,6 +235,8 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private volatile int hudThirst = 100;
     /** [v15] carburant du vehicule (envoye par le serveur, dialogue "@hudv" 9516) */
     private volatile int hudFuel = 100;
+    /** [v36] HUD natif (com.crestwood.ui) : compteur + panneau d'infos en vraies vues Android */
+    private com.crestwood.ui.NativeHud nativeHud;
     private volatile boolean gameSettingsApplied = false;
     private volatile String lastHudvJson = null;
     private volatile int pharmacyBalance = 0;
@@ -316,11 +330,18 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 // [v19] faim / soif envoyees par le serveur (module VIE RP) : sinon updateHudState les remet a 100
                 if (o.has("hunger")) hudHunger = Math.max(0, Math.min(100, o.optInt("hunger", 100)));
                 if (o.has("thirst")) hudThirst = Math.max(0, Math.min(100, o.optInt("thirst", 100)));
+                if (nativeHud != null) nativeHud.setInfo(o);   // [v36] HUD natif
             } catch (Exception ignored) { }
             if (looksJson(hv)) {
                 lastHudvJson = hv;
                 hudJs("window.HudApp && HudApp.updateHudInfo && HudApp.updateHudInfo(" + hv + ")");
             }
+            return;
+        }
+        // [v46] identifiants du jour au-dessus des tetes : id 9518, titre "@tags", contenu "1|3:4821,7:1290"
+        if (dialogId == 9518) {
+            final String tags = content == null ? "" : content.replace("\u0000", "").replaceAll("[^0-9,:|]", "");
+            try { setPlayerTags(tags); } catch (Throwable t) { Log.w(TAG, "setPlayerTags indisponible", t); }
             return;
         }
         // [v15] joueurs a cacher (admins invisibles) : id 9517, titre "@hide", contenu "3,7" (vide = personne)
@@ -344,6 +365,22 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             final boolean shopJson = looksJson(content);
             if (capShop.startsWith("@shop") || shopJson) {
                 handleShopDialog(dialogId, content);
+                return;
+            }
+        }
+        // [v30c] pages generiques : ids 9970 (ouvrir), 9971 (mise a jour), 9972 (fermer), titre "@page <nom>".
+        if (dialogId >= 9970 && dialogId <= 9972) {
+            final String capPage = caption.replace("\u0000", "").replaceAll("\\{[0-9A-Fa-f]{6}\\}", "").trim();
+            if (capPage.startsWith("@page")) {
+                handlePageDialog(dialogId, capPage.substring(5).trim().toLowerCase(java.util.Locale.ROOT), content);
+                return;
+            }
+        }
+        // [v30] Crestwood Store : ids 9960 (ouvrir), 9961 (mise a jour), 9962 (fermer), titre "@store", contenu JSON.
+        if (dialogId >= 9960 && dialogId <= 9962) {
+            final String capStore = caption.replace("\u0000", "").replaceAll("\\{[0-9A-Fa-f]{6}\\}", "").trim();
+            if (capStore.startsWith("@store") || looksJson(content)) {
+                handleStoreDialog(dialogId, content);
                 return;
             }
         }
@@ -685,6 +722,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     // [v15] parametres en jeu -> moteur (game/CwSettings.cpp) et joueurs caches (admins invisibles)
     private native void applyGameSetting(int key, int value);
     private native void setHiddenPlayers(String data);
+    private native void setPlayerTags(String data);   // [v46] identifiants du jour (playertags.cpp)
     private native void openClothesTest();
     /** Dialogues "@clothes" du serveur (ids 9550 appliquer, 9551 ouvrir l'editeur, 9552 fermer, 9553/9554 apparence d'un autre joueur : appliquer/retirer). */
     private native void onClothesDialog(int dialogId, String json);
@@ -750,6 +788,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 v.removeJavascriptInterface("AndroidClothes");
                 v.destroy();
             }
+            if (nativeHud != null) { nativeHud.release(); nativeHud = null; }   // [v36]
             hudWebView = null; hudMain = null; hudPanel = null;
         }
         super.onDestroy();
@@ -802,9 +841,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         chatInput.setVisibility(View.GONE);
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null) imm.hideSoftInputFromWindow(chatInput.getWindowToken(), 0);
-        // [v30] commande TAPEE au clavier : marqueur (octet 1) lu par le serveur (les boutons du HUD n'en ont pas)
-        if (value.startsWith("/")) value = value + "\u0001";
-        if (!value.isEmpty()) sendChatInput(value);
+        if (!value.isEmpty()) sendChatInput(value.startsWith("/") ? "/tc " + value : value);   // [v42] commande TAPEE : le serveur filtre (/aide pour les joueurs)
     }
 
     // parent des couches WebView (ConstraintLayout de game.xml) et position du HUD dedans
@@ -819,6 +856,14 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         }
         if (fromLayout == null && hudParent == null) return;
         hudMain = buildWebLayer(fromLayout, hudIndex);
+        if (nativeHud == null) nativeHud = com.crestwood.ui.NativeHud.attach(this, hudParent, hudMain);   // [v36] sous le HUD HTML
+        if (nativeHud != null) nativeHud.setMinimapListener(new com.crestwood.ui.MinimapView.Listener() {   // [v37] minimap native
+            @Override public void onMinimapTap() { openInteractionPage("map/index.html"); }
+            @Override public void onGpsRoute(String data) {
+                try { setGpsWorld(data == null ? "" : data); } catch (UnsatisfiedLinkError e) { Log.w(TAG, "setGpsWorld indisponible"); }
+            }
+            @Override public void onGpsArrived() { lastGpsJson = null; }
+        });
         hudPanel = buildWebLayer(null, hudParent.indexOfChild(hudMain) + 1);
         hudPanel.setMirror(hudMain);
         hudPanel.setVisibility(View.GONE);
@@ -886,6 +931,11 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             }
         });
         hudWebView.setWebViewClient(new WebViewClient() {
+            // [v47] pages protegees : HTML/JS/CSS/JSON chiffres dans l'APK, dechiffres ici (com.crestwood.ui.CwAssets)
+            @Override public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, android.webkit.WebResourceRequest request) {
+                android.webkit.WebResourceResponse cwr = com.crestwood.ui.CwAssets.intercept(view.getContext(), request);
+                return cwr != null ? cwr : super.shouldInterceptRequest(view, request);
+            }
             // Si le processus de rendu de la WebView meurt (page lourde, manque de memoire), on evite
             // de fermer toute l'application : on recharge simplement le HUD.
             @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
@@ -902,12 +952,18 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                         + " : " + (error != null ? error.getDescription() : "?"));
             }
             @Override public void onPageFinished(WebView view, String url) {
+                com.crestwood.ui.CwAssets.checkPage(view, url);   // [v60] page restee chiffree -> reconstruite en clair
                 Log.i(TAG, "[webview] page chargee : " + url);
                 if (view instanceof HudWebView && url != null && url.equals(((HudWebView) view).loadedUrl)) ((HudWebView) view).pageFinished = true;
                 // [v20] champs de saisie des panneaux (admin, banque, police...) : le clavier s'ouvre au toucher
                 if (url != null && !url.startsWith("about:") && !url.contains("/hud/index.html")) {
                     if (view instanceof HudWebView) ((HudWebView) view).evaluateLocal(PANEL_KEYBOARD_JS);
                     else view.evaluateJavascript(PANEL_KEYBOARD_JS, null);
+                }
+                // [v36] HUD natif actif : la page du HUD ne dessine plus le compteur ni les infos
+                if (nativeHud != null && url != null && url.contains("/hud/index.html")) {
+                    if (view instanceof HudWebView) ((HudWebView) view).evaluateLocal(com.crestwood.ui.NativeHud.HIDE_HTML_JS);
+                    else view.evaluateJavascript(com.crestwood.ui.NativeHud.HIDE_HTML_JS, null);
                 }
                 deliverPendingPanelJson(view, url);
             }
@@ -945,6 +1001,8 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         hudWebView.addJavascriptInterface(new SampLockerBridge(), "SampLocker");
         hudWebView.addJavascriptInterface(new SampPoliceBridge(), "SampPolice");
         hudWebView.addJavascriptInterface(new SampShopBridge(), "SampShop");
+        hudWebView.addJavascriptInterface(new SampStoreBridge(), "SampStore");   // [v30]
+        hudWebView.addJavascriptInterface(new SampPageBridge(), "SampPage");     // [v30c]
         hudWebView.addJavascriptInterface(new SampJobBridge(), "SampJob");
         hudWebView.addJavascriptInterface(new SampUiBridge(), "SampUi");
         hudWebView.addJavascriptInterface(new SampSvcBridge(), "SampSvc");
@@ -989,6 +1047,16 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         if (shopJson != null && url != null && url.endsWith("shop/index.html")) {
             pendingShopJson = null;
             view.evaluateJavascript("window.ShopApp && ShopApp.openFromNative(" + JSONObject.quote(shopJson) + ")", null);
+        }
+        String pJson = pendingPageJson;
+        if (pJson != null && url != null && !pageName.isEmpty() && url.endsWith(pageName + "/index.html")) {
+            pendingPageJson = null;
+            view.evaluateJavascript("window.PageApp && PageApp.openFromNative(" + JSONObject.quote(pJson) + ")", null);
+        }
+        String storeJson = pendingStoreJson;
+        if (storeJson != null && url != null && url.endsWith("store/index.html")) {
+            pendingStoreJson = null;
+            view.evaluateJavascript("window.StoreApp && StoreApp.openFromNative(" + JSONObject.quote(storeJson) + ")", null);
         }
         String jobJson = pendingJobJson;
         if (jobJson != null && url != null && url.endsWith("job/index.html")) {
@@ -1066,10 +1134,13 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             pendingLockerJson = null;
             view.evaluateJavascript("window.LockerApp && LockerApp.openFromNative(" + JSONObject.quote(lockerJson) + ")", null);
         }
-        String authJson = pendingAuthJson;
+        final String authJson = pendingAuthJson;
         if (authJson != null && url != null && url.endsWith("login/index.html")) {
             pendingAuthJson = null;
-            view.evaluateJavascript("window.DXAuth && DXAuth.openFromNative(" + JSONObject.quote(authJson) + ")", null);
+            // [v63] si la page n'est pas prete (ex. reconstruite juste apres), on garde le JSON pour le prochain chargement
+            view.evaluateJavascript("(window.DXAuth ? (DXAuth.openFromNative(" + JSONObject.quote(authJson) + "), 1) : 0)", v -> {
+                if (!"1".equals(v) && pendingAuthJson == null && authOpen) pendingAuthJson = authJson;
+            });
         }
         String json = pendingBankJson;
         if (json != null && url != null && url.endsWith("bank/index.html")) {
@@ -1110,17 +1181,17 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 return;
             }
             hudMainUrl = HUD_PAGE;
-            hudMain.loadUrl(HUD_PAGE);
+            com.crestwood.ui.CwAssets.load(hudMain, HUD_PAGE);
             return;
         }
         if (url.startsWith("about:")) {   // (avant : navigate(url) se rappelait lui-meme a l'infini)
-            if (hudPanel != null) { hudPanel.loadUrl(url); hudPanel.loadedUrl = null; hudPanel.setVisibility(View.GONE); }
+            if (hudPanel != null) { com.crestwood.ui.CwAssets.load(hudPanel, url); hudPanel.loadedUrl = null; hudPanel.setVisibility(View.GONE); }
             hudWebView = hudMain;
             hudMain.setVisibility(View.VISIBLE);
             stopBackdrop();
             return;
         }
-        if (hudPanel == null) { hudMainUrl = url; hudMain.loadUrl(url); return; }
+        if (hudPanel == null) { hudMainUrl = url; com.crestwood.ui.CwAssets.load(hudMain, url); return; }
         if (hudWebView == hudMain) {
             // les modes (plein ecran, telephone, camera) viennent d'etre regles sur la couche HUD : on les deplace
             hudPanel.copyModeFrom(hudMain);
@@ -1136,7 +1207,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         } else {
             hudPanel.loadedUrl = url;
             hudPanel.pageFinished = false;
-            hudPanel.loadUrl(url);
+            com.crestwood.ui.CwAssets.load(hudPanel, url);
         }
         hudMain.setVisibility(View.INVISIBLE);   // reste charge (pas de rechargement a la fermeture)
         if (cwTopBanner != null) cwTopBanner.setVisibility(View.GONE);
@@ -1220,7 +1291,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             if (hudPanel.getVisibility() == View.GONE && hudPanel.loadedUrl == null && hudWebView == hudMain) {
                 hudPanel.loadedUrl = "file:///android_asset/inventory/index.html";
                 hudPanel.pageFinished = false;
-                hudPanel.loadUrl(hudPanel.loadedUrl);
+                com.crestwood.ui.CwAssets.load(hudPanel, hudPanel.loadedUrl);
                 Log.i(TAG, "[webview] inventaire prechauffe");
             }
         }, 4000);
@@ -1327,6 +1398,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             ((android.view.ViewGroup) backdropView.getParent()).removeView(backdropView);
         }
         backdropView = null;
+        if (nativeHud != null) { nativeHud.release(); nativeHud = null; }   // [v36]
         hudWebView = null; hudMain = null; hudPanel = null; hudMainUrl = null;
         initializeHudWebView();
     }
@@ -1823,6 +1895,16 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private void replayMapState() {
         final String blips = lastBlipsJson;
         final String gps = lastGpsJson;
+        final com.crestwood.ui.NativeHud nh = nativeHud;   // [v37] minimap native
+        if (nh != null) {
+            if (blips != null) nh.setBlips(blips);
+            if (gps != null) {
+                try {
+                    JSONObject g = new JSONObject(gps);
+                    nh.setWaypoint((float) g.getDouble("x"), (float) g.getDouble("y"), g.optInt("auto", 0) == 1);
+                } catch (Exception ignored) { }
+            } else nh.clearWaypoint();
+        }
         StringBuilder js = new StringBuilder();
         if (blips != null) {
             js.append("window.MinimapBridge && MinimapBridge.setBlips(").append(blips).append(");");
@@ -2097,6 +2179,201 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         }
     }
 
+    // ---- [v30c] pages generiques : assets/<nom>/index.html (ticket, repair, bodycam) ----
+    private void handlePageDialog(final int dialogId, final String name, final String rawJson) {
+        final String json = extractJson(rawJson);
+        runOnUiThread(() -> {
+            if (hudWebView == null || isFinishing()) return;
+            if (dialogId == 9972) {
+                if (pageOpen && (name.isEmpty() || name.equals(pageName))) closePage(false);
+            } else if (dialogId == 9970) {
+                openPage(name, json);
+            } else if (pageOpen && name.equals(pageName)) {
+                hudWebView.evaluateJavascript("window.PageApp && PageApp.onUpdateFromNative(" + JSONObject.quote(json) + ")", null);
+            }
+        });
+    }
+
+    private void openPage(String name, String json) {
+        if (hudWebView == null || authOpen || adminOpen || !CW_PAGES.contains(name)) return;
+        if (pageOpen && pageReady && name.equals(pageName)) {
+            hudWebView.evaluateJavascript("window.PageApp && PageApp.openFromNative(" + JSONObject.quote(json) + ")", null);
+            return;
+        }
+        Log.i(TAG, "[page] ouverture " + name);
+        pageOpen = true;
+        pageReady = false;
+        pageName = name;
+        storeOpen = false;
+        shopOpen = false;
+        jobOpen = false;
+        lockerOpen = false;
+        policeOpen = false;
+        configOpen = true;
+        invOpen = false;
+        bankOpen = false;
+        pharmacyOpen = false;
+        pendingPageJson = json;
+        hudWebView.setWheelOpen(false);
+        hudWebView.setPhonePage(false);
+        hudWebView.setFullscreenPage(true);
+        hudWebView.setVisibility(View.VISIBLE);
+        navigate("file:///android_asset/" + name + "/index.html");
+        if (pageWatchdog != null) authHandler.removeCallbacks(pageWatchdog);
+        pageWatchdog = () -> {
+            if (pageOpen && !pageReady) {
+                Log.e(TAG, "[page] " + pageName + " ne s'est pas affichee a temps -> fermeture de secours");
+                closePage(true);
+            }
+        };
+        authHandler.postDelayed(pageWatchdog, 5000);
+    }
+
+    private void closePage(final boolean notifyServer) {
+        runOnUiThread(() -> {
+            if (hudWebView == null) return;
+            boolean wasOpen = pageOpen;
+            String name = pageName;
+            if (pageWatchdog != null) { authHandler.removeCallbacks(pageWatchdog); pageWatchdog = null; }
+            pageOpen = false;
+            pageReady = false;
+            configOpen = false;
+            pendingPageJson = null;
+            hudWebView.setFullscreenPage(false);
+            hudWebView.setPhonePage(false);
+            hudWebView.setVisibility(View.VISIBLE);
+            navigate("file:///android_asset/hud/index.html");
+            if (notifyServer && wasOpen && !name.isEmpty()) sendChatInput("/pageact " + name + " close");
+        });
+    }
+
+    private final class SampPageBridge {
+        // JS -> serveur : /pageact <page> <action> [arguments]. Le serveur re-verifie tout.
+        @JavascriptInterface public void action(String type, String arg) {
+            try {
+                String p = pageName;
+                if (!pageOpen || p.isEmpty()) return;
+                String t = type == null ? "" : type.replaceAll("[^a-z]", "");
+                if (t.isEmpty() || t.length() > 12) return;
+                String a = arg == null ? "" : arg.replaceAll("[^A-Za-z0-9_\\- ]", "").trim();
+                if (a.length() > 64) a = a.substring(0, 64);
+                sendHudCommand("/pageact " + p + " " + t + (a.isEmpty() ? "" : " " + a));
+            } catch (Exception e) {
+                Log.e(TAG, "page action", e);
+            }
+        }
+
+        @JavascriptInterface public void close() {
+            closePage(true);
+        }
+
+        @JavascriptInterface public void ready() {
+            pageReady = true;
+            Log.i(TAG, "[page] " + pageName + " affichee");
+        }
+    }
+
+    // ---- [v30] Crestwood Store (page assets/store/index.html) ----
+    private void handleStoreDialog(final int dialogId, final String rawJson) {
+        final String json = extractJson(rawJson);
+        runOnUiThread(() -> {
+            if (hudWebView == null || isFinishing()) return;
+            if (dialogId == 9962) {
+                closeStorePage(false);
+            } else if (dialogId == 9960) {
+                openStorePage(json);
+            } else if (storeOpen) {
+                hudWebView.evaluateJavascript("window.StoreApp && StoreApp.onUpdateFromNative(" + JSONObject.quote(json) + ")", null);
+            }
+        });
+    }
+
+    private void openStorePage(String json) {
+        if (hudWebView == null || authOpen || adminOpen) return;
+        if (storeOpen && storeReady) {
+            hudWebView.evaluateJavascript("window.StoreApp && StoreApp.openFromNative(" + JSONObject.quote(json) + ")", null);
+            return;
+        }
+        Log.i(TAG, "[store] ouverture du Crestwood Store");
+        storeOpen = true;
+        storeReady = false;
+        shopOpen = false;
+        jobOpen = false;
+        lockerOpen = false;
+        policeOpen = false;
+        configOpen = true;
+        invOpen = false;
+        bankOpen = false;
+        pharmacyOpen = false;
+        pendingStoreJson = json;
+        hudWebView.setWheelOpen(false);
+        hudWebView.setPhonePage(false);
+        hudWebView.setFullscreenPage(true);
+        hudWebView.setVisibility(View.VISIBLE);
+        navigate("file:///android_asset/store/index.html");
+        if (storeWatchdog != null) authHandler.removeCallbacks(storeWatchdog);
+        storeWatchdog = () -> {
+            if (storeOpen && !storeReady) {
+                Log.e(TAG, "[store] la page ne s'est pas affichee a temps -> fermeture de secours");
+                closeStorePage(true);
+            }
+        };
+        authHandler.postDelayed(storeWatchdog, 5000);
+    }
+
+    private void closeStorePage(final boolean notifyServer) {
+        runOnUiThread(() -> {
+            if (hudWebView == null) return;
+            boolean wasOpen = storeOpen;
+            if (storeWatchdog != null) { authHandler.removeCallbacks(storeWatchdog); storeWatchdog = null; }
+            storeOpen = false;
+            storeReady = false;
+            configOpen = false;
+            pendingStoreJson = null;
+            hudWebView.setFullscreenPage(false);
+            hudWebView.setPhonePage(false);
+            hudWebView.setVisibility(View.VISIBLE);
+            navigate("file:///android_asset/hud/index.html");
+            if (notifyServer && wasOpen) sendChatInput("/storeact close");
+        });
+    }
+
+    private final class SampStoreBridge {
+        // JS -> serveur : /storeact buy <article> [extra] | wave <pack> <reference> | refresh. Le serveur re-verifie tout.
+        @JavascriptInterface public void action(String type, String arg) {
+            try {
+                String t = type == null ? "" : type.replaceAll("[^a-z]", "");
+                if (!t.equals("buy") && !t.equals("wave") && !t.equals("refresh") && !t.equals("pv") && !t.equals("pvoff")) return;   // [v34] pv = apercu 3D du vehicule
+                String a = arg == null ? "" : arg.replaceAll("[^A-Za-z0-9_\\- ]", "").trim();
+                if (a.length() > 64) a = a.substring(0, 64);
+                sendHudCommand("/storeact " + t + (a.isEmpty() ? "" : " " + a));
+            } catch (Exception e) {
+                Log.e(TAG, "store action", e);
+            }
+        }
+
+        @JavascriptInterface public void openUrl(String url) {
+            // seulement le lien de paiement Wave (rien d'autre ne peut sortir de la page)
+            if (url == null || !url.startsWith("https://pay.wave.com/")) return;
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+                } catch (Exception e) {
+                    Log.e(TAG, "store wave", e);
+                }
+            });
+        }
+
+        @JavascriptInterface public void close() {
+            closeStorePage(true);
+        }
+
+        @JavascriptInterface public void ready() {
+            storeReady = true;
+            Log.i(TAG, "[store] page affichee");
+        }
+    }
+
     // ---- Enceinte JBL (page assets/jbl/index.html) ----
     private void handleJblDialog(final int dialogId, final String rawJson) {
         final String json = extractJson(rawJson);
@@ -2249,7 +2526,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 String t = type == null ? "" : type.replaceAll("[^a-z]", "");
                 switch (t) {
                     case "view": case "maptp": case "maparr": case "pnew": case "pout": case "pin": case "ptpout":
-                    case "ptpin": case "pdel": case "ptnew": case "ptdel": case "pttp": case "ipre": case "ipgo": case "ipall":
+                    case "ptpin": case "pdel": case "ptnew": case "ptdel": case "pttp":
                         break;
                     default:
                         return;
@@ -2608,6 +2885,13 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     }
 
     private final class SampPhoneBridge {
+        // [v31] adresse du serveur de jeu (le service Instagram tourne sur la meme machine)
+        @JavascriptInterface public String serverHost() {
+            String h = null;
+            try { h = getIntent() != null ? getIntent().getStringExtra("server_host") : null; } catch (Throwable ignored) { }
+            if (h == null || h.isEmpty()) h = getSharedPreferences("crestwood_server", MODE_PRIVATE).getString("host", "51.38.205.167");
+            return h;
+        }
         // [v21] memoire du telephone (phone/store.js) : copie dans les SharedPreferences
         @JavascriptInterface public void saveStore(String json) {
             if (json == null || json.length() > 400000) return;
@@ -2625,9 +2909,23 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 if (num.length() > 9) num = num.substring(0, 9);
                 String cmd;
                 switch (t) {
-                    case "sync": case "convs": case "recents": case "accept": case "decline": case "hangup": case "soscancel": case "shopgps":
+                    case "sync": case "convs": case "recents": case "accept": case "decline": case "hangup": case "soscancel": case "shopgps": case "ig": case "pos":
                         cmd = t;
                         break;
+                    case "uber": {   // [v32] Uber : passager et chauffeur (/phoneact uber <sous-action> [arg])
+                        String sub = o.optString("sub", "").replaceAll("[^a-z]", "");
+                        String arg = o.optString("arg", "").replaceAll("[^A-Za-z0-9_ ]", "").trim();
+                        if (sub.isEmpty() || sub.length() > 10) return;
+                        if (arg.length() > 20) arg = arg.substring(0, 20);
+                        cmd = "uber " + sub + (arg.isEmpty() ? "" : " " + arg);
+                        break;
+                    }
+                    case "gps": {   // [v31] destination choisie sur la carte de l'appli Uber
+                        double gx = o.optDouble("x", 99999), gy = o.optDouble("y", 99999);
+                        if (Math.abs(gx) > 3000 || Math.abs(gy) > 3000) return;
+                        cmd = String.format(java.util.Locale.ROOT, "gps %.1f %.1f", gx, gy);
+                        break;
+                    }
                     case "conv": case "call":
                         if (num.isEmpty()) return;
                         cmd = t + " " + num;
@@ -3059,6 +3357,14 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                     case "promote": case "demote": case "kick":
                         arg = o.optString("arg", "").replaceAll("[^A-Za-z0-9_\\[\\].$@=()]", "");
                         if (arg.length() > 24) arg = arg.substring(0, 24);
+                        break;
+                    case "tool":
+                        arg = o.optString("arg", "").replaceAll("[^a-z_]", "");
+                        if (arg.length() > 16) arg = arg.substring(0, 16);
+                        break;
+                    case "invite":
+                        arg = o.optString("arg", "").replaceAll("[^0-9]", "");
+                        if (arg.length() > 4) arg = arg.substring(0, 4);
                         break;
                     case "evadd":
                         arg = o.optString("arg", "").replaceAll("[\\r\\n\\t%\"\\\\{}']", " ").replaceAll("\\s+", " ").trim();
@@ -3911,7 +4217,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 if (!t.equals("wear") && !t.equals("civil") && !t.equals("refresh") && !t.equals("gear")) return;   // [v24] gear = armurerie
                 JSONObject o = new JSONObject(json == null || json.isEmpty() ? "{}" : json);
                 String arg = t.equals("gear") ? o.optString("arg", "").replaceAll("[^a-z]", "")
-                                              : o.optString("arg", "").replaceAll("[^01 ]", "").trim();
+                                              : o.optString("arg", "").replaceAll("[^0-9 ]", "").trim();   // [v56] index de tenue
                 if (arg.length() > 12) arg = arg.substring(0, 12);
                 sendHudCommand("/lockeract " + t + (arg.isEmpty() ? "" : " " + arg));
             } catch (Exception e) {
@@ -3946,6 +4252,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             if (dialogId == 9522) {            // fermeture demandee par le serveur (connexion reussie)
                 closeAuthPage();
             } else if (dialogId == 9520) {     // ouverture
+                rememberCharacterName(json);   // [v51]
                 openAuthPage(json);
             } else if (authOpen) {             // 9521 : reponse (succes / erreur / changement d'onglet)
                 hudWebView.evaluateJavascript("window.DXAuth && DXAuth.handleResponse(" + JSONObject.quote(json) + ")", null);
@@ -4075,6 +4382,39 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                         command = "/authact recover " + user + " " + cleanAuthToken(o.optString("code", ""), 18)
                                 + " " + cleanAuthToken(o.optString("newPassword", ""), 100);
                         break;
+                    // [v51] arrivee en ville : creation du personnage, ancien personnage, salon, point d'apparition
+                    case "create": {
+                        String nm = o.optString("name", "").replaceAll("[^A-Za-z_]", "");
+                        if (nm.length() > 24) nm = nm.substring(0, 24);
+                        String birth = o.optString("birth", "").replaceAll("[^0-9/]", "");
+                        if (birth.length() > 10) birth = birth.substring(0, 10);
+                        int g = o.optInt("gender", 0) == 1 ? 1 : 0;
+                        String origin = o.optString("origin", "").replaceAll("[^A-Za-z_-]", "");
+                        if (origin.length() > 22) origin = origin.substring(0, 22);
+                        String promo = o.optString("promo", "").toUpperCase().replaceAll("[^A-Z0-9]", "");
+                        if (promo.length() > 15) promo = promo.substring(0, 15);
+                        if (nm.length() < 5 || birth.isEmpty() || origin.isEmpty()) return;
+                        command = "/authact create " + nm + " " + birth + " " + g + " " + origin + (promo.length() >= 3 ? " " + promo : "");
+                        break;
+                    }
+                    case "link":
+                        command = "/authact link " + user + " " + cleanAuthToken(o.optString("password", ""), 80);
+                        break;
+                    case "gpreview":
+                        command = "/authact gpreview " + (o.optInt("gender", 0) == 1 ? 1 : 0);
+                        break;
+                    case "spawnsel":
+                    case "spawn": {
+                        int n = o.optInt("n", 0);
+                        if (n < 0 || n > 30) n = 0;
+                        command = "/authact " + t + " " + n;
+                        break;
+                    }
+                    case "enter":
+                    case "back":
+                    case "introskip":
+                        command = "/authact " + t;
+                        break;
                     default:
                         return;
                 }
@@ -4095,6 +4435,57 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             runOnUiThread(() -> cancelAuthWatchdog());
             Log.i(TAG, "[auth] page affichee");
         }
+
+        // [v50] connexion Google (Firebase) -> ticket -> /authact google <ticket> [PROMO]
+        //       page : SampAuth.google('{"name":"Prenom_Nom","port":7790,"promo":"","choose":0}')
+        @JavascriptInterface public String googleAccount() {
+            return com.crestwood.ui.CwGoogleAuth.currentAccount(SAMP.this);
+        }
+        @JavascriptInterface public void googleSignOut() {
+            com.crestwood.ui.CwGoogleAuth.signOut(SAMP.this);
+        }
+        @JavascriptInterface public void google(String json) {
+            try {
+                JSONObject o = new JSONObject(json == null || json.isEmpty() ? "{}" : json);
+                final String name = cleanAuthToken(o.optString("name", ""), 24).replaceAll("[^A-Za-z0-9_\\[\\]\\.$@=()]", "");
+                int p = o.optInt("port", 7790);
+                final int port = (p > 0 && p < 65536) ? p : 7790;
+                String pr = o.optString("promo", "").toUpperCase().replaceAll("[^A-Z0-9]", "");
+                final String promo = pr.length() > 15 ? pr.substring(0, 15) : pr;
+                final boolean choose = o.optInt("choose", 0) == 1;
+                String h = null;
+                try { h = getIntent() != null ? getIntent().getStringExtra("server_host") : null; } catch (Throwable ignored) { }
+                if (h == null || h.isEmpty()) h = getSharedPreferences("crestwood_server", MODE_PRIVATE).getString("host", "51.38.205.167");
+                final String host = h.replaceAll("[^A-Za-z0-9.\\-:\\[\\]]", "");
+                com.crestwood.ui.CwGoogleAuth.start(SAMP.this, host, port, name, choose, new com.crestwood.ui.CwGoogleAuth.Callback() {
+                    @Override public void onTicket(String ticket, String email) {
+                        sendHudCommand("/authact google " + ticket + (promo.length() >= 3 ? " " + promo : ""));
+                        authJs("window.DXAuth && DXAuth.googleStep && DXAuth.googleStep(" + JSONObject.quote(email) + ")");
+                    }
+                    @Override public void onError(String message, boolean cancelled) {
+                        authJs("window.DXAuth && DXAuth.googleError && DXAuth.googleError(" + JSONObject.quote(message) + "," + cancelled + ")");
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "auth google", e);
+            }
+        }
+    }
+
+    /** [v51] salon : le serveur donne le nom du personnage -> le launcher se connecte avec ce nom la prochaine fois. */
+    private void rememberCharacterName(String json) {
+        try {
+            JSONObject o = new JSONObject(json);
+            if (!"lobby".equals(o.optString("screen", ""))) return;
+            String nm = o.optString("name", "");
+            if (!nm.matches("[A-Za-z0-9_\\[\\]\\.$@=()]{3,24}")) return;
+            getSharedPreferences("crestwood_launcher", MODE_PRIVATE).edit().putString("saved_nickname", nm).apply();
+        } catch (Exception ignored) { }
+    }
+
+    /** [v50] JS dans la page de connexion (thread principal). */
+    private void authJs(final String js) {
+        runOnUiThread(() -> { if (hudWebView != null && authOpen) hudWebView.evaluateJavascript(js, null); });
     }
 
     /** Un seul argument de commande : ni espace ni caractere de controle, longueur bornee. */
@@ -4234,44 +4625,154 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         }
     }
 
-    public synchronized String prepareClothesModel(String gender) {
-        if (!"male".equals(gender) && !"female".equals(gender)) return null;
+    // ---- [v47] Modeles des mappings MTA (assets/mta) : appeles par le natif (gui/MtaModels.cpp) ----
+    public String mtaModelsList(String unused) {
+        try (java.io.InputStream in = getAssets().open("mta/models.txt")) {
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            byte[] b = new byte[16384]; int n;
+            while ((n = in.read(b)) != -1) out.write(b, 0, n);
+            return out.toString("UTF-8");
+        } catch (Throwable e) { return null; }
+    }
+    public String mtaStateDir(String unused) {
+        java.io.File d = new java.io.File(getFilesDir(), "crestwood-mta");
+        if (!d.isDirectory() && !d.mkdirs()) return null;
+        return d.getAbsolutePath();
+    }
+    public synchronized String prepareMtaModel(String id) {
+        if (id == null || !id.matches("[0-9]{1,5}")) return null;
+        java.io.File dir = new java.io.File(getCacheDir(), "crestwood-mta-v1/" + id);
+        try {
+            if (!dir.isDirectory() && !dir.mkdirs()) return null;
+            long stamp = 0;
+            try { stamp = getPackageManager().getPackageInfo(getPackageName(), 0).lastUpdateTime; } catch (Throwable ignored) { }
+            java.io.File stampFile = new java.io.File(dir, "apk.stamp");
+            String want = String.valueOf(stamp), have = null;
+            try { have = new String(java.nio.file.Files.readAllBytes(stampFile.toPath()), "UTF-8").trim(); } catch (Throwable ignored) { }
+            boolean fresh = want.equals(have);
+            boolean any = false;
+            for (String file : new String[]{"model.dff", "model.txd", "model.col", "materials.txt"}) {
+                java.io.File target = new java.io.File(dir, file);
+                if (fresh && target.isFile()) { any |= file.equals("model.dff"); continue; }
+                java.io.InputStream input;
+                try { input = getAssets().open("mta/" + id + "/" + file); } catch (java.io.IOException missing) { target.delete(); continue; }
+                java.io.File temp = new java.io.File(dir, file + ".tmp");
+                try (java.io.InputStream in = input; java.io.FileOutputStream out = new java.io.FileOutputStream(temp)) {
+                    byte[] b = new byte[65536]; int n;
+                    while ((n = in.read(b)) != -1) out.write(b, 0, n);
+                }
+                if (target.exists()) target.delete();
+                if (!temp.renameTo(target)) throw new java.io.IOException("copie " + file);
+                if (file.equals("model.dff")) any = true;
+            }
+            if (!any) return null;
+            try (java.io.FileOutputStream o = new java.io.FileOutputStream(stampFile)) { o.write(want.getBytes("UTF-8")); }
+            return dir.getAbsolutePath();
+        } catch (Throwable e) {
+            Log.e(TAG, "[mta] preparation du modele " + id, e);
+            return null;
+        }
+    }
 
-        // Priorite au pack South partage : /storage/emulated/0/data/clothes/south/<gender>skin/.
-        // Le natif lit directement les DFF/TXD depuis ce dossier, sans recopier les skins dans le cache APK.
+    /**
+     * [v56] Tenues de faction (ex. EMS / SAMU : skins 250 et 275) livrees DANS l'APK : assets/skins/<id>/<id>.dff + .txd.
+     * Copiees dans le cache (recopiees apres chaque mise a jour de l'APK). Le code natif (SouthModelLoader)
+     * remplace le modele du jeu par celui-ci : jamais le skin GTA d'origine.
+     */
+    private synchronized String prepareSkinModel(String id) {
+        java.io.File dir = new java.io.File(getCacheDir(), "crestwood-skins-v1/" + id);
+        try {
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new java.io.IOException("mkdirs");
+            long stamp = 0;
+            try { stamp = getPackageManager().getPackageInfo(getPackageName(), 0).lastUpdateTime; } catch (Throwable ignored) { }
+            java.io.File stampFile = new java.io.File(dir, "apk.stamp");
+            String want = String.valueOf(stamp), have = null;
+            try { have = new String(java.nio.file.Files.readAllBytes(stampFile.toPath()), "UTF-8").trim(); } catch (Throwable ignored) { }
+            boolean fresh = want.equals(have);
+            for (String ext : new String[]{"dff", "txd"}) {
+                String name = id + "." + ext;
+                java.io.File target = new java.io.File(dir, name);
+                if (fresh && target.isFile() && target.length() > 1024) continue;
+                java.io.File temp = new java.io.File(dir, name + ".tmp");
+                long copied = 0;
+                try (java.io.InputStream in = getAssets().open("skins/" + id + "/" + name);
+                     java.io.FileOutputStream out = new java.io.FileOutputStream(temp)) {
+                    byte[] buf = new byte[65536]; int n;
+                    while ((n = in.read(buf)) != -1) { out.write(buf, 0, n); copied += n; }
+                    out.getFD().sync();
+                }
+                if (copied <= 1024) throw new java.io.IOException("asset vide : " + name);
+                if (target.exists()) target.delete();
+                if (!temp.renameTo(target)) throw new java.io.IOException("rename " + name);
+            }
+            try (java.io.FileOutputStream o = new java.io.FileOutputStream(stampFile)) { o.write(want.getBytes("UTF-8")); }
+            return dir.getAbsolutePath();
+        } catch (Throwable e) {
+            Log.e(TAG, "[skins] tenue " + id + " indisponible", e);
+            return null;
+        }
+    }
+
+    public synchronized String prepareClothesModel(String gender) {
+        if (gender != null && gender.matches("skin\\d{1,4}")) return prepareSkinModel(gender.substring(4));   // [v56] tenues de faction
+        if (!"male".equals(gender) && !"female".equals(gender)) return null;
+        // [v32] Corps South TOUJOURS depuis l'APK (version testee avec le code natif). Avant, un ancien pack
+        //       /storage/emulated/0/data/clothes/south passait en priorite : corps incompatible -> echec du
+        //       chargement -> le joueur apparaissait avec le skin GTA d'origine (habille).
+        //       Copie dans le cache, verifiee par la version de l'APK (recopie apres chaque mise a jour) et la taille.
+        java.io.File dir = new java.io.File(getCacheDir(), "crestwood-clothes-v2/" + gender + "skin");
+        try {
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new java.io.IOException("mkdirs");
+            long stamp = 0;
+            try { stamp = getPackageManager().getPackageInfo(getPackageName(), 0).lastUpdateTime; } catch (Throwable ignored) { }
+            java.io.File stampFile = new java.io.File(dir, "apk.stamp");
+            String want = String.valueOf(stamp);
+            String have = null;
+            try { have = new String(java.nio.file.Files.readAllBytes(stampFile.toPath()), "UTF-8").trim(); } catch (Throwable ignored) { }
+            boolean fresh = want.equals(have);
+            for (String extension : new String[]{"dff", "txd"}) {
+                String name = gender + "." + extension;
+                java.io.File target = new java.io.File(dir, name);
+                if (fresh && target.isFile() && target.length() > 1024) continue;
+                java.io.File temp = new java.io.File(dir, name + ".tmp");
+                long copied = 0;
+                try (java.io.InputStream input = getAssets().open("clothes/south/" + gender + "skin/" + name);
+                     java.io.FileOutputStream output = new java.io.FileOutputStream(temp)) {
+                    byte[] buffer = new byte[65536]; int count;
+                    while ((count = input.read(buffer)) != -1) { output.write(buffer, 0, count); copied += count; }
+                    output.getFD().sync();
+                }
+                if (copied <= 1024) throw new java.io.IOException("asset vide : " + name);
+                if (target.exists()) target.delete();
+                if (!temp.renameTo(target)) throw new java.io.IOException("Cannot install clothing model");
+            }
+            try (java.io.FileOutputStream o = new java.io.FileOutputStream(stampFile)) { o.write(want.getBytes("UTF-8")); }
+            Log.i(TAG, "[clothes] corps South (APK) : " + dir.getAbsolutePath());
+            if (cwLoggedBody.add(gender)) cwLog("[clothes] corps " + gender + " pret (APK) : " + new java.io.File(dir, gender + ".dff").length() + " o (dff), " + new java.io.File(dir, gender + ".txd").length() + " o (txd)");
+            return dir.getAbsolutePath();
+        } catch (Throwable e) {
+            Log.e(TAG, "[clothes] corps South de l'APK indisponible, essai du pack DATA", e);
+            cwLog("[clothes] corps " + gender + " APK indisponible : " + e);
+        }
+        // Repli : pack South partage (/storage/emulated/0/data/clothes/south/<gender>skin/)
         java.io.File sharedSouth = new java.io.File(
                 android.os.Environment.getExternalStorageDirectory(), "data/clothes/south/" + gender + "skin");
         java.io.File sharedDff = new java.io.File(sharedSouth, gender + ".dff");
         java.io.File sharedTxd = new java.io.File(sharedSouth, gender + ".txd");
-        if (sharedSouth.isDirectory() && sharedDff.isFile() && sharedDff.length() > 0
-                && sharedTxd.isFile() && sharedTxd.length() > 0) {
-            Log.i(TAG, "[clothes] South model depuis DATA: " + sharedSouth.getAbsolutePath());
+        if (sharedDff.isFile() && sharedDff.length() > 0 && sharedTxd.isFile() && sharedTxd.length() > 0 && sharedDff.canRead()) {
+            Log.w(TAG, "[clothes] corps South depuis DATA : " + sharedSouth.getAbsolutePath());
             return sharedSouth.getAbsolutePath();
         }
+        return null;
+    }
 
-        // Repli de compatibilite si le pack partage ne contient pas encore les deux fichiers.
-        java.io.File dir = new java.io.File(getCacheDir(), "crestwood-clothes-v1/" + gender + "skin");
-        if (!dir.isDirectory() && !dir.mkdirs()) return null;
-        try {
-            for (String extension : new String[]{"dff", "txd"}) {
-                String name = gender + "." + extension;
-                java.io.File target = new java.io.File(dir, name);
-                if (target.isFile() && target.length() > 0) continue;
-                java.io.File temp = new java.io.File(dir, name + ".tmp");
-                try (java.io.InputStream input = getAssets().open("clothes/south/" + gender + "skin/" + name);
-                     java.io.FileOutputStream output = new java.io.FileOutputStream(temp)) {
-                    byte[] buffer = new byte[65536]; int count;
-                    while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
-                    output.getFD().sync();
-                }
-                if (!temp.renameTo(target)) throw new java.io.IOException("Cannot install clothing model");
-            }
-            Log.w(TAG, "[clothes] South model DATA absent/incomplet, repli APK: " + dir.getAbsolutePath());
-            return dir.getAbsolutePath();
-        } catch (java.io.IOException e) {
-            Log.e(TAG, "[clothes] Falha ao preparar modelo", e);
-            return null;
-        }
+    /** [v38] journal du code natif (corps South, vetements...) dans crestwood_log.txt : 60 lignes max par session */
+    private int cwLogCount = 0;
+    private final java.util.HashSet<String> cwLoggedBody = new java.util.HashSet<>();
+    public void cwLog(String msg) {
+        if (msg == null || cwLogCount >= 60) return;
+        cwLogCount++;
+        try { com.gta.game32.CrashLog.log("[natif] " + msg); } catch (Throwable ignored) { }
     }
 
     public byte[] loadClothesTexture(String path) {
@@ -4281,7 +4782,9 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         // Les modeles d'objets models/ restent dans les assets APK.
         try {
             java.io.InputStream source = null;
-            if (path.startsWith("south/")) {
+            // [v32] APK d'abord (meme version que le corps), pack DATA seulement si la texture manque
+            try { source = getAssets().open(path.startsWith("models/") ? path : "clothes/" + path); } catch (java.io.IOException ignored) { source = null; }
+            if (source == null && path.startsWith("south/")) {
                 java.io.File southRoot = new java.io.File(
                         android.os.Environment.getExternalStorageDirectory(), "data/clothes");
                 java.io.File candidate = new java.io.File(southRoot, path);
@@ -4515,6 +5018,8 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             lockerOpen = false;
             policeOpen = false;
             shopOpen = false;
+            storeOpen = false;
+            pageOpen = false;
             jobOpen = false;
             uiOpen = false;
             govOpen = false;
@@ -4567,6 +5072,14 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         }
         if (shopOpen) {
             closeShopPage(true);
+            return;
+        }
+        if (storeOpen) {
+            closeStorePage(true);
+            return;
+        }
+        if (pageOpen) {
+            closePage(true);
             return;
         }
         if (jobOpen) {
@@ -4648,6 +5161,8 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private final StringBuilder hudSb = new StringBuilder(420);   // [v19b] reutilise (appele 10x/s par le natif)
     public void updateHudState(float health, float armour, float thirst, float hunger, float energy, boolean dead, boolean running, boolean exhausted, boolean inVehicle, float speed, float vehHealth, boolean handbrake,
                                float posX, float posY, float camFx, float camFy, float heading) {
+        final com.crestwood.ui.NativeHud nh = nativeHud;   // [v36] HUD natif : valeurs directes, sans JSON
+        if (nh != null) nh.setPlayer(health, armour, hudHunger, hudThirst, energy, dead, exhausted, inVehicle, speed, vehHealth, posX, posY, camFx, camFy, heading);
         lastPosX = posX;
         lastPosY = posY;
         hasLastPos = true;
@@ -4655,6 +5170,24 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
         // updateHudState(json) ne le renvoie plus a la WebView (au lieu de 10 evaluateJavascript/s pour rien)
         final StringBuilder sb = hudSb;
         sb.setLength(0);
+        // [v39] HUD natif : la page HTML n'a plus besoin de la position / camera / vitesse (minimap et compteur natifs).
+        //       Sans elles le JSON ne change plus en roulant -> plus aucun evaluateJavascript pendant la conduite.
+        //       (sauf panneau ouvert, ex. grande carte : elle suit la position du joueur)
+        final boolean lite = nh != null && hudWebView == hudMain;
+        if (lite) {
+            sb.append("{\"health\":").append(Math.round(health))
+              .append(",\"armour\":").append(Math.round(armour))
+              .append(",\"thirst\":").append(hudThirst)
+              .append(",\"hunger\":").append(hudHunger)
+              .append(",\"energy\":").append(Math.round(energy))
+              .append(",\"dead\":").append(dead)
+              .append(",\"exhausted\":").append(exhausted)
+              .append(",\"inVehicle\":").append(inVehicle)
+              .append(",\"fuel\":").append(hudFuel)
+              .append('}');
+            updateHudState(sb.toString());
+            return;
+        }
         sb.append("{\"health\":").append(Math.round(health))
           .append(",\"armour\":").append(Math.round(armour))
           .append(",\"thirst\":").append(hudThirst)
@@ -4682,6 +5215,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private volatile int hudMoney = Integer.MIN_VALUE;
     public void updateHudMoney(final int money) {
         hudMoney = money;
+        if (nativeHud != null) nativeHud.setMoney(money);   // [v36]
         hudJs("window.HudApp && HudApp.updateHudInfo && HudApp.updateHudInfo({money:" + money + "})");
     }
 
@@ -4724,6 +5258,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     public void updateHudNeeds(final int hunger, final int thirst) {
         hudHunger = Math.max(0, Math.min(100, hunger));
         hudThirst = Math.max(0, Math.min(100, thirst));
+        if (nativeHud != null) nativeHud.setNeeds(hudHunger, hudThirst);   // [v36]
         String json = "{\"hunger\":" + hudHunger + ",\"thirst\":" + hudThirst + "}";
         updateHudState(json);
         runOnUiThread(() -> {
@@ -4928,11 +5463,11 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private int gameSettingDefault(String key) {
         switch (key) {
             case "fps_counter": return 0;
-            case "fps_limit": return 120;
+            case "fps_limit": return isLowEndDevice() ? 60 : 120;   // [v39] 60 sur petit telephone (moins de chauffe)
             case "draw_dist": return 100;
             case "post_fx": return 1;
             case "voice_btn": return 1;
-            case "cw_buttons": return 0;   // [31/10] desactive par defaut
+            case "cw_buttons": return 1;   // [v38] boutons natifs restyles actives par defaut (Anzo)   // [31/10] desactive par defaut
             case "res_scale": return 100;
             case "gfx_preset": return 2;
             case "hud_scale": return 100;
@@ -4961,7 +5496,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             switch (key) {
                 case "fps_counter": applyGameSetting(1, value); break;
                 case "fps_limit": applyGameSetting(2, value); break;
-                case "draw_dist": applyGameSetting(3, CW_DRAW_DIST); break;   // [v27] meme distance pour tous
+                case "draw_dist": applyGameSetting(3, cwDrawDist()); break;   // [v27] meme distance pour tous
                 case "post_fx": applyGameSetting(4, value); break;
                 case "voice_btn": applyGameSetting(5, value); break;
                 case "cw_buttons": applyGameSetting(6, value); break;
@@ -4977,14 +5512,25 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     /** Applique les parametres enregistres (une fois, quand la partie tourne). */
     /** [v27] distance d'affichage (LOD) IMPOSEE a tous les joueurs : les gros mappings MTA s'affichent pareil pour tout le monde. */
     private static final int CW_DRAW_DIST = 100;   // [v28] 130 % chargeait trop la memoire (plantages sur les gros mappings)
+    // [v30] petits telephones (Android Go / 4 Go de RAM ou moins, ex. TECNO POP 10) : distance reduite,
+    //       sinon Android tue le jeu par manque de memoire en arrivant sur un gros mapping.
+    private Integer cwDrawDistCache;
+    private int cwDrawDist() {
+        return CW_DRAW_DIST;   // [v32] distance d'origine pour tous (streaming d'origine remis)
+    }
 
     private void applySavedGameSettings() {
         SharedPreferences sp = getSharedPreferences("display_settings", MODE_PRIVATE);
-        try { applyGameSetting(3, CW_DRAW_DIST); } catch (Throwable ignored) { }
+        // [v38] l'ancien reglage "boutons Crestwood" (coupe par defaut avant) est remis a OUI une fois
+        if (!sp.getBoolean("cw_btn_v38", false)) sp.edit().remove("cw_cw_buttons").putBoolean("cw_btn_v38", true).apply();
+        try { applyGameSetting(3, cwDrawDist()); } catch (Throwable ignored) { }
         for (String k : GAME_SETTING_KEYS) {
             if ("gfx_preset".equals(k) || "draw_dist".equals(k)) continue;
             // la limite FPS / la distance / l'echelle ne sont forcees que si le joueur les a changees
-            if (("fps_limit".equals(k) || "draw_dist".equals(k) || "res_scale".equals(k) || "post_fx".equals(k)) && !sp.contains("cw_" + k)) continue;
+            if (("fps_limit".equals(k) || "draw_dist".equals(k) || "res_scale".equals(k) || "post_fx".equals(k)) && !sp.contains("cw_" + k)) {
+                if ("fps_limit".equals(k) && isLowEndDevice()) applyGameSettingPref(k, "60", false);   // [v39]
+                continue;
+            }
             applyGameSettingPref(k, String.valueOf(sp.getInt("cw_" + k, gameSettingDefault(k))), false);
         }
     }
@@ -5028,34 +5574,56 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             int x1 = Math.max(x0 + 2, Math.min(surfaceW, Math.round(fx1 * surfaceW)));
             int y1 = Math.max(y0 + 2, Math.min(surfaceH, Math.round(fy1 * surfaceH)));
             final Rect src = new Rect(x0, y0, x1, y1);
-            int outW = Math.min(src.width(), 640);
+            int outW = Math.min(src.width(), 960);
             int outH = Math.max(1, Math.round(outW * (src.height() / (float) src.width())));
-            final Bitmap bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
             cameraStatus("capturing", "", "");
-            try {
-                PixelCopy.request(game, src, bitmap, result -> {
-                    if (result != PixelCopy.SUCCESS) {
-                        bitmap.recycle();
-                        cameraStatus("error", "", "Capture impossible, réessaie.");
-                        return;
-                    }
-                    new Thread(() -> {
-                        try {
-                            ByteArrayOutputStream out = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 72, out);
-                            bitmap.recycle();
-                            String url = "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
-                            cameraStatus("captured", url, "");
-                        } catch (Throwable t) {
-                            cameraStatus("error", "", "Impossible d'enregistrer la photo.");
-                        }
-                    }, "hud-photo").start();
-                }, new Handler(Looper.getMainLooper()));
-            } catch (Throwable t) {
-                Log.e(TAG, "PixelCopy failed", t);
-                cameraStatus("error", "", "Capture impossible sur cet appareil.");
-            }
+            pixelCopyTry(game, src, outW, outH, 0);
         });
+    }
+
+    /** [v34] PixelCopy avec 3 essais (certains telephones renvoient "pas de donnees" juste apres un changement d'image). */
+    private void pixelCopyTry(final SurfaceView game, final Rect src, final int outW, final int outH, final int attempt) {
+        final Bitmap bitmap;
+        try {
+            bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
+        } catch (Throwable oom) {
+            cameraStatus("error", "", "Memoire insuffisante pour la photo.");
+            return;
+        }
+        try {
+            if (!game.getHolder().getSurface().isValid()) throw new IllegalStateException("surface invalide");
+            PixelCopy.request(game, src, bitmap, result -> {
+                if (result != PixelCopy.SUCCESS) {
+                    bitmap.recycle();
+                    Log.w(TAG, "[camera] PixelCopy code=" + result + " essai " + (attempt + 1));
+                    if (attempt < 2) {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> pixelCopyTry(game, src, outW, outH, attempt + 1), 140);
+                    } else {
+                        cameraStatus("error", "", "Capture impossible (code " + result + "), reessaie.");
+                    }
+                    return;
+                }
+                new Thread(() -> {
+                    try {
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 78, out);
+                        bitmap.recycle();
+                        String url = "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+                        cameraStatus("captured", url, "");
+                    } catch (Throwable t) {
+                        cameraStatus("error", "", "Impossible d'enregistrer la photo.");
+                    }
+                }, "hud-photo").start();
+            }, new Handler(Looper.getMainLooper()));
+        } catch (Throwable t) {
+            bitmap.recycle();
+            Log.e(TAG, "PixelCopy failed", t);
+            if (attempt < 2) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> pixelCopyTry(game, src, outW, outH, attempt + 1), 140);
+            } else {
+                cameraStatus("error", "", "Capture impossible sur cet appareil (" + t.getClass().getSimpleName() + ").");
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -5080,14 +5648,33 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private static final String CMD_SYSTEM = "/hudaction";
 
     /** [v28] Demande le mode d'affichage le plus rapide (120 / 90 Hz) a la resolution actuelle. Le jeu est deja limite a 120 FPS. */
+    /** [v39] petit telephone (4 Go de RAM ou moins / Android Go) : on economise le GPU et la batterie. */
+    private Boolean cwLowEnd;
+    private boolean isLowEndDevice() {
+        if (cwLowEnd != null) return cwLowEnd;
+        boolean low = false;
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            android.app.ActivityManager.MemoryInfo mi = new android.app.ActivityManager.MemoryInfo();
+            am.getMemoryInfo(mi);
+            low = am.isLowRamDevice() || mi.totalMem <= 4300L * 1024L * 1024L;
+        } catch (Throwable ignored) { }
+        cwLowEnd = low;
+        return low;
+    }
+
     private void requestMaxRefreshRate() {
         try {
             if (android.os.Build.VERSION.SDK_INT < 23) return;
             android.view.Display d = getWindowManager().getDefaultDisplay();
             android.view.Display.Mode cur = d.getMode(), best = cur;
+            final boolean low = isLowEndDevice();
             for (android.view.Display.Mode m : d.getSupportedModes()) {
-                if (m.getPhysicalWidth() == cur.getPhysicalWidth() && m.getPhysicalHeight() == cur.getPhysicalHeight()
-                        && m.getRefreshRate() > best.getRefreshRate() + 0.5f) best = m;
+                if (m.getPhysicalWidth() != cur.getPhysicalWidth() || m.getPhysicalHeight() != cur.getPhysicalHeight()) continue;
+                if (low) {
+                    // [v39] petit telephone : 60 Hz (a 120 Hz l'ecran, le HUD et la chauffe coutent cher pour 20-30 FPS de jeu)
+                    if (Math.abs(m.getRefreshRate() - 60f) < Math.abs(best.getRefreshRate() - 60f)) best = m;
+                } else if (m.getRefreshRate() > best.getRefreshRate() + 0.5f) best = m;
             }
             android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
             lp.preferredDisplayModeId = best.getModeId();
@@ -5181,6 +5768,11 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             if (owner != null) owner.setTouchBounds(raw);
         }
 
+        /** [v37] option "minimap" de la roue (masquer / afficher) -> minimap native */
+        @JavascriptInterface public void nativeMinimap(boolean on) {
+            if (nativeHud != null) nativeHud.setMinimapOn(on);
+        }
+
         @JavascriptInterface public void setInteractionState(boolean chatOpen, boolean menuOpen) {
             if (owner != null) owner.setInteractive(chatOpen || menuOpen);
         }
@@ -5240,6 +5832,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 case "inventory": sendHudCommand(CMD_INVENTORY); break;
                 case "map": openInteractionPage("map/index.html"); break;
                 case "audio": sendHudCommand(CMD_AUDIO); break;
+                case "premium": sendHudCommand("/store"); break;   // [v30] Crestwood Store
                 // casque du menu rotatif : support / report (la page s'ouvre tout de suite, le serveur la remplit)
                 case "report": runOnUiThread(() -> { openReportPage("{\"loading\":1}"); sendHudCommand("/repact open"); }); break;
                 case "store": sendHudCommand(CMD_STORE); break;

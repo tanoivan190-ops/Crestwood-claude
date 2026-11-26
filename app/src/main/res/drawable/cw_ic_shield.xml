@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [Crestwood v36] icone du HUD natif -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="12.424" android:viewportHeight="13.251">
+    <group android:translateX="-1.125" android:translateY="-0.002">
+    <path android:fillColor="#FFFFFFFF"  android:pathData="M12.785,2.168,7.816.1a1.246,1.246,0,0,0-.955,0L1.891,2.168a1.241,1.241,0,0,0-.766,1.147c0,5.138,2.964,8.689,5.733,9.843a1.246,1.246,0,0,0,.955,0c2.218-.924,5.736-4.115,5.736-9.843A1.243,1.243,0,0,0,12.785,2.168ZM7.34,11.553l0-9.862,4.553,1.9a8.869,8.869,0,0,1-4.55,7.964Z"/>
+    </group>
+</vector>

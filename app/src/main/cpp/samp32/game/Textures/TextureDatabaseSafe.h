@@ -158,9 +158,10 @@ namespace TextureDatabaseSafe
             if (f == (int)fmt) continue;
             if (!HasPart(db, f, "dat") || !HasPart(db, f, "tmb")) continue;
             // fichier de streaming ouvert pour le format rate : on le ferme avant de changer de format
-            // [v22] NE PAS fermer ici : le fichier est deja ferme/invalide quand le chargement a echoue,
-            // et le double OS_FileClose faisait ABORT (SIGABRT) au demarrage du jeu.
-            if (file) *file = nullptr;
+            if (file && *file) {
+                CHook::CallFunction<int>("_Z12OS_FileClosePv", *file);
+                *file = nullptr;
+            }
             offs->numEntries = 0;
             if (!LoadThumbs_orig(thiz, (TextureDatabaseFormat)f, true)) continue;
             LoadDataOffsets_orig(thiz, (TextureDatabaseFormat)f, offs, file, write);

@@ -163,3 +163,164 @@ html[data-sg] :is(.iv-toast, .toast, .sh-toast, .bk-toast){ border-radius: 999px
 html[data-sg] :is(.btn, .bk-btn, .sh-buy, .lk-btn, .jb-btn, .rp-btn).danger,
 html[data-sg] :is(.btn, .bk-btn, .lk-btn, .jb-btn, .rp-btn).red{ background: linear-gradient(180deg, #ec5a5e, #d03a3e) !important; color: #fff !important; border-color: transparent !important; }
 html[data-sg] :is(h1, h2, .title, .ttl, .head-title, .panel-title){ letter-spacing: -.005em !important; }
+
+/* ==========================================================================
+   [v30b] STYLE ROLEPLAY : chaque panneau a SA couleur (comme les applis d'un serveur RP),
+   verre sombre teinte, boutons en degrade lumineux, animations de jeu.
+   Couleur de la page : <html data-rp="bank"> ... (variables --a1 / --a2 ci-dessous).
+   Le jeu reste visible derriere. Animations legeres (transform / opacity) : ok sur petits telephones.
+   ========================================================================== */
+html[data-rp]{ --a1:#3b82ff; --a2:#7cc4ff; }
+html[data-rp="bank"]     { --a1:#ff7a1a; --a2:#ffc04a; }   /* banque : orange (Eclipse Bank) */
+html[data-rp="shop"]     { --a1:#22c55e; --a2:#a3e635; }   /* superette 24/7 : vert */
+html[data-rp="job"]      { --a1:#f59e0b; --a2:#fde047; }   /* emploi : jaune chantier */
+html[data-rp="faction"]  { --a1:#2563eb; --a2:#38bdf8; }   /* faction : bleu */
+html[data-rp="police"]   { --a1:#1d4ed8; --a2:#ef4444; }   /* police : gyrophare bleu / rouge */
+html[data-rp="locker"]   { --a1:#3b82f6; --a2:#93c5fd; }   /* vestiaire : bleu police */
+html[data-rp="gov"]      { --a1:#10b981; --a2:#6ee7b7; }   /* gouvernement : emeraude */
+html[data-rp="house"]    { --a1:#14b8a6; --a2:#5eead4; }   /* immobilier : turquoise */
+html[data-rp="gang"]     { --a1:#e11d48; --a2:#fb7185; }   /* gangs : rouge */
+html[data-rp="fish"]     { --a1:#0ea5e9; --a2:#67e8f9; }   /* peche : ocean */
+html[data-rp="svc"]      { --a1:#f97316; --a2:#facc15; }   /* station / location : carburant */
+html[data-rp="service"]  { --a1:#ef4444; --a2:#fca5a5; }   /* services (medecin, mecano...) : rouge */
+html[data-rp="report"]   { --a1:#f43f5e; --a2:#fb923c; }   /* signalement : rouge-orange */
+html[data-rp="admin"]    { --a1:#8b5cf6; --a2:#c084fc; }   /* staff : violet */
+html[data-rp="mapadmin"] { --a1:#6366f1; --a2:#a5b4fc; }   /* mappings : indigo */
+html[data-rp="rp"]       { --a1:#6366f1; --a2:#22d3ee; }   /* tablette RP : indigo / cyan */
+html[data-rp="anim"]     { --a1:#ec4899; --a2:#f9a8d4; }   /* animations : rose */
+html[data-rp="jbl"]      { --a1:#d946ef; --a2:#22d3ee; }   /* enceinte : neon */
+html[data-rp="npc"]      { --a1:#f97316; --a2:#fdba74; }   /* PNJ : orange */
+html[data-rp="config"]   { --a1:#06b6d4; --a2:#a5f3fc; }   /* parametres : cyan */
+html[data-rp="map"]      { --a1:#14b8a6; --a2:#99f6e4; }   /* carte : turquoise */
+html[data-rp="ui"]       { --a1:#3b82f6; --a2:#22d3ee; }   /* menu d'interaction */
+html[data-rp="inventory"]{ --a1:#f59e0b; --a2:#fcd34d; }   /* sac : ambre */
+html[data-rp="blazer"]   { --a1:#0ea5e9; --a2:#38bdf8; }
+html[data-rp]{
+  --a-soft: color-mix(in srgb, var(--a1) 22%, transparent);
+  --a-line: color-mix(in srgb, var(--a1) 60%, transparent);
+  --a-glow: color-mix(in srgb, var(--a1) 45%, transparent);
+  /* anciennes variables "bleu" des pages : prennent la couleur de la page */
+  --sg-plate: var(--a1) !important; --sg-plate-down: var(--a1) !important;
+  --sg-rule: inset 0 1px 0 rgba(255,255,255,.32), 0 8px 22px var(--a-glow) !important;
+  --sg-rule-down: inset 0 1px 0 rgba(255,255,255,.2), 0 3px 10px var(--a-glow) !important;
+  --cw-accent: var(--a1) !important; --cw-accent-soft: var(--a-soft) !important; --cw-accent-line: var(--a-line) !important;
+  --gold: var(--a2) !important; --cw-gold: var(--a2) !important;
+  --blue: var(--a1); --accent: var(--a1); --cyan: var(--a2);
+  --cw-glass: linear-gradient(160deg, color-mix(in srgb, var(--a1) 16%, rgba(12,14,19,.92)) 0%, rgba(11,13,18,.92) 45%, rgba(8,9,13,.93) 100%) !important;
+}
+
+/* ---- fond : le jeu se voit, voile + halo anime de la couleur de la page (plus de photo de ville) ---- */
+html[data-rp]:not([data-flat]):not(#cw-rp){
+  background: radial-gradient(130% 120% at 50% 45%, rgba(0,0,0,.12), rgba(0,0,0,.58)) !important;
+}
+html[data-rp]:not(#cw-rp)::before{
+  content:"" !important; display:block !important; position:fixed !important; inset:-20% !important; z-index:0 !important; pointer-events:none !important;
+  background:
+    radial-gradient(35% 40% at 20% 25%, color-mix(in srgb, var(--a1) 30%, transparent), transparent 70%),
+    radial-gradient(30% 35% at 82% 78%, color-mix(in srgb, var(--a2) 22%, transparent), transparent 70%) !important;
+  animation: rpAurora 14s ease-in-out infinite alternate !important;
+  opacity:.75;
+}
+html[data-rp][data-flat]:not(#cw-rp)::before{ display:none !important; }
+html[data-rp] body{ position:relative; z-index:1; }
+@keyframes rpAurora{ from{ transform: translate3d(-3%,-2%,0) scale(1); } to{ transform: translate3d(3%,2%,0) scale(1.08); } }
+
+/* ---- panneaux : verre sombre teinte + liseret de la couleur de la page ---- */
+html[data-rp]:not(#cw-rp) :is(.sh-panel,.pl-panel,.lk-panel,.inv-panel,.rp-panel,.dg,.panel,.frame,.iv-detail,.bk-card,.bk-panel,.jb-panel,.sv-panel,.gv-panel){
+  background: var(--cw-glass) !important;
+  border: 1px solid color-mix(in srgb, var(--a1) 28%, rgba(255,255,255,.08)) !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 2px 0 var(--a-line), inset 0 0 0 1px rgba(255,255,255,.03), 0 26px 70px rgba(0,0,0,.55), 0 0 60px -20px var(--a-glow) !important;
+  animation: rpPanelIn .42s cubic-bezier(.18,.9,.25,1.12) both !important;
+}
+@keyframes rpPanelIn{ 0%{ opacity:0; transform: translateY(16px) scale(.95); } 100%{ opacity:1; transform:none; } }
+
+/* ---- titres : italique facon GTA, petite barre de couleur ---- */
+html[data-rp]:not(#cw-rp) :is(h1, h2, .title, .ttl, .head-title, .panel-title):not(.cni *):not([class*="cni-"] *){
+  font-family: CwGame, "CwMont", Montserrat, sans-serif !important;
+  font-weight: 900 !important; font-style: italic !important; text-transform: uppercase !important; letter-spacing: .01em !important;
+  text-shadow: 0 2px 14px var(--a-glow);
+}
+
+/* ---- bouton principal : degrade lumineux + reflet qui passe ---- */
+html[data-rp]:not(#cw-rp) :is(.sh-buy,.bk-btn.main,.btn.main,.lk-btn.main,.jb-btn.main,.btn.primary,.lk-btn.primary,.jb-btn.primary,.rp-btn.primary,.dg-btn.primary,.btn-use,.primary,.btn-primary,.confirm,.pl-confirm,[class*="-primary"]):not(:disabled){
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--a1), var(--a2)) !important;
+  color: #fff !important; border: 1px solid color-mix(in srgb, var(--a2) 70%, #fff) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 22px var(--a-glow) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35) !important;
+  font-weight: 900 !important; font-style: italic; text-transform: uppercase;
+}
+html[data-rp]:not(#cw-rp) :is(.sh-buy,.bk-btn.main,.btn.main,.lk-btn.main,.jb-btn.main,.btn.primary,.btn-use,.primary,.btn-primary,.confirm,.pl-confirm,[class*="-primary"]):not(:disabled)::after{
+  content:"" !important; display:block !important; position:absolute; top:0; bottom:0; left:-60%; width:45%; pointer-events:none;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.38), transparent);
+  transform: skewX(-20deg); animation: rpShine 3.6s ease-in-out infinite;
+}
+@keyframes rpShine{ 0%, 55%{ left:-60%; } 85%, 100%{ left:130%; } }
+html[data-rp]:not(#cw-rp) :is(.sh-buy,.bk-btn.main,.btn.main,.primary,.btn-primary,.confirm,.pl-confirm,[class*="-primary"]):not(:disabled):active{
+  transform: scale(.96) !important; filter: brightness(.92);
+}
+
+/* ---- boutons secondaires ---- */
+html[data-rp]:not(#cw-rp) :is(.bk-btn,.btn,.lk-btn,.jb-btn,.rp-btn,.dg-btn):not(.main):not(.primary):not(.danger):not(.red):not(:disabled){
+  background: rgba(255,255,255,.055) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  color: #eef1f6 !important; box-shadow: none !important;
+  transition: transform .12s, background-color .15s, border-color .15s !important;
+}
+html[data-rp]:not(#cw-rp) :is(.bk-btn,.btn,.lk-btn,.jb-btn,.rp-btn,.dg-btn):not(.main):not(.primary):not(:disabled):active{
+  transform: scale(.96) !important; background: var(--a-soft) !important; border-color: var(--a-line) !important;
+}
+
+/* ---- onglets / choix selectionnes ---- */
+html[data-rp]:not(#cw-rp) :is(.opt.on,.sh-seg-btn.on,.seg .on,.pill.on,.tab.on,.tab.active,.iv-tab.on,.chip.on,.cat.on,.cat.active,.nav-item.active,.nav-item.on,.side-item.active,.side-item.on,[aria-selected="true"]){
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a1) 36%, transparent), color-mix(in srgb, var(--a2) 16%, transparent)) !important;
+  color: #fff !important; border-color: var(--a-line) !important;
+  box-shadow: inset 0 0 0 1px var(--a-line), 0 6px 18px -6px var(--a-glow) !important;
+}
+
+/* ---- icones de titre ---- */
+html[data-rp]:not(#cw-rp) :is(.bk-logo,.sh-logo,.pl-logo,.lk-logo,.head > .ico,.top > .ico){
+  background: linear-gradient(145deg, var(--a2), var(--a1)) !important; color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 18px var(--a-glow) !important;
+  animation: rpPop .5s .12s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes rpPop{ from{ transform: scale(.4) rotate(-12deg); opacity:0; } to{ transform:none; opacity:1; } }
+
+/* ---- cartes / lignes : arrivee en cascade + reaction au toucher ---- */
+html[data-rp]:not(#cw-rp) :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):not(.cni *){
+  animation: rpUp .38s cubic-bezier(.2,.8,.2,1) both;
+  transition: transform .14s, border-color .15s, box-shadow .15s;
+}
+html[data-rp]:not(#cw-rp) :is(.card,.tile,.sh-card,.row-card,.opt,.item,.cell):active{ transform: scale(.975); border-color: var(--a-line) !important; }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(2){ animation-delay:.04s }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(3){ animation-delay:.08s }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(4){ animation-delay:.12s }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(5){ animation-delay:.16s }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(6){ animation-delay:.2s }
+html[data-rp] :is(.card,.tile,.sh-card,.row-card,.stat,.opt,.item,.cell):nth-child(n+7){ animation-delay:.24s }
+@keyframes rpUp{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:none; } }
+
+/* ---- champs, montants, divers ---- */
+html[data-rp]:not(#cw-rp) :is(input, textarea, select):focus{
+  border-color: var(--a-line) !important; box-shadow: 0 0 0 3px var(--a-soft) !important;
+}
+html[data-rp] input[type=range]{ accent-color: var(--a1) !important; }
+html[data-rp]:not(#cw-rp) :is(.price,.amount,.money,.cost,.sh-price){ color: var(--a2) !important; text-shadow: 0 0 14px var(--a-glow); }
+html[data-rp] ::-webkit-scrollbar-thumb{ background: var(--a-line) !important; }
+html[data-rp] ::selection{ background: var(--a-soft) !important; color:#fff; }
+html[data-rp]:not(#cw-rp) :is(button, [role="button"], a):focus-visible{ outline: 2px solid var(--a2) !important; }
+@media (prefers-reduced-motion: reduce){ html[data-rp] *, html[data-rp]::before{ animation: none !important; } }
+
+/* ==========================================================================
+   [v31] Ecriture du jeu partout : Montserrat (meme style que les pages amendes / garage / bodycam).
+   Les icones (polices d'icones, svg) ne sont pas touchees.
+   ========================================================================== */
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_medium.ttf") format("truetype"); font-weight:400 500; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_bold.ttf") format("truetype"); font-weight:600 700; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("fonts/montserrat_black.ttf") format("truetype"); font-weight:800 900; font-display:swap; }
+html[data-sg] body,
+html[data-sg] body :is(div, p, span, b, strong, em, small, label, li, td, th, a, button, input, select, textarea, h5, h6, dd, dt, legend):not([class*="icon"]):not([class*="material"]):not([class*="emoji"]){
+  font-family: "CwMont", Roboto, "Segoe UI", sans-serif !important;
+}
+html[data-sg] :is(b, strong, th, button){ font-weight: 700; }

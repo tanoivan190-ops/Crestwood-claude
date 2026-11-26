@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta name="description" content="Chargement et installation des données de Crestwood Roleplay.">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#050506">
-  <title>Crestwood Roleplay — Chargement</title>
+  <title>Chargement de Crestwood Roleplay</title>
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="loading.css">
   <link rel="stylesheet" href="../common/cw-perf.css">
   <link rel="stylesheet" href="v21.css">
-  <link rel="stylesheet" href="v22.css">
-  <link rel="stylesheet" href="splash.css">
   <script src="../common/i18n.js"></script>
 </head>
 <body>
@@ -21,16 +21,9 @@
   <main class="screen" aria-live="polite">
     <!-- diaporama (loading.js : classe "on" tournante) -->
     <div class="slides" id="slides" aria-hidden="true">
-      <div class="slide on" style="background-image:url('scenes/intro_slide_1.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/v_parachute.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/intro_marina.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/v_helico.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/intro_slide_2.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/v_bandana.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/intro_police.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/v_rue.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/intro_gang.jpg')"></div>
-      <div class="slide" style="background-image:url('scenes/intro_vie.jpg')"></div>
+      <div class="slide on" style="background-image:url('scenes/cw19-b.jpg')"></div>
+      <div class="slide" style="background-image:url('scenes/cw19-c.jpg')"></div>
+      <div class="slide" style="background-image:url('scenes/cw19-d.jpg')"></div>
     </div>
     <div class="shade" aria-hidden="true"></div>
 
@@ -38,23 +31,16 @@
       <img class="logo" src="../login/assets/images/cw-logo.png" alt="Crestwood Roleplay">
     </header>
 
-    <!-- [v22] accroche d'accueil -->
-    <section class="hero" aria-label="Bienvenue">
-      <p class="hero-eyebrow">Roleplay · Los Santos</p>
-      <h2 class="hero-title">Bienvenue à Crestwood</h2>
-      <p class="hero-sub">Ton histoire commence ici.</p>
-    </section>
-
     <!-- astuce RP tournante -->
     <aside class="tip" id="tip" aria-live="off">
       <span class="tip-tag">Astuce</span>
-      <p id="tipText">Utilise /me et /do pour décrire tes actions : c'est la base du roleplay.</p>
+      <p id="tipText">Utilise /me et /do pour décrire tes actions : c’est la base du roleplay.</p>
     </aside>
 
     <section id="card" class="card" data-state="idle" aria-label="Chargement de Crestwood Roleplay">
       <div class="head">
-        <p id="stage" class="chip">Préparation</p>
         <h1 id="title">Préparation du jeu</h1>
+        <p id="stage" class="chip">Préparation</p>
         <p id="message" class="message">Connexion au serveur de mise à jour…</p>
       </div>
 
@@ -75,8 +61,8 @@
       <!-- [v20] tableau de telechargement : quantite, vitesse (courbe), temps restant -->
       <div class="dl" id="dl" hidden>
         <div class="dl-cell"><small>Téléchargé</small><b id="dlDone">0 Mo</b><em id="dlTotal">&nbsp;</em></div>
-        <div class="dl-cell"><small>Vitesse</small><b id="dlSpeed">—</b><canvas id="dlSpark" width="240" height="44" aria-hidden="true"></canvas></div>
-        <div class="dl-cell"><small>Temps restant</small><b id="dlEta">—</b><em>Pack de données du jeu</em></div>
+        <div class="dl-cell"><small>Vitesse</small><b id="dlSpeed">…</b><canvas id="dlSpark" width="240" height="44" aria-hidden="true"></canvas></div>
+        <div class="dl-cell"><small>Temps restant</small><b id="dlEta">…</b><em>Pack de données du jeu</em></div>
       </div>
 
       <div class="foot">
@@ -107,21 +93,7 @@
       <input id="vol" type="range" min="0" max="100" value="50" aria-label="Volume">
     </div>
   </div>
-  <!-- [v22] introduction animee (par-dessus tout, retiree apres ~5 s ou au toucher) -->
-  <div id="splash" class="splash" aria-hidden="true">
-    <div class="sp-glow"></div>
-    <div class="sp-center">
-      <div class="sp-line"></div>
-      <h1 class="sp-word" aria-label="Crestwood"></h1>
-      <div class="sp-sub"><i></i><span>ROLEPLAY</span><i></i></div>
-      <div class="sp-line bot"></div>
-      <div class="sp-sweep"></div>
-    </div>
-    <div class="sp-grain"></div>
-    <span class="sp-skip">Touchez pour passer</span>
-  </div>
   <script src="loading.js"></script>
-  <script src="splash.js"></script>
   <script src="../common/cw-welcome.js"></script>
 </body>
 </html>

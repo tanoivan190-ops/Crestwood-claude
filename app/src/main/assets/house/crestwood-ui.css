@@ -64,7 +64,7 @@ svg { display: block; }
 .chip-btn.ghost .ico { background: rgba(255, 255, 255, 0.12); }
 .chip-btn.ghost .ico svg { stroke: var(--text); }
 .chip-btn.gold { border-color: rgba(245, 196, 81, 0.65); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), 0 0 10px rgba(245, 196, 81, 0.3); }
-.chip-btn.gold .ico { background: linear-gradient(145deg, #6aa5ff, #2a6be0); }
+.chip-btn.gold .ico { background: linear-gradient(145deg, var(--a2, #6aa5ff), var(--a1, #2a6be0)); }
 .st { display: inline-block; font-size: 10px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 3px; }
 .st.ok { background: rgba(133,133,133,0.15); color: var(--green); }
 .st.bad { background: rgba(255, 77, 77, 0.16); color: #ff8a8a; }

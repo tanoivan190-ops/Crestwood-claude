@@ -1,0 +1,19 @@
+INSTAGRAM DE CRESTWOOD (photos des joueurs) - service a lancer a cote du serveur SA-MP
+=====================================================================================
+1. Installer Node.js (version 14 ou plus) sur la machine du serveur.
+2. Choisir un mot de passe et le mettre aux DEUX endroits :
+     - server/basicgm/include/Insta.inc : #define IG_SECRET "ton-mot-de-passe"  (puis recompiler)
+     - au lancement du service : IG_SECRET=ton-mot-de-passe
+3. Lancer (dans ce dossier) :
+     Linux   : IG_SECRET=ton-mot-de-passe IG_PORT=7790 node ig-server.js
+     Windows : set IG_SECRET=ton-mot-de-passe && set IG_PORT=7790 && node ig-server.js
+   (pour qu'il tourne tout le temps : pm2 start ig-server.js, ou un service systemd)
+4. Ouvrir le port 7790 (TCP) dans le pare-feu / chez l'hebergeur : les telephones s'y connectent
+   directement (http://<ip du serveur>:7790).
+Les photos sont dans ./data/img, la liste dans ./data/posts.json (2000 publications max, les plus
+anciennes partent). Moderation en jeu : /igdel <numero> (staff niveau 3+).
+Si le service est arrete, l'appli affiche "Instagram est hors ligne" : le reste du jeu marche.
+
+[v50] CONNEXION GOOGLE : ce service gere aussi /gauth/verify et /gauth/redeem (fichier gauth.js, a garder
+dans ce dossier). La machine doit joindre https://www.googleapis.com. Projet Firebase par defaut gta-2-11
+(autre projet : GAUTH_PROJECT=<project_id>). Test : http://<ip>:7790/gauth/ping -> {"ok":1,"project":"gta-2-11"}

@@ -182,7 +182,7 @@ void C3DTextLabelPool::Draw(ImGuiRenderer* renderer, TEXT_LABEL* label, const CV
 
                 std::stringstream ss_data(text);
                 std::string s_row;
-                float fontSize = UISettings::fontSize() / 2;
+                float fontSize = UISettings::fontSize() * 0.40f;   // [v30b] textes 3D plus petits (avant / 2)
                 if (fontSize <= 0.0f) fontSize = 10.0f;
 
                 while (std::getline(ss_data, s_row, '\n')) {

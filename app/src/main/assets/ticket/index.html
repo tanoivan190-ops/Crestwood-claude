@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr" data-color>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Amendes</title>
+<!--
+  [v30c] Amendes police (EC-PDTicket du MTA). Serveur : include/Pages.inc (Tk_*).
+  Vue "officer" : joueurs proches + 17 motifs -> SampPage.action("give", "<id> <motif>")
+  Vue "citizen" : amendes a payer -> action("pay", "<n>") / action("payall") ; action("mine") / action("refresh")
+-->
+<link rel="stylesheet" href="../common/cw-page.css">
+<style>
+:root { --a1: #2f6bff; --a2: #ff3b5c; }
+.siren { display: flex; gap: 4px; margin-left: auto; margin-right: 6px; }
+.siren i { width: 16px; height: 5px; border-radius: 3px; background: #2f6bff; opacity: .25; animation: sirB 1s steps(1) infinite; }
+.siren i:nth-child(2) { background: #ff3b5c; animation-name: sirR; }
+@keyframes sirB { 0%, 49% { opacity: 1; box-shadow: 0 0 10px #2f6bff; } 50%, 100% { opacity: .2; box-shadow: none; } }
+@keyframes sirR { 0%, 49% { opacity: .2; box-shadow: none; } 50%, 100% { opacity: 1; box-shadow: 0 0 10px #ff3b5c; } }
+.left { width: 38%; } .right { flex: 1; }
+.dist { flex: none; font-size: 10px; font-weight: 700; color: var(--soft); }
+.dist.far { color: var(--bad); }
+.grp { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.grp h4 { width: 100%; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--mute); margin: 2px 0 0; }
+.rs { flex: 1 1 calc(50% - 6px); min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 8px 10px; border-radius: 11px; background: var(--glass2); border: 1px solid var(--line); text-align: left;
+  font-size: 11px; font-weight: 700; transition: transform .15s, background .2s, border-color .2s; animation: pgUp .3s ease both; }
+.rs span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rs em { flex: none; font-style: normal; font-size: 10.5px; font-weight: 900; color: #ffd58a; }
+.rs.g em { color: #ff9ba5; }
+.rs.on { border-color: #ff6b81; background: rgba(255, 59, 92, .16); }
+.rs:active { transform: scale(.97); }
+.cd { display: none; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; color: #ffd58a; }
+.cd.show { display: flex; }
+.cd i { width: 8px; height: 8px; border-radius: 50%; background: #ffbf47; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.fine .amt { flex: none; font-size: 13px; font-weight: 900; color: #ff9ba5; }
+.pay { flex: none; height: 30px; padding: 0 12px; border-radius: 9px; font-size: 11px; font-weight: 900; color: #fff; background: linear-gradient(140deg, #2fbf71, #41d6a0); }
+.pay:active { transform: scale(.95); }
+.total { display: flex; gap: 14px; padding: 2px 2px 8px; font-size: 11px; color: var(--soft); }
+.total b { font-size: 14px; color: #fff; }
+</style>
+</head>
+<body>
+<div class="ov">
+  <div class="panel">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z"/><path d="M9 12h6M9 15.5h4M9 8.5h6"/></svg></div>
+      <div class="ttl"><b id="title">Contravention</b><small id="sub">Police de Crestwood</small></div>
+      <div class="siren" id="siren"><i></i><i></i></div>
+      <div class="tabs" id="tabs" hidden><button data-v="officer" class="on">Verbaliser</button><button data-v="citizen">Mes amendes</button></div>
+      <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+
+    <!-- vue agent -->
+    <div class="body" id="vOfficer" hidden>
+      <div class="col left">
+        <div class="lbl" id="nearLbl">Joueurs proches</div>
+        <div class="scroll" id="near"></div>
+      </div>
+      <div class="col right">
+        <div class="lbl">Motif de l'amende</div>
+        <div class="scroll" id="reasons"></div>
+      </div>
+    </div>
+    <div class="foot" id="fOfficer" hidden>
+      <div class="sum" id="sum">Choisis un joueur puis un motif.</div>
+      <div class="cd" id="cd"><i></i><span id="cdTxt"></span></div>
+      <button class="btn red" id="give" disabled>Verbaliser</button>
+    </div>
+
+    <!-- vue citoyen -->
+    <div class="body" id="vCitizen" hidden>
+      <div class="col" style="flex:1">
+        <div class="total"><span>Total dû <b id="tot">0 $</b></span><span>Sur toi <b class="money" id="cash">0 $</b></span></div>
+        <div class="scroll" id="fines"></div>
+      </div>
+    </div>
+    <div class="foot" id="fCitizen" hidden>
+      <div class="sum">Payer en liquide ici, ou plus tard avec <b>/amendes</b>.</div>
+      <button class="btn" id="payall" disabled>Tout payer</button>
+    </div>
+  </div>
+</div>
+<script src="../common/cw-page.js"></script>
+<script>
+(function () {
+  "use strict";
+  var Cw = window.CwPage, $ = Cw.$;
+  /* libelles accentues (meme ordre que g_TkReason dans Pages.inc) */
+  var FR = ["Stationnement interdit", "Pas de ceinture", "Pas de clignotant", "Feu rouge grillé", "Phares éteints",
+    "Excès de vitesse", "Conduite dangereuse", "Conduite sans permis", "Refus d'obtempérer", "Délit de fuite",
+    "Activité de gang", "Munitions illégales", "Arme exhibée", "Possession de drogue", "Arme illégale",
+    "Tir sur la voie publique", "Menace armée"];
+  var st = { d: {}, target: -1, reason: -1, cdEnd: 0, isLaw: false };
+
+  function show(view) {
+    var off = view === "officer";
+    $("vOfficer").hidden = $("fOfficer").hidden = !off;
+    $("vCitizen").hidden = $("fCitizen").hidden = off;
+    $("siren").style.display = off ? "" : "none";
+    $("title").textContent = off ? "Contravention" : "Mes amendes";
+    var bs = $("tabs").querySelectorAll("button");
+    for (var i = 0; i < bs.length; i++) bs[i].className = bs[i].getAttribute("data-v") === view ? "on" : "";
+  }
+
+  function renderOfficer(d) {
+    $("sub").textContent = "Agent " + (d.me || "") + " · rayon " + (d.max || 7) + " m";
+    var near = $("near"); near.innerHTML = "";
+    var list = d.near || [];
+    if (!list.some(function (p) { return p.id === st.target; })) st.target = -1;
+    if (!list.length) {
+      var e = Cw.el("div", "empty"); e.innerHTML = '<span class="ic">🚶</span>Personne autour de toi.<br>Approche-toi à moins de ' + (d.max || 7) + ' m.';
+      near.appendChild(e);
+    }
+    list.forEach(function (p, i) {
+      var c = Cw.el("button", "card" + (p.id === st.target ? " on" : ""));
+      c.style.animationDelay = (i * 0.04) + "s";
+      c.appendChild(Cw.el("div", "av", Cw.initials(p.n)));
+      var m = Cw.el("div", "meta"); m.appendChild(Cw.el("b", null, p.n)); m.appendChild(Cw.el("small", null, "ID " + p.id + (p.car ? " · en véhicule" : " · à pied")));
+      c.appendChild(m);
+      c.appendChild(Cw.el("span", "dist" + (p.d > (d.max || 7) ? " far" : ""), p.d.toFixed(1) + " m"));
+      c.addEventListener("click", function () { st.target = p.id; renderOfficer(st.d); });
+      near.appendChild(c);
+    });
+    var rs = $("reasons"); rs.innerHTML = "";
+    var groups = [["t", "Circulation"], ["g", "Armes · gangs · drogue"]];
+    groups.forEach(function (g) {
+      var box = Cw.el("div", "grp"); box.appendChild(Cw.el("h4", null, g[1]));
+      (d.r || []).forEach(function (r, idx) {
+        if (r[2] !== g[0]) return;
+        var b = Cw.el("button", "rs " + r[2] + (idx === st.reason ? " on" : ""));
+        b.style.animationDelay = (idx * 0.02) + "s";
+        b.appendChild(Cw.el("span", null, FR[idx] || r[0]));
+        b.appendChild(Cw.el("em", null, Cw.money(r[1])));
+        b.addEventListener("click", function () { st.reason = idx; renderOfficer(st.d); });
+        box.appendChild(b);
+      });
+      rs.appendChild(box);
+    });
+    var tgt = list.filter(function (p) { return p.id === st.target; })[0];
+    var rr = (d.r || [])[st.reason];
+    var sum = $("sum");
+    if (tgt && rr) sum.innerHTML = "<b>" + esc(FR[st.reason] || rr[0]) + "</b> · " + Cw.money(rr[1]) + " → <b>" + esc(tgt.n) + "</b>";
+    else sum.textContent = !tgt ? "Choisis un joueur proche." : "Choisis le motif.";
+    tick();
+  }
+
+  function renderCitizen(d) {
+    $("sub").textContent = d.me || "";
+    $("tot").textContent = Cw.money(d.total || 0);
+    $("cash").textContent = Cw.money(d.cash || 0);
+    var box = $("fines"); box.innerHTML = "";
+    var list = d.fines || [];
+    if (!list.length) {
+      var e = Cw.el("div", "empty"); e.innerHTML = '<span class="ic">✅</span>Aucune amende à payer. Roule prudemment !';
+      box.appendChild(e);
+    }
+    list.forEach(function (f, i) {
+      var c = Cw.el("div", "card fine"); c.style.animationDelay = (i * 0.04) + "s";
+      c.appendChild(Cw.el("div", "av", "N°"));
+      var m = Cw.el("div", "meta"); m.appendChild(Cw.el("b", null, pretty(f.r)));
+      m.appendChild(Cw.el("small", null, "N°" + f.id + " · par " + (f.by || "?") + " · " + ago(f.ago)));
+      c.appendChild(m);
+      c.appendChild(Cw.el("span", "amt", Cw.money(f.a)));
+      var p = Cw.el("button", "pay", "Payer");
+      if ((d.cash || 0) < f.a) p.disabled = true, p.style.opacity = ".4";
+      p.addEventListener("click", function () { Cw.send("pay", f.id); });
+      c.appendChild(p);
+      box.appendChild(c);
+    });
+    $("payall").disabled = !list.length || (d.cash || 0) < (d.total || 0);
+  }
+
+  /* libelles du serveur (sans accents) -> libelles accentues */
+  function pretty(r) {
+    var plain = function (x) { return String(x).normalize ? String(x).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : String(x).toLowerCase(); };
+    for (var i = 0; i < FR.length; i++) if (plain(FR[i]) === plain(r)) return FR[i];
+    return r;
+  }
+  function ago(min) { min = Number(min) || 0; if (min < 1) return "à l'instant"; if (min < 60) return "il y a " + min + " min"; var h = Math.floor(min / 60); return h < 48 ? "il y a " + h + " h" : "il y a " + Math.floor(h / 24) + " j"; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function tick() {
+    var left = Math.max(0, Math.round((st.cdEnd - Date.now()) / 1000));
+    $("cd").className = "cd" + (left > 0 ? " show" : "");
+    $("cdTxt").textContent = Math.floor(left / 60) + ":" + ("0" + left % 60).slice(-2);
+    $("give").disabled = left > 0 || st.target < 0 || st.reason < 0;
+  }
+  setInterval(tick, 1000);
+
+  $("give").addEventListener("click", function () {
+    if (st.target < 0 || st.reason < 0) return;
+    Cw.send("give", st.target + " " + st.reason);
+    $("give").disabled = true;
+  });
+  $("payall").addEventListener("click", function () { Cw.send("payall", ""); });
+  $("tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    Cw.send(b.getAttribute("data-v") === "citizen" ? "mine" : "refresh", "");
+  });
+  setInterval(function () { if (st.d.v === "officer") Cw.send("refresh", ""); }, 4000);   /* distances a jour */
+
+  Cw.boot(function (d, first) {
+    st.d = d;
+    if (d.v === "officer") { st.isLaw = true; if (typeof d.cd === "number") st.cdEnd = Date.now() + d.cd * 1000; }
+    if (d.ok === 1 && d.v === "officer") { st.target = -1; st.reason = -1; }
+    $("tabs").hidden = !st.isLaw;
+    show(d.v === "officer" ? "officer" : "citizen");
+    if (d.v === "officer") renderOfficer(d); else renderCitizen(d);
+  });
+
+  /* apercu dans un navigateur (sans l'appli) */
+  if (!window.SampPage && /[?&]demo/.test(location.search)) {
+    var demo = location.search.indexOf("citizen") > 0
+      ? { v: "citizen", me: "John Doe", cash: 3200, total: 3250, fines: [{ id: 12, a: 2500, r: "Exces de vitesse", by: "Marcus Hill", ago: 14 }, { id: 9, a: 750, r: "Pas de ceinture", by: "Radar", ago: 1500 }] }
+      : { v: "officer", me: "Marcus Hill", cd: 0, max: 7, near: [{ id: 3, n: "John Doe", d: 3.2, car: 1 }, { id: 7, n: "Aya Kone", d: 5.8, car: 0 }, { id: 11, n: "Diego Ramos", d: 12.4, car: 0 }],
+          r: FR.map(function (n, i) { return [n, [500, 750, 1000, 1500, 1750, 2500, 4000, 5000, 7500, 10000, 4500, 5000, 6500, 7000, 8000, 9000, 10000][i], i < 10 ? "t" : "g"]; }) };
+    PageApp.openFromNative(JSON.stringify(demo));
+    if (demo.v === "officer") { st.target = 3; st.reason = 5; renderOfficer(demo); }
+  }
+})();
+</script>
+</body>
+</html>

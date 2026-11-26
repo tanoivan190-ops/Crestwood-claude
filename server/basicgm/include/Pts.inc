@@ -386,6 +386,17 @@ stock Pts_Send(playerid, dialogid, ok = 1, const msg[] = "")
 			strcat(json, part); n++;
 		}
 	}
+	else if (view == 3)
+	{
+		// [v22] interieurs predefinis : [n, nom, categorie, interieur, batiment suggere (0/1), deja place (0/1), icone]
+		for (new k = 0; k < sizeof(g_IntPre); k++)
+		{
+			Pts_JsonStr(g_IntPre[k][ipName], esc, sizeof esc);
+			format(part, sizeof part, "%s[%d,\"%s\",\"%s\",%d,%d,%d,%d]", n ? (",") : (""), k, esc, g_IntPre[k][ipCat], g_IntPre[k][ipInt], (g_IntPre[k][ipEX] != 0.0), IntPre_Placed(k), g_IntPre[k][ipBlip]);
+			if (strlen(json) + strlen(part) > sizeof(json) - 400) break;
+			strcat(json, part); n++;
+		}
+	}
 	else
 	{
 		for (new p = 0; p < g_PtCount; p++)
@@ -402,7 +413,7 @@ stock Pts_Send(playerid, dialogid, ok = 1, const msg[] = "")
 		}
 	}
 	strcat(json, "],\"jobs\":[");
-	for (new j = 1; j <= JOB_COUNT; j++)
+	if (view == 2) for (new j = 1; j <= JOB_COUNT; j++)
 	{
 		format(part, sizeof part, "%s[%d,\"%s\",%d]", (j > 1) ? (",") : (""), j, g_Jobs[j][jbName], g_JobPlaced[j]);
 		strcat(json, part);
@@ -475,7 +486,7 @@ stock Pts_Action(playerid, const params[])
 		Bank_NextToken(params, idx, a1, sizeof a1);
 		Bank_NextToken(params, idx, a2, sizeof a2);
 		g_PtsView[playerid] = strval(a1);
-		if (g_PtsView[playerid] < 0 || g_PtsView[playerid] > 2) g_PtsView[playerid] = 0;
+		if (g_PtsView[playerid] < 0 || g_PtsView[playerid] > 3) g_PtsView[playerid] = 0;
 		g_PtsFilter[playerid] = strval(a2);
 		if (g_PtsFilter[playerid] < 0 || g_PtsFilter[playerid] > PT_TYPES) g_PtsFilter[playerid] = 0;
 		return Pts_Send(playerid, PTS_DIALOG_UPDATE);
@@ -500,6 +511,35 @@ stock Pts_Action(playerid, const params[])
 		format(q, sizeof q, "INSERT OR REPLACE INTO map_arrivals (name, x, y, z, a) VALUES ('%s', %f, %f, %f, %f)", g_MapRegName[mi], x, y, z, a);
 		db_free_result(db_query(g_PtDB, q));
 		format(m, sizeof m, "Arrivee de \"%s\" = ta position.", g_MapRegName[mi]);
+		return Pts_Refresh(playerid, 1, m);
+	}
+	// ---- [v22] interieurs predefinis
+	if (!strcmp(action, "ipre", true) || !strcmp(action, "ipgo", true))
+	{
+		Bank_NextToken(params, idx, a1, sizeof a1);
+		new k = strval(a1);
+		if (k < 0 || k >= sizeof(g_IntPre)) return Pts_Refresh(playerid, 0, "Interieur inconnu.");
+		if (!strcmp(action, "ipgo", true))
+		{
+			if (g_IntPre[k][ipEX] == 0.0) return Pts_Refresh(playerid, 0, "Pas de batiment suggere : place-toi devant la porte et touche Placer ici.");
+			Pts_Teleport(playerid, g_IntPre[k][ipEX], g_IntPre[k][ipEY], g_IntPre[k][ipEZ], 0.0);
+			return Pts_Refresh(playerid, 1, "Teleporte devant le batiment suggere (ne bouge pas, le sol se charge).");
+		}
+		if (IntPre_Placed(k)) return Pts_Refresh(playerid, 0, "Deja place (supprime-le dans Entrees / sorties pour le replacer).");
+		if (!IntPre_Create(k, x, y, z)) return Pts_Refresh(playerid, 0, "Trop de portails.");
+		format(m, sizeof m, "\"%s\" place ici.", g_IntPre[k][ipName]);
+		return Pts_Refresh(playerid, 1, m);
+	}
+	if (!strcmp(action, "ipall", true))
+	{
+		new made = 0;
+		for (new k = 0; k < sizeof(g_IntPre); k++)
+		{
+			if (g_IntPre[k][ipEX] == 0.0 || IntPre_Placed(k)) continue;
+			if (!IntPre_Create(k, g_IntPre[k][ipEX], g_IntPre[k][ipEY], g_IntPre[k][ipEZ])) break;
+			made++;
+		}
+		format(m, sizeof m, "%d interieur(s) places sur les batiments suggeres.", made);
 		return Pts_Refresh(playerid, 1, m);
 	}
 	// ---- portails

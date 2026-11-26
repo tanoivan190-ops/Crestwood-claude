@@ -618,6 +618,7 @@ stock Npc_Talk(playerid)
 			new age, origin[32];
 			if (Ui_LoadId(playerid, age, origin, sizeof origin)) strcat(list, "Renouveler ma carte d'identite\nVoir ma carte d'identite\n", sizeof list), g_NpcTalkOpt[playerid][n++] = 8, g_NpcTalkOpt[playerid][n++] = 9;
 			else strcat(list, "Faire ma carte d'identite {3DDC97}(gratuit)\n", sizeof list), g_NpcTalkOpt[playerid][n++] = 8;
+			strcat(list, "Passer le permis de conduire {3B82FF}(300 $)\n", sizeof list); g_NpcTalkOpt[playerid][n++] = 10;   // [v30]
 		}
 		case NPC_ROLE_COURIER:
 		{
@@ -1273,6 +1274,7 @@ stock Npc_OnDialog(playerid, dialogid, response, listitem)
 			case 7: { Q_End(playerid, "Quete abandonnee.", 0); g_QStreak[playerid] = 0; }
 			case 8: Npc_IdForm(playerid);
 			case 9: Ui_ShowId(playerid, playerid);
+			case 10: Mis_StartLicenseQuiz(playerid);   // [v30]
 		}
 		return 1;
 	}
@@ -1360,6 +1362,7 @@ stock Npc_IdSign(playerid, const params[])
 	format(q, sizeof q, "INSERT OR REPLACE INTO player_ids (name, age, origin, issued, signed) VALUES ('%s', %d, '%s', %d, 1)", name, age, origin, gettime());
 	db_free_result(db_query(g_JobDB, q));
 	Npc_Msg(playerid, NPC_COL_OK, "Etat civil : \"Signature enregistree. Voici votre carte nationale d'identite de la Republique de Crestwood.\"");
+	Missions_Event(playerid, MEV_ID);   // [v30] mission 2
 	PlayerPlaySound(playerid, 1058, 0.0, 0.0, 0.0);
 	return Ui_ShowId(playerid, playerid);
 }

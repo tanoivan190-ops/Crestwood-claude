@@ -74,6 +74,9 @@ namespace {
 	};
 
 	std::mutex g_shaderMutex;
+	// [v22] g_textureCache etait lu au rendu (BeginPedRender) et modifie par ResolveTexture/SetRule
+	// depuis un autre thread sans verrou commun -> table de hachage corrompue (SIGSEGV).
+	std::recursive_mutex g_texCacheMutex;
 	std::unordered_map<ShaderKey, std::vector<ShaderRule>, ShaderKeyHash> g_rules;
 	std::unordered_map<std::string, RwTexture*> g_textureCache;
 	std::unordered_map<RpMaterial*, RwTexture*> g_originalMaterialTextures;
@@ -222,6 +225,7 @@ namespace {
 	RwTexture* ResolveTexture(const std::string& textureName)
 	{
 		if (textureName.empty()) return nullptr;
+		std::lock_guard<std::recursive_mutex> texLock(g_texCacheMutex);
 
 		const std::string normalized = NormalizeName(textureName);
 		if (auto it = g_textureCache.find(normalized); it != g_textureCache.end()) {
@@ -619,6 +623,7 @@ void BrlTextureShader::ClearAll()
 	}
 
 	std::lock_guard lock(g_shaderMutex);
+	std::lock_guard<std::recursive_mutex> texLockAll(g_texCacheMutex);
 	g_rules.clear();
     for (const auto& [name, bytes] : g_southBytes) {
         const auto it = g_textureCache.find(name);

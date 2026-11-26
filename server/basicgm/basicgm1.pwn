@@ -1112,7 +1112,7 @@ stock Veh_OnDeath(vehicleid)
 // [v20] rappel : les vehicules apparaissent moteur coupe
 stock Veh_EngineHint(playerid)
 {
-	return Cw_Notify(playerid, "info", "Vehicule", "Moteur ~r~coupe~w~. Demarre avec le ~b~bouton moteur~w~ ou ~b~/moteur~w~. A pied : touche le vehicule pour ouvrir sa ~y~roue~w~.", 8000);
+	return Cw_Notify(playerid, "info", "Moteur", "Coupe : touche le bouton moteur.", 3000);
 }
 
 // Vehicule vise par /moteur et /lock : celui ou se trouve le joueur
@@ -6951,6 +6951,14 @@ stock FacX_OnCommand(playerid, const cmdtext[])
 #define LIC_BOAT              3
 #define LIC_COUNT             4
 
+// [v30] evenements des missions d'arrivee (include Missions.inc)
+#define MEV_BUY               1
+#define MEV_USE               2
+#define MEV_ID                3
+#define MEV_LICENSE           4
+#define MEV_JOB               5
+#define RPX_COL_ME             0xC2A2DAFF
+
 new g_LicKey[LIC_COUNT][14] = { "conduire", "armes", "poidslourds", "navire" };
 new g_LicName[LIC_COUNT][28] = { "Permis de conduire", "Permis port d'armes", "Permis poids lourds", "Permis navire" };
 
@@ -7177,6 +7185,7 @@ stock Shop_Action(playerid, const params[])
 			g_ShopLast[playerid] = (now == 0 ? 1 : now);
 			Inv_SetQty(playerid, item, owned + qty);
 			Phone_AfterShopBuy(playerid, item);   // [v20] puce activee a l'achat / offerte avec un iPhone
+			if (!strcmp(item, "hamburger") || !strcmp(item, "eau_kirene") || !strcmp(item, "vody")) Missions_Event(playerid, MEV_BUY);   // [v30] mission 1
 			Bank_SavePlayer(playerid);
 			Gov_CollectTax(total);
 			format(msg, sizeof msg, "Achat effectue : -%d $", total);
@@ -7646,6 +7655,7 @@ stock Job_Sign(playerid, job, msg[], msgsize)
 	g_JobOf[playerid] = job;
 	Job_LoadXP(playerid, job, g_JobRoutes[playerid], g_JobEarned[playerid]);
 	format(msg, msgsize, "Contrat signe ! Bienvenue dans l'equipe.");
+	Missions_Event(playerid, MEV_JOB);   // [v30] mission 4
 	return 1;
 }
 
@@ -8611,6 +8621,7 @@ enum E_ENTRY
 	Float:enOX, Float:enOY, Float:enOZ,            // entree (dehors) - posee en jeu
 	Float:enIX, Float:enIY, Float:enIZ, Float:enIA, // sortie (dans le mapping) - posee en jeu
 	enBlip,
+	enInt,                                          // [v22] numero d'interieur GTA SA (0 = monde normal)
 	enDb                                            // id en base (map_portals)
 }
 
@@ -8618,6 +8629,7 @@ enum E_ENTRY
 #define PORTAL_MAX            60
 new g_Entries[PORTAL_MAX][E_ENTRY];
 new g_EntryCount;
+new g_EntryColDone;
 
 new g_EntryPickupOut[PORTAL_MAX];
 new g_EntryPickupIn[PORTAL_MAX];
@@ -8676,10 +8688,10 @@ public Entry_Unfreeze(playerid)
 	return 1;
 }
 
-stock Entry_Teleport(playerid, Float:x, Float:y, Float:z, Float:a)
+stock Entry_Teleport(playerid, Float:x, Float:y, Float:z, Float:a, interior = 0)
 {
 	Streamer_UpdateEx(playerid, x, y, z);
-	SetPlayerInterior(playerid, 0);
+	SetPlayerInterior(playerid, interior);
 	SetPlayerPos(playerid, x, y, z);
 	SetPlayerFacingAngle(playerid, a);
 	SetCameraBehindPlayer(playerid);
@@ -8695,7 +8707,7 @@ stock Entry_Use(playerid)
 	if (f > 0)
 	{
 		new e = f - 1;
-		Entry_Teleport(playerid, g_Entries[e][enIX], g_Entries[e][enIY], g_Entries[e][enIZ] + 0.6, g_Entries[e][enIA]);
+		Entry_Teleport(playerid, g_Entries[e][enIX], g_Entries[e][enIY], g_Entries[e][enIZ] + 0.6, g_Entries[e][enIA], g_Entries[e][enInt]);
 		GameTextForPlayer(playerid, g_Entries[e][enName], 2500, 1);
 		return 1;
 	}
@@ -8708,12 +8720,33 @@ stock Entry_Use(playerid)
 	return 0;
 }
 
+// [v22] Entree automatique : on marche dans le rond de la porte -> on entre / on sort (plus besoin de la touche).
+//  Anti-rebond : apres un passage il faut s'eloigner de toutes les portes avant que la suivante se declenche.
+new g_EntryArmed[MAX_PLAYERS];
+
+forward Entry_AutoTick();
+public Entry_AutoTick()
+{
+	for (new i = 0; i < MAX_PLAYERS; i++)
+	{
+		if (!IsPlayerConnected(i) || IsPlayerNPC(i)) continue;
+		if (GetPlayerState(i) != PLAYER_STATE_ONFOOT) continue;
+		new f = Entry_Find(i);
+		if (f == 0) { g_EntryArmed[i] = 1; continue; }
+		if (!g_EntryArmed[i]) continue;
+		g_EntryArmed[i] = 0;
+		Entry_Use(i);
+	}
+	return 1;
+}
+
 stock Entry_LoadDB()
 {
 	g_EntryCount = 0;
 	if (g_JobDB == DB:0) return 0;
 	db_free_result(db_query(g_JobDB, "CREATE TABLE IF NOT EXISTS map_portals (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT 'Portail', ox REAL DEFAULT 0, oy REAL DEFAULT 0, oz REAL DEFAULT 0, ix REAL DEFAULT 0, iy REAL DEFAULT 0, iz REAL DEFAULT 0, ia REAL DEFAULT 0)"));
-	new DBResult:res = db_query(g_JobDB, "SELECT id, name, ox, oy, oz, ix, iy, iz, ia FROM map_portals ORDER BY id");
+	if (!g_EntryColDone) { g_EntryColDone = 1; db_free_result(db_query(g_JobDB, "ALTER TABLE map_portals ADD COLUMN interior INTEGER DEFAULT 0")); db_free_result(db_query(g_JobDB, "ALTER TABLE map_portals ADD COLUMN blip INTEGER DEFAULT 0")); }   // [v22] ignore si deja presente
+	new DBResult:res = db_query(g_JobDB, "SELECT id, name, ox, oy, oz, ix, iy, iz, ia, interior, blip FROM map_portals ORDER BY id");
 	if (res == DBResult:0) return 0;
 	new rows = db_num_rows(res), f[40];
 	for (new r = 0; r < rows && g_EntryCount < PORTAL_MAX; r++)
@@ -8728,7 +8761,8 @@ stock Entry_LoadDB()
 		db_get_field(res, 6, f, sizeof f); g_Entries[e][enIY] = floatstr(f);
 		db_get_field(res, 7, f, sizeof f); g_Entries[e][enIZ] = floatstr(f);
 		db_get_field(res, 8, f, sizeof f); g_Entries[e][enIA] = floatstr(f);
-		g_Entries[e][enBlip] = 0;
+		db_get_field(res, 9, f, sizeof f); g_Entries[e][enInt] = strval(f);
+		db_get_field(res, 10, f, sizeof f); g_Entries[e][enBlip] = strval(f);
 		db_next_row(res);
 	}
 	db_free_result(res);
@@ -15220,8 +15254,97 @@ stock MapObj_AppendBlips(json[], size, &n)
 	return 1;
 }
 
+// [v22] Interieurs GTA SA reels (coordonnees de la liste officielle des interieurs).
+//  ipX/Y/Z = interieur ; ipEX/EY/EZ = batiment suggere (vraie porte du jeu), 0 = a placer a la main ;
+//  ipBlip = icone de la carte (assets/hud/radar/blips). Panneau staff (onglet "Interieurs") ou /intlist /intpreset <n>.
+enum E_INTPRE { ipName[32], ipCat[14], ipInt, Float:ipX, Float:ipY, Float:ipZ, Float:ipEX, Float:ipEY, Float:ipEZ, ipBlip }
+new const g_IntPre[][E_INTPRE] =
+{
+	{"Binco",                    "Vetements",  15,  207.5430, -109.0040, 1005.1330, 2244.47, -1665.36,  14.4839, 120},
+	{"Victim",                   "Vetements",   5,  221.3310,   -6.6169, 1002.0078,  461.158, -1499.98,  30.1742, 120},
+	{"Zip",                      "Vetements",  18,  161.4620,  -91.3940, 1001.8050, 1456.77,  -1138.02,  23.2872, 120},
+	{"Sub Urban",                "Vetements",   1,  203.8173,  -46.5385, 1001.8050, 2112.73,  -1211.70,  22.9614, 120},
+	{"Pro-Laps",                 "Vetements",   3,  207.3560, -138.0029, 1003.3130,  499.637, -1360.40,  15.4261, 120},
+	{"Didier Sachs",             "Vetements",  14,  204.1789, -165.8740, 1000.5230,  453.868, -1478.07,  29.9609, 120},
+	{"Superette Downtown",       "Boutique",    4,  -27.3769,  -27.6416, 1003.5570, 1352.31,  -1758.30,  12.5149, 176},
+	{"Superette Unity",          "Boutique",   10,    6.0780,  -28.6330, 1003.5490, 1833.54,  -1843.38,  12.5595, 176},
+	{"Superette Mulholland E",   "Boutique",    6,  -26.7180,  -55.9860, 1003.5470, 1315.49,   -897.843, 38.571,  176},
+	{"Superette Mulholland O",   "Boutique",   16,  -25.3730, -139.6540, 1003.5470, 1000.33,   -919.924, 41.2368, 176},
+	{"Ammu-Nation Market",       "Armes",       1,  289.7870,  -35.7190, 1003.5160, 1368.35,  -1279.06,  12.55,   148},
+	{"Ammu-Nation Willowfield",  "Armes",       6,  297.4460, -109.9680, 1001.5160, 2400.50,  -1981.48,  12.5604, 148},
+	{"Burger Shot Marina",       "Restaurant", 10,  366.4220,  -73.4700, 1001.5080,  811.982, -1616.02,  12.618,  176},
+	{"Burger Shot Mulholland",   "Restaurant", 10,  366.4220,  -73.4700, 1001.5080, 1199.13,   -918.071, 42.3243, 176},
+	{"Cluckin Bell East LS",     "Restaurant",  9,  365.6700,  -11.6100, 1002.0000, 2419.95,  -1509.80,  23.1568, 176},
+	{"Cluckin Bell Willowfield", "Restaurant",  9,  365.6700,  -11.6100, 1002.0000, 2397.83,  -1898.65,  12.7131, 176},
+	{"Pizza Idlewood",           "Restaurant",  5,  377.7758, -126.2766, 1001.4920, 2105.32,  -1806.49,  12.6941, 139},
+	{"Salle de sport Ganton",    "Sport",       5,  768.0793,    5.8606, 1000.7160, 2229.63,  -1721.63,  12.6529, 154},
+	{"Barbier Idlewood",         "Soins",       2,  411.6259,  -21.4332, 1001.8046, 2070.86,  -1793.84,  12.661,  155},
+	{"Tatouage Willowfield",     "Soins",      16, -204.5580,  -25.6970, 1002.2730, 1975.79,  -2036.65,  12.5753, 0},
+	{"Tatouage Idlewood",        "Soins",      16, -204.5580,  -25.6970, 1002.2730, 2068.71,  -1779.84,  12.5103, 0},
+	{"Labo drogue (Crack Den)",  "Drogue",      5,  322.1117, 1119.3270, 1083.8830, 2166.20,  -1671.47,  14.1977, 175},
+	{"Maison de gang Grove",     "Gang",        3, 2496.0500, -1693.9260, 1014.7420, 2495.33, -1690.75,  13.7847, 159},
+	{"Maison de gang Big Smoke", "Gang",        2, 2543.6610, -1303.9320, 1025.0700,    0.0,      0.0,    0.0,    159},
+	{"Maison de gang Ryder",     "Gang",        2, 2464.2110, -1697.9520, 1013.5080,    0.0,      0.0,    0.0,    159},
+	{"Maison de gang Sweet",     "Gang",        1, 2525.0420, -1679.1150, 1015.4990,    0.0,      0.0,    0.0,    159},
+	{"Maison de gang OG Loc",    "Gang",        3,  516.8890,  -18.4120, 1001.5650,    0.0,      0.0,    0.0,    159},
+	{"Villa Madd Dogg",          "Maison",      5, 1262.1451, -785.3298, 1091.9063, 1259.39,   -785.332,  91.042,  181},
+	{"Maison Burning Desire",    "Maison",      5, 2351.1540, -1180.5770, 1027.9770, 2351.97, -1169.86,  27.0309, 163},
+	{"Motel Jefferson",          "Hotel",      15, 2217.6250, -1150.6580, 1025.7970, 2232.87, -1159.71,  24.9416, 162},
+	{"Hotel Vank Hoff",          "Hotel",       5, 2232.8210, -1110.0180, 1050.8830,    0.0,      0.0,    0.0,    162},
+	{"Pig Pen (club)",           "Sortie",      2, 1213.4330,   -6.6830, 1000.9220, 2421.52,  -1220.65,  24.6085, 180},
+	{"Bar Ten Green Bottles",    "Sortie",     11,  502.3310,  -70.6820,  998.7570, 2309.62,  -1643.63,  13.8385, 180},
+	{"Garage Wheel Arch Angels", "Garage",      3,  614.3889, -124.0991,  997.9950,    0.0,      0.0,    0.0,     95},
+	{"Garage Loco Low Co",       "Garage",      2,  612.5910,  -75.6370,  997.9920,    0.0,      0.0,    0.0,     95},
+	{"Garage Transfender",       "Garage",      1,  621.7850,  -12.5417, 1000.9220,    0.0,      0.0,    0.0,     95},
+	{"Commissariat LSPD (interieur)", "Police", 6,  246.4510,   65.5860, 1003.6410,    0.0,      0.0,    0.0,     29}
+};
+
+// Cree un portail depuis un preset ; retourne 1 si cree, 0 si plein
+stock IntPre_Create(n, Float:x, Float:y, Float:z)
+{
+	if (g_EntryCount >= PORTAL_MAX) return 0;
+	new q[360];
+	format(q, sizeof q, "INSERT INTO map_portals (name, ox, oy, oz, ix, iy, iz, ia, interior, blip) VALUES ('%s', %f, %f, %f, %f, %f, %f, 0.0, %d, %d)", g_IntPre[n][ipName], x, y, z - 0.6, g_IntPre[n][ipX], g_IntPre[n][ipY], g_IntPre[n][ipZ] - 0.6, g_IntPre[n][ipInt], g_IntPre[n][ipBlip]);
+	db_free_result(db_query(g_JobDB, q));
+	Pts_ReloadPortals();
+	return 1;
+}
+
+// 1 si un portail du meme nom existe deja
+stock IntPre_Placed(n)
+{
+	for (new e = 0; e < g_EntryCount; e++) if (!strcmp(g_Entries[e][enName], g_IntPre[n][ipName], true)) return 1;
+	return 0;
+}
+
+stock IntPre_OnCommand(playerid, const cmdtext[])
+{
+	if (!strcmp(cmdtext, "/intlist", true))
+	{
+		if (Admin_Level(playerid) < ADMIN_LVL_ADMIN) return 0;
+		new t[160];
+		for (new i = 0; i < sizeof(g_IntPre); i++) { format(t, sizeof t, "%d = %s (%s)%s", i + 1, g_IntPre[i][ipName], g_IntPre[i][ipCat], IntPre_Placed(i) ? (" - place") : ("")); SendClientMessage(playerid, 0xFFCC33FF, t); }
+		SendClientMessage(playerid, 0xFFFFFFFF, "Plus simple : panneau /mappings, onglet Interieurs.");
+		return 1;
+	}
+	if (!strcmp(cmdtext, "/intpreset ", true, 11))
+	{
+		if (Admin_Level(playerid) < ADMIN_LVL_ADMIN) return 0;
+		new n = strval(cmdtext[11]) - 1;
+		if (n < 0 || n >= sizeof(g_IntPre)) { SendClientMessage(playerid, 0xFF4444FF, "Numero inconnu (/intlist)."); return 1; }
+		new Float:x, Float:y, Float:z, m[96];
+		GetPlayerPos(playerid, x, y, z);
+		if (!IntPre_Create(n, x, y, z)) { SendClientMessage(playerid, 0xFF4444FF, "Trop de portails."); return 1; }
+		format(m, sizeof m, "Portail \"%s\" cree ici.", g_IntPre[n][ipName]);
+		SendClientMessage(playerid, 0x66FF66FF, m);
+		return 1;
+	}
+	return 0;
+}
+
 stock MapObj_OnCommand(playerid, const cmdtext[])
 {
+	if (IntPre_OnCommand(playerid, cmdtext)) return 1;
 	if (!strcmp(cmdtext, "/entrer", true) || !strcmp(cmdtext, "/sortir", true))
 	{
 		if (!Entry_Use(playerid)) SendClientMessage(playerid, 0xFF4444FF, "Il n'y a pas de porte ici.");
@@ -15239,7 +15362,7 @@ stock MapObj_OnCommand(playerid, const cmdtext[])
 		id -= sizeof(g_Places);
 		if (id >= 0 && id < g_EntryCount)
 		{
-			Entry_Teleport(playerid, g_Entries[id][enIX], g_Entries[id][enIY], g_Entries[id][enIZ] + 0.6, g_Entries[id][enIA]);
+			Entry_Teleport(playerid, g_Entries[id][enIX], g_Entries[id][enIY], g_Entries[id][enIZ] + 0.6, g_Entries[id][enIA], g_Entries[id][enInt]);
 			return 1;
 		}
 		SendClientMessage(playerid, 0xFF4444FF, "Lieu inconnu (/lieux).");
@@ -23869,6 +23992,9 @@ public OnGameModeInit()
 	Kit_OnInit();
 	Rp_OnInit();            // tablette RP
 	Promo_OnInit();         // codes promo
+	SetTimer("Entry_AutoTick", 400, true);   // [v22] entree automatique dans le rond des portes
+	Ord_OnInit();           // [v22]
+	Missions_OnInit();      // [v30] missions d'arrivee, permis de conduire, plantations
 	Law_OnInit();           // centrale des forces de l ordre
 	Svc_OnInit();           // carburant + location
 	Rob_OnInit();
@@ -23965,6 +24091,8 @@ public OnPlayerConnect(playerid)
 	RpX_OnConnect(playerid);
 	Rp_OnConnect(playerid);
 	Promo_OnConnect(playerid);
+	Ord_OnConnect(playerid);        // [v22] argent des packs en attente
+	Missions_OnConnect(playerid);   // [v30]
 	Law_OnConnect(playerid);
 	Svc_OnConnect(playerid);
 	Pts_OnConnect(playerid);
@@ -24052,6 +24180,7 @@ public OnPlayerSpawn(playerid)
 	Kit_OnSpawn(playerid);
 	RpX_OnSpawn(playerid);
 	Promo_OnSpawn(playerid);
+	Missions_OnSpawn(playerid);   // [v30]
 	Vie_OnSpawn(playerid);     // [v19] charge faim/soif/niveau (score)
 	Ville_OnSpawn(playerid);    // [v19b] charge l'epoux
 	Cw21_OnSpawn(playerid);     // [v21] camera remise derriere le joueur
@@ -24106,8 +24235,36 @@ public OnPlayerText(playerid, text[])
 	return RpX_OnText(playerid, text);   // [Crestwood] chat de proximite RP
 }
 
+// ============================================================
+//  [v30] COMMANDES TAPEES AU CLAVIER : un joueur ne tape plus les actions de jeu
+//  Le client Crestwood ajoute un marqueur (octet 1) aux commandes TAPEES dans le chat.
+//  Les boutons du HUD et les pages n'en ajoutent pas : ils continuent de marcher.
+//  Les admins gardent toutes les commandes. Un ancien client (sans marqueur) n'est pas filtre.
+// ============================================================
+stock Cmd_TypedGate(playerid, cmdtext[])
+{
+	new len = strlen(cmdtext);
+	if (len < 2 || cmdtext[len - 1] != 1) return 0;
+	cmdtext[len - 1] = 0;                       // retire le marqueur avant tout autre traitement
+	if (!g_AuthLogged[playerid]) return 0;      // connexion / inscription
+	if (Admin_Level(playerid) > 0) return 0;
+	new w[20], i = 0;
+	while (cmdtext[i] > ' ' && i < 19) { w[i] = cmdtext[i]; i++; }
+	w[i] = 0;
+	new const ok[][14] = {
+		"/me", "/do", "/try", "/b", "/s", "/c", "/r", "/d", "/m", "/l", "/pm", "/ame", "/chuchoter", "/crier", "/megaphone",
+		"/aide", "/help", "/rpaide", "/cmds", "/commandes", "/report", "/afk", "/stopanim", "/oui", "/non", "/accepter", "/refuser",
+		"/interagir", "/menu", "/rp", "/gps", "/mission", "/missions", "/id", "/papiers", "/argent",
+		"/moteur", "/lock", "/ceinture", "/vmenu", "/vehmenu", "/clothes", "/vetements", "/tenues"
+	};
+	for (new k = 0; k < sizeof ok; k++) if (!strcmp(w, ok[k], true)) return 0;
+	SendClientMessage(playerid, 0xC9CED6FF, "Plus de commandes a taper : approche-toi du lieu (mairie, agence d'emploi, boutique, banque...) et appuie sur le bouton d'interaction.");
+	return 1;
+}
+
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+	if (Cmd_TypedGate(playerid, cmdtext)) return 1;   // [v30] commandes tapees
 	if (Auth_OnCommand(playerid, cmdtext)) return 1;
 	if (Cw41_OnCommand(playerid, cmdtext)) return 1;   // [v41b] /tc (chat), /facact, /personnage, /accepterdemande
 	if (Frp_OnCommand(playerid, cmdtext)) return 1;    // [v41] pompiers, justice, FBI, armee
@@ -24153,6 +24310,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Kit_OnCommand(playerid, cmdtext)) return 1;
 	if (Npc_OnCommand(playerid, cmdtext)) return 1;    // [v18] /quetes /abandonner /pnj
 	if (Cj_OnCommand(playerid, cmdtext)) return 1;     // [v18] /tablette /emploi /finemploi
+	if (Ord_OnCommand(playerid, cmdtext)) return 1;   // [v22] /livrer
+	if (Missions_OnCommand(playerid, cmdtext)) return 1;   // [v30] /mission /permis /plantation
 	if (Vie_OnCommand(playerid, cmdtext)) return 1;    // [v19] /besoins /niveau /apparence /examiner /loto
 	if (Ville_OnCommand(playerid, cmdtext)) return 1;  // [v19b] /course /mariage /oui /non /divorce
 	if (Cw21_OnCommand(playerid, cmdtext)) return 1;   // [v21] /cadeau /parrain /sondage /voter /meteo /afk
@@ -24311,6 +24470,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	if (Ui_OnDialog(playerid, dialogid, response, inputtext)) return 1;
 	if (Gar_OnDialog(playerid, dialogid, response)) return 1;   // [GARAGE PRO] vente entre joueurs
 	if (Npc_OnDialog(playerid, dialogid, response, listitem)) return 1;   // [v18] PNJ / quetes
+	if (Missions_OnDialog(playerid, dialogid, response, listitem)) return 1;   // [v30] quiz du permis de conduire
 	if (Gov_OnDialog(playerid, dialogid, response, listitem)) return 1;
 	if (FacX_OnDialog(playerid, dialogid, response)) return 1;
 	if (Kit_OnDialog(playerid, dialogid, response)) return 1;
@@ -24349,6 +24509,8 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #include <Compat>            // [v31] commandes de l'appli qui manquaient + commandes inconnues
 #include <Pages>             // [v30c] amendes police, reparation auto, bodycam, animations du MTA (pages)
 #include <Store>             // [v30] Crestwood Store (CrestCoins, Wave, vehicules, permis, kits, services)              // [v25] location de velo, telephone en main
+#include <PackShop>         // [v22] boutique : packs achetes sur le site, /livrer (staff)
+#include <Missions>         // [v30] missions d'arrivee (6), permis de conduire, plantations
 #include <HopitalEMS>        // [v24] hopital EMS (pack MTA SAMU47), actif avec /mapdata hopital on              // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
 
 // ============================================================

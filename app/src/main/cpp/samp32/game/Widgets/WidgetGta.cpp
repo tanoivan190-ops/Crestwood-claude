@@ -177,6 +177,7 @@ bool Crestwood_IsReplacedWidget(const void* pWidget)
         case WIDGET_VEHICLE_SHOOT_RIGHT:
         case WIDGET_HYDRAULICS:
         case WIDGET_AUTO_HYDRAULICS:
+        case WIDGET_CAM_TOGGLE:   // [v31] bouton "changer de vue" retire
             return true;
         default:
             return false;
@@ -287,7 +288,7 @@ uintptr_t CWidget_hook(CWidgetButton* thiz, const char* name, uintptr_t*  a3, in
 void (*CWidget__SetEnabled)(CWidgetGta* pWidget, bool bEnabled);
 void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
 {
-    if (Crestwood_IsReplacedWidget(pWidget)) {
+    if (Crestwood_WidgetId(pWidget) == WIDGET_CAM_TOGGLE || Crestwood_IsReplacedWidget(pWidget)) {   // [v31] bouton vue camera toujours masque
         CWidget__SetEnabled(pWidget, false);
         pWidget->m_bEnabled = false;
         return;
@@ -308,7 +309,7 @@ void CWidget__SetEnabled_hook(CWidgetGta* pWidget, bool bEnabled)
 
 void (*CWidgetButton__Update)(CWidgetButton* thiz);
 void CWidgetButton__Update_hook(CWidgetButton* thiz) {
-    if (Crestwood_IsReplacedWidget(thiz)) {
+    if (Crestwood_WidgetId(thiz) == WIDGET_CAM_TOGGLE || Crestwood_IsReplacedWidget(thiz)) {
         ((CWidgetGta*)thiz)->m_bEnabled = false;
         return;
     }

@@ -45,7 +45,7 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Publier l'APK dans la release V22-hud
-        if: github.ref == 'refs/heads/v22'
+        if: github.ref == 'refs/heads/v22-hud'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

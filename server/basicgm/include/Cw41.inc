@@ -567,7 +567,7 @@ stock Cw41_OnConnect(playerid)
 stock Cw41_OnInit()
 {
 	Fp_InitDB();
-	g_SlashOpen = Frp_GetSetting("slash_open", 0);
+	g_SlashOpen = Frp_GetSetting("slash_open", 1);   // [v53] ouvert par defaut : les pages (connexion, HUD) passent par ce filtre
 	return 1;
 }
 

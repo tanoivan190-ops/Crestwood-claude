@@ -1581,7 +1581,7 @@ stock Auth_InitDB()
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN birth TEXT NOT NULL DEFAULT ''"));
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN origin TEXT NOT NULL DEFAULT ''"));
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN gender INTEGER NOT NULL DEFAULT -1"));
-	print("[AUTH] Base de comptes prete. VERSION SANS-GOOGLE v3 (connexion pseudo + mot de passe)");
+	print("[AUTH] Base de comptes prete. VERSION SANS-GOOGLE v4 (connexion pseudo + mot de passe)");
 	return 1;
 }
 

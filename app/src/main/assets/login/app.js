@@ -56,7 +56,7 @@
     clearTimeout(busyTimer);
     busy.hidden = !on;
     document.querySelectorAll(".cw-cta").forEach((b) => { b.disabled = !!on; });
-    if (on) busyTimer = setTimeout(() => setBusy(false), ms || 8000);
+    if (on) busyTimer = setTimeout(() => { setBusy(false); notify("Pas de réponse du serveur (" + (window.SampAuth ? "envoyé" : "pont absent") + "). Réessaie ; si ça recommence, le serveur n'a pas le bon fichier.", "error", { title: "Connexion" }); }, ms || 8000);
   }
 
   // ---------------------------------------------------------------- ecrans

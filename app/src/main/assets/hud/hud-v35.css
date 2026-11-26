@@ -1,0 +1,29 @@
+/* ==========================================================================
+   Crestwood RP v35
+   - Camera du telephone : ses boutons ne recevaient AUCUN toucher (.hud-root est en
+     pointer-events:none et la camera n'avait jamais ete remise en "auto"). Corrige.
+   - Bouton moteur HTML retire : le bouton moteur est maintenant NATIF (dessine par le jeu).
+   ========================================================================== */
+#phoneCam{pointer-events:auto}
+#phoneCam .pc-stage,#phoneCam .pc-view,#phoneCam .pc-status,#phoneCam .pc-island,#phoneCam .pc-homebar{pointer-events:none}
+#phoneCam .pc-pad,#phoneCam .pc-pad button{pointer-events:auto}
+#phoneCam button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#phoneCam .pc-toast{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);z-index:9;max-width:86%;
+  padding:.9vh 1.6vh;border-radius:1.2vh;background:rgba(12,13,16,.88);color:#fff;text-align:center;
+  font:700 max(8px,1.6vh)/1.3 CwMont,Montserrat,sans-serif;pointer-events:none}
+#phoneCam .pc-toast[hidden]{display:none}
+#phoneCam .pc-thumb.pop{animation:pcPop .5s ease-out}
+@keyframes pcPop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+.hud-root .engine-toggle-button{display:none!important}
+
+/* [v36] parties du HUD devenues NATIVES (com.crestwood.ui) : la page HTML ne les dessine plus.
+   La classe est posee par Java (NativeHud.HIDE_HTML_JS) seulement quand le HUD natif est actif. */
+.cw-native-hud .vehicle-speedometer{display:none!important}
+.cw-native-hud .hud-info-panel .info-pill.time,
+.cw-native-hud .hud-info-panel .info-pill.account,
+.cw-native-hud .hud-info-panel .info-pill.coin,
+.cw-native-hud .hud-info-panel .info-pill.location,
+.cw-native-hud .hud-info-panel .info-pill.money,
+.cw-native-hud .hud-info-panel .wanted-row{visibility:hidden!important}
+/* [v37] minimap + jauges autour : natives */
+.cw-native-hud .minimap-frame,.cw-native-hud #mmRing,.cw-native-hud #mmRingIcons{display:none!important}

@@ -1,0 +1,8 @@
+/* [v31] Ecriture du jeu (Montserrat) dans le HUD : chat, notifications, menus, boutons. Icones non touchees. */
+@font-face{ font-family:"CwMont"; src:url("../common/fonts/montserrat_medium.ttf") format("truetype"); font-weight:400 500; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("../common/fonts/montserrat_bold.ttf") format("truetype"); font-weight:600 700; font-display:swap; }
+@font-face{ font-family:"CwMont"; src:url("../common/fonts/montserrat_black.ttf") format("truetype"); font-weight:800 900; font-display:swap; }
+body,
+body :is(div, p, span, b, strong, small, label, li, a, button, input, textarea, h1, h2, h3, h4, header, footer, section, article, aside):not([class*="icon"]):not([class*="material"]):not([class*="emoji"]):not(.wanted-star){
+  font-family: "CwMont", Roboto, "Segoe UI", sans-serif !important;
+}

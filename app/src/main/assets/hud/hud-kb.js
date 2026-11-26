@@ -10,7 +10,7 @@
    ===================================================================== */
 (() => {
   "use strict";
-  const chatInput = document.querySelector(".floating-chat-composer input");
+  const chatInput = document.querySelector(".floating-chat-composer input");   // [v31] voir useHtml plus bas
   const form = document.querySelector(".floating-chat-composer");
   if (!chatInput || !form) return;
   // [v23] le meme clavier rapide sert aussi aux champs des pages du HUD (MDT, craft...) : CwKb.openFor(champ, valider)
@@ -302,8 +302,11 @@
     window.SampHud?.showAndroidKeyboard?.();
   }
 
+  // [v31] le vrai clavier du telephone (Android) est utilise par defaut ; l'ancien clavier HTML
+  //       revient seulement si localStorage "cwKbHtml" = "1" (reglage pour les tests).
+  const useHtml = (() => { try { return window.localStorage.getItem("cwKbHtml") === "1"; } catch (_) { return false; } })();
   function open() {
-    if (nativeOnce) return false;          // ce message : clavier Android demandé
+    if (nativeOnce || !useHtml) return false;          // clavier Android
     isOpen = true;
     input.readOnly = true;
     input.setAttribute("inputmode", "none");
@@ -331,7 +334,7 @@
   kb.addEventListener("pointerdown", hold);
   kb.addEventListener("touchstart", hold, { passive: true });
   function openFor(el, done) {
-    if (!el) return false;
+    if (!el || !useHtml) return false;
     if (isOpen) close();
     input = el; externalDone = typeof done === "function" ? done : null;
     nativeOnce = false;

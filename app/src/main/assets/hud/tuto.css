@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Crestwood RP v46 - tutoriel par appel (tuto.js) : carte d'appel a gauche, verre blanc teinte vert
+   (couleur "appel"), police jeu. Petit, lisible, ne cache pas le milieu de l'ecran.
+   ========================================================================== */
+.tt{position:fixed;z-index:60;left:max(14px,env(safe-area-inset-left));top:max(70px,16vh);width:min(330px,40vw);
+  padding:11px 12px 12px;border-radius:20px;color:#16181d;font-family:"CwGame",Montserrat,sans-serif;
+  background:linear-gradient(160deg,rgba(255,255,255,.97) 0%,rgba(240,248,244,.95) 55%,rgba(222,238,230,.93) 100%);
+  border:1px solid rgba(255,255,255,.95);box-shadow:0 14px 34px rgba(0,0,0,.32),inset 0 1px 0 #fff;
+  opacity:0;transform:translateX(-18px) scale(.97);transition:opacity .24s ease,transform .3s cubic-bezier(.2,.9,.3,1.2);pointer-events:auto}
+.tt.show{opacity:1;transform:none}
+.tt.flash{animation:ttFlash .9s ease}
+@keyframes ttFlash{30%{box-shadow:0 0 0 3px #22b35e,0 14px 34px rgba(0,0,0,.32)}}
+.tt-head{display:flex;align-items:center;gap:10px}
+.tt-av{position:relative;flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(145deg,#ff8fb1,#b35cff);color:#fff;font-weight:900;font-size:17px;box-shadow:0 4px 12px rgba(179,92,255,.35)}
+.tt-av i{position:absolute;inset:-5px;border-radius:50%;border:2px solid #22b35e;opacity:0}
+.tt.ringing .tt-av i{animation:ttWave 1.4s ease-out infinite}
+.tt.ringing .tt-av{animation:ttShake 1.4s ease-in-out infinite}
+@keyframes ttWave{0%{opacity:.8;transform:scale(.9)}100%{opacity:0;transform:scale(1.45)}}
+@keyframes ttShake{0%,60%,100%{transform:none}65%{transform:rotate(-9deg)}70%{transform:rotate(9deg)}75%{transform:rotate(-7deg)}80%{transform:rotate(6deg)}85%{transform:none}}
+.tt-who{flex:1;min-width:0}
+.tt-who b{display:block;font-size:15px;font-weight:900;letter-spacing:.2px}
+.tt-who small{display:block;font-size:10.5px;font-weight:600;color:#5a616d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt-time{font-size:11px;font-weight:700;color:#1e9a52;font-variant-numeric:tabular-nums}
+.tt-ring{display:none;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.tt.ringing .tt-ring{display:flex}
+.tt-ringtxt{font-size:11px;font-weight:700;color:#4a505b;letter-spacing:.4px}
+.tt-no,.tt-yes,.tt-hang{width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex:none}
+.tt-no,.tt-hang{background:linear-gradient(160deg,#ff5a62,#d1343f);box-shadow:0 6px 16px rgba(209,52,63,.4)}
+.tt-yes{background:linear-gradient(160deg,#3fdd68,#1e9a52);box-shadow:0 6px 16px rgba(30,154,82,.45);animation:ttPulse 1.2s ease-in-out infinite}
+@keyframes ttPulse{50%{transform:scale(1.08)}}
+.tt-no svg,.tt-yes svg,.tt-hang svg{width:22px;height:22px;fill:#fff}
+.tt-no:active,.tt-yes:active,.tt-hang:active{transform:scale(.9)}
+.tt-call{display:none;margin-top:9px}
+.tt.calling .tt-call,.tt.ending .tt-call{display:block}
+.tt-steps{display:flex;gap:3px;margin-bottom:8px}
+.tt-steps i{flex:1;height:3px;border-radius:2px;background:rgba(16,18,24,.1)}
+.tt-steps i.done{background:#1e9a52}
+.tt-steps i.on{background:linear-gradient(90deg,#1e9a52,#7ee3a5)}
+.tt-say{position:relative;margin:0;padding:9px 11px;border-radius:4px 14px 14px 14px;background:#fff;border:1px solid rgba(16,18,24,.07);
+  font-size:12.5px;font-weight:600;line-height:1.38;min-height:44px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.tt-say.typing::after{content:"";display:inline-block;width:6px;height:12px;margin-left:2px;vertical-align:-1px;background:#1e9a52;animation:ttCaret .7s steps(1) infinite}
+@keyframes ttCaret{50%{opacity:0}}
+.tt-obj{display:flex;align-items:center;gap:9px;margin-top:8px;padding:8px 10px;border-radius:13px;
+  background:linear-gradient(140deg,rgba(30,154,82,.12),rgba(30,154,82,.05));border:1px solid rgba(30,154,82,.22)}
+.tt-oico{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(140deg,#1e9a52,#3fcf7c)}
+.tt-oico svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tt-obj b{display:block;font-size:12.5px;font-weight:900}
+.tt-obj small{display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:#17803f}
+.tt-obj small svg{width:12px;height:12px;fill:none;stroke:#17803f;stroke-width:2.2}
+.tt-btns{display:flex;align-items:center;gap:6px;margin-top:9px}
+.tt-hang{width:36px;height:36px}
+.tt-hang svg{width:18px;height:18px}
+.tt-b{flex:1;height:36px;border:0;border-radius:12px;font:900 12px "CwGame",Montserrat,sans-serif;letter-spacing:.3px;color:#fff;cursor:pointer;
+  background:linear-gradient(140deg,#16181d,#3a3f4a);box-shadow:0 5px 14px rgba(0,0,0,.22)}
+.tt-b.ghost{color:#16181d;background:#fff;border:1px solid rgba(16,18,24,.1);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.tt-b:active{transform:scale(.95)}
+.tt-b[hidden]{display:none}
+.tt.ending .tt-btns{display:none}
+.tt-end{margin-top:8px;padding:9px 11px;border-radius:13px;text-align:center;background:linear-gradient(140deg,#1e9a52,#3fcf7c);color:#fff}
+.tt-end b{display:block;font-size:13px;font-weight:900}
+.tt-end span{display:block;font-size:11px;font-weight:700;opacity:.95}
+.tt.missed .tt-who small{color:#d1343f}

@@ -9,6 +9,9 @@ on:
       - 'server/basicgm/**'
       - '.github/workflows/pawn-build.yml'
 
+permissions:
+  contents: write
+
 jobs:
   pawn:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
       - name: Construire pawncc 3.10.10 (sources officielles)
         run: |
           git clone --depth 1 --branch v3.10.10 https://github.com/pawn-lang/compiler.git /tmp/pawn
-          cmake -S /tmp/pawn/source/compiler -B /tmp/pawn-build -DCMAKE_BUILD_TYPE=Release
+          cmake -S /tmp/pawn/source/compiler -B /tmp/pawn-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_C_FLAGS=-std=gnu99
           cmake --build /tmp/pawn-build --target pawncc -j 4
           ls -la /tmp/pawn-build
 
@@ -39,3 +42,10 @@ jobs:
           path: |
             server/basicgm/basicgm1.amx
             server/basicgm/pawn.log
+
+      - name: Publier le .amx dans une release a part (l'APK ne l'efface pas)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view serveur-v30 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create serveur-v30 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Serveur V30 fusion (basicgm1.amx)" --notes "Dernier basicgm1.amx compile automatiquement. A mettre dans gamemodes/."
+          gh release upload serveur-v30 server/basicgm/basicgm1.amx --clobber --repo "$GITHUB_REPOSITORY"

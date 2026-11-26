@@ -1,0 +1,756 @@
+=== x/iv-textures-remake_1788288195_669394/IV Textures Remake/gta3/gta3.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=2 defaultstream=0
+"barbersflr1_LA" width=128 height=128 img=2aa65633 png=c82d517e hassibling=1
+"BistroMenu" width=128 height=128 img=0199aea4 png=978656c4 hassibling=1
+"Cabinet" width=128 height=128 img=882a97d3 png=b86365fa hassibling=1
+"Cakes" width=128 height=128 img=406ea38c png=502d818c hassibling=1
+"Candle_Holder" width=128 height=128 img=afd23c4c png=e9d91042 hassibling=1
+"Coffemachine" width=128 height=128 img=2195b786 png=8fce2348 hassibling=1
+"concretebig3_256" width=128 height=128 img=d103bf9a png=566e1043 hassibling=1
+"Cutlery" width=128 height=128 img=9480683c png=cbc4feaa hassibling=1 alphamode=2
+"deco_chair_1" width=256 height=256 img=a4a43cac png=7bdeae94 hassibling=1
+"DinerFloor" width=128 height=128 img=338e19fc png=f6ddf3e5 hassibling=1
+"Marble" width=128 height=128 img=098dede5 png=3342b63e hassibling=1
+"Marble2" width=128 height=128 img=32ea419d png=23f6a0d2 hassibling=1
+"marblekb_256128" width=128 height=128 img=24a6f2a5 png=2804a070 hassibling=1
+"mottled_grey_64HV" width=64 height=64 img=16e98127 png=6c311ba3 hassibling=1
+"mp_snow" width=128 height=128 img=fd56e885 png=6f98875e hassibling=1
+"Panel" width=128 height=128 img=bff2213d png=e5fed392 hassibling=1
+"Plate" width=128 height=128 img=b7e87ed4 png=3d815155 hassibling=1
+"rest_wall4" width=128 height=128 img=0fcc60f3 png=e9dec886 hassibling=1
+"SaltNPeppa" width=128 height=128 img=7b8f2be4 png=ee753f20 hassibling=1
+"StainedGlass" width=128 height
+=== x/iv-textures-remake_1788288195_669394/Bonus/GTA IV Styled Johnson's House/gta_int/gta_int.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=2 defaultstream=0
+"barrier_stripe" width=64 height=64 png=ce440c6f img=bcca3f02
+"pierlegs" width=128 height=128 png=5f19f1c9 img=7edcb469
+"basketball2" width=128 height=128 png=cc1fde2f img=02e39d27
+"sideboard1" width=128 height=128 png=779ae9db img=70fdc244
+"btdeck256" width=256 height=256 png=bc3da226 img=276b6625
+"newtreeleaves128" width=128 height=128 png=8ba2d6cc img=564b17fc alphamode=2
+"sprunk_cb" width=128 height=128 png=7cd77835 img=003abb94
+"drinktop_cb" width=64 height=64 png=3a6ba753 img=79b63844 alphamode=2
+"fries_cb" width=128 height=16 png=96c1fb75 img=84d5e5de
+"sprinkles" width=64 height=64 png=97a6adb1 img=1fde0263
+"burgerside" width=64 height=64 png=35e2ac78 img=b0d67f38
+"burgertop" width=64 height=64 png=642c31d5 img=e8766a51
+"burgerfront" width=64 height=64 png=024fe110 img=32c4d7b5
+"burgerfries" width=64 height=64 png=ec994e48 img=ff87e1d9
+"ketchup" width=64 height=64 png=e6c8fa65 img=69cefea7
+"sprinkler" width=64 height=64 png=c0a3cdd6 img=e61e43a3
+"burgerkids" width=128 height=64 png=48ad8cda img=e6b9f6a2
+"bkidside" width=64 height=64 png=065aaf7f img=02dfcd95
+"burgerfront2" width=64 height=64 png=dca34714 img=ca275208
+"chickenskin" width=64 height=64 png=226eb977 img=14d451c7
+"pplate" width=128 height=128 png=91a1f589 img=001719ef alphamode=2
+"salad" width=128 height=128 png=ccbf62b7 img=4c9897db alphamode=2
+"flameOptic" width=64 height=128 png=7cbbe177 img=6df41011 alphamode=2
+"marblebox" width=1
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/README.txt
+Simply copy the 'Android_unprotected' and 'cleo'
+ folders into the 'Android' directory. 
+Then, install the APK file.
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/headlight.ini
+[DeprauHeadlight]
+Brightness      = 2.792
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/net.juniordjjr.rusjj.rtf.ini
+[Settings]
+HornsThreshold = 2000
+CruiseSpeed = 20.000000
+CruiseMinSpeed = 8.000000
+CruiseMaxSpeed = 40.000000
+TurningSpeedDecrease = 15.000000
+FrontMultDist = 50.000000
+HeightDiffLimit = 4.000000
+CheckGroundHeight = 1.000000
+FinalGroundHeight = 0.700000
+SidesSpeedOffsetDiv = 70.000000
+ObstacleSpeedDecrease = 50.000000
+Acceleration = 0.050000
+Desacceleration = 0.010000
+BicycleSpeedMult = 0.400000
+BicycleCruiseMaxSpeed = 10.000000
+FixGroundStuck = 1
+UseBikeLogicOnCars = 0
+UseBikeLogicOnBicycles = 1
+BicyclesDontStopForRed = 0
+OnlyInNormal = 0
+CheckObjects = 0
+AvoidVehiclesChangingLane = 1
+SlowVehiclesSlowLane = 1
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/ZyZFirstPerson/cinematic_anim_names.txt
+Crouch_Roll_R
+Crouch_Roll_L
+CAR_TUNE_RADIO
+FALL_SKYDIVE_L
+FALL_SKYDIVE_R
+FALL_SKYDIVE_ACCEL
+PARA_OPEN
+CLIMB_idle
+CLIMB_jump
+CLIMB_jump_B
+CLIMB_Pull
+CLIMB_Stand
+getup
+getup_front
+FALL_collapse
+FALL_fall
+FALL_front
+FLOOR_hit
+FLOOR_hit_f
+Run_stop
+Run_stopR
+EAT_Burger
+EAT_Chicken
+EAT_Pizza
+shift
+shldr
+stretch
+strleg
+time
+IDLE_tired
+VEND_Drink2_P
+VEND_Drink_P
+vend_eat1_P
+VEND_Eat_P
+VEND_Use
+VEND_Use_pt2
+gym_bike_getoff
+gym_bike_geton
+gym_jog_falloff
+gym_tread_falloff
+gym_tread_getoff
+gym_tread_geton
+gym_bp_getoff
+gym_bp_geton
+gym_bp_celebrate
+gym_free_celebrate
+gym_free_pickup
+gym_free_putdown
+BRB_Sit_In
+BRB_Sit_Out
+BRB_Beard_01
+BRB_Hair_01
+BRB_Hair_02
+TAT_Sit_In_P
+TAT_Sit_Out_P
+TAT_Back_Sit_Out_P
+TAT_Back_Sit_In_P
+TAT_ArmR_Out_P
+TAT_ArmR_In_P
+TAT_ArmL_In_P
+TAT_ArmL_Out_P
+CLO_Buy
+CLO_In
+CLO_Out
+CLO_Pose_Hat
+CLO_Pose_In
+CLO_Pose_In_O
+CLO_Pose_Legs
+CLO_Pose_Loop
+CLO_Pose_Out
+CLO_Pose_Out_O
+CLO_Pose_Shoes
+CLO_Pose_Torso
+CLO_Pose_Watch
+bd_clap
+bd_clap1
+dance_loop
+DAN_Down_A
+DAN_Left_A
+DAN_Loop_A
+DAN_Right_A
+DAN_Up_A
+dnce_M_a
+dnce_M_b
+dnce_M_c
+dnce_M_d
+dnce_M_e
+Dance_B1
+Dance_B10
+Dance_B11
+Dance_B12
+Dance_B13
+Dance_B14
+Dance_B15
+Dance_B16
+Dance_B2
+Dance_B3
+Dance_B4
+Dance_B5
+Dance_B6
+Dance_B7
+Dance_B8
+Dance_B9
+Dance_G1
+Dance_G10
+Dance_G11
+Dance_G12
+Dance_G13
+Dance_G14
+Dance_G15
+Dance_G16
+Dance_G2
+Dance_G3
+Dance_G4
+Dance_G5
+Dance_G6
+Dance_G7
+Dance_G8
+Dance_G9
+dance_loop
+PLY_CASH
+LAPDAN_P
+SEX_1_Cum_P
+BBALL_Jump_End
+BBALL_Jump_Shot
+startgta41
+startgta4bikes1
+startgta4bikes2
+startgta4bikes3
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/ZyZFirstPerson/cinematic_task_id.txt
+704
+701
+932
+201
+211
+1016
+508
+204
+824
+208
+1603
+1602
+713
+275
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/ModLoaderCore.ini
+[Preferences]
+Author = RusJJ aka [-=KILL MAN=-]
+Discord = https://discord.gg/2MY7W39kBg
+Version = 1.4
+LaunchedTimeStamp = 1794509478
+FakePackageName = 
+InternalModsFolder = AMLMods
+InternalModsFirst = 1
+EnableLogcats = 1
+EnableUpdater = 1
+ShowUpdaterToast = 1
+ShowUpdaterFailedToast = 1
+EnableModFileDownloads = 1
+ShowNewsForFewTimes = 3
+DownloadTimeout = 2
+SignalHandler = 1
+PrintLogsToFile_Verbose = 0
+PrintLogsToFile_NoLogCat = 0
+PrintLogsToFile = 0
+
+[Savings]
+LastNewsIdShowed = We got another r|
+
+[DevTools]
+CrashAML = 0
+DontLoadMods = 0
+NoStackInCrashLog = 0
+NoModsInCrashLog = 0
+MLSOnlyManualSaves = 0
+CrashLogFromAllThreads = 1
+EHUnwindCrashLog = 0
+MoreRegistersInfo = 1
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/net.nazaa.vehiclereflections.ini
+[Preferences]
+VehicleReflection = 2.000000
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/net.rusjj.gtasa.moresettings.ini
+[Tweaks]
+DebugFPS = 1
+DebugFPS_TopLeft = 1
+FPSNew = 60
+
+[Fun]
+FreezeTime = 0
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/zyzgfx.ini
+[General]
+LogPath = 
+IniVersion = 28
+
+[Post]
+Enable = 1
+Tonemap = 0.500000
+Exposure = 0.600000
+Saturation = 1.050000
+Contrast = 1.000000
+Sharpen = 0.000000
+FilmGrain = 0.000000
+Dither = 1
+FXAA = 1
+GradeShader = 
+
+[Grading]
+Enable = 1
+Strength = 1.000000
+
+[HDR]
+Enable = 1
+Format = 0
+HighlightRange = 4.000000
+
+[TAA]
+Enable = 1
+History = 0.850000
+
+[FSR]
+Enable = 1
+RenderScale = 0.750000
+Sharpness = 0.800000
+FastSharpen = 1
+Mode = 0
+
+[Bloom]
+Enable = 1
+Intensity = 0.100000
+Threshold = 0.600000
+SoftKnee = 0.300000
+NightThreshold = 0.600000
+NightGlow = 4.000000
+
+[AutoExposure]
+Enable = 1
+Strength = 0.500000
+Key = 0.110000
+Min = 0.500000
+Max = 2.500000
+Speed = 1.500000
+
+[SunRays]
+Enable = 1
+Intensity = 0.600000
+Radius = 0.500000
+Density = 0.900000
+Decay = 0.940000
+
+[Fog]
+Enable = 1
+Density = 0.001500
+HeightFalloff = 0.045000
+BaseHeight = 0.000000
+HazeDensity = 0.000400
+HazeStart = 40.000000
+MaxOpacity = 0.850000
+FoggyWeather = 3.000000
+
+[LUT]
+Folder = ZyZGfx/LUT
+File = 
+Strength = 1.000000
+
+[AO]
+Enable = 1
+Strength = 1.000000
+Radius = 1.500000
+Intensity = 1.000000
+Distance = 150.000000
+Temporal = 0.850000
+Resolution = 4
+
+[Shadows]
+Enable = 1
+Strength = 0.550000
+Range = 40.000000
+FarRange = 180.000000
+Size = 2048
+CasterCache = 1
+MaxCached = 5000
+
+[World]
+Enable = 1
+PerPixelLight = 1
+LodBias = 0.000000
+AlphaTestLodBias = 0.000000
+
+[Textures]
+Enable = 1
+Trilinear = 1
+Anisotropy = 8
+GenerateMips = 1
+
+[Vehicle]
+Enable = 1
+Fresnel = 1.000000
+Specular = 1.500000
+Gloss = 80.000000
+Metallic 
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/SASpeedo64.ini
+[Speedo]
+Enable = 1
+Unit = kmh
+RightMargin = 32.000000
+BottomMargin = 32.000000
+Scale = 0.650000
+ShowGear = 1
+ShowRPM = 1
+GearRedRPM = 0.900000
+LogEvery = 60
+PosX = 0.760000
+PosY = 0.850000
+LightButtonX = 0.070000
+LightButtonY = 0.350000
+LightButtonSize = 90.000000
+AnimFrames = 15
+NitroColour = 40 174 228
+EnableNitroEffect = 1
+TestQuadSwap = 0
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/SA.VehLight.Adjuster.ini
+[Vehicle]
+BackLight=0.000000
+HeadLight=0.000000
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/configs/ZyZFirstPerson.ini
+[General]
+ConfigVersion=16
+Enabled=1
+LogLevel=1
+StartInFirstPerson=0
+MenuType=0
+MenuButton=1
+MenuButtonX=0.012
+MenuButtonY=0.36
+MenuButtonFade=10
+MenuWindowX=0.132395
+MenuWindowY=0.0398437
+MenuWindowW=0.73557
+MenuWindowH=0.920313
+
+[Camera]
+FOV=89.7503
+NearClip=0.065
+HeadBob=0.5
+CrosshairDot=1
+CrosshairDotOnlyAiming=1
+
+[Switches]
+ViewClamp=1
+HideHead=1
+EditCrosshair=1
+ShotsFollowView=1
+DotForGameCrosshair=1
+AutoSwitchScripted=1
+ThirdPersonBusted=0
+ThirdPersonWasted=0
+ControlIfSafe=0
+CameraButton=1
+HoldTime=500
+CutsceneFirstPerson=1
+
+[Input]
+TouchSensitivity=0.06
+TouchDeadzone=0.6
+LookSmoothing=0.3
+TouchSettleTime=500
+PadSensitivity=1
+PadInertia=0.19
+PadSettleTime=500
+InvertX=0
+InvertY=0
+Gyroscope=0
+GyroSensitivity=1
+GyroInvertX=0
+GyroInvertY=0
+
+[OnFoot]
+YawLimit=110
+RotateBodyStandingStill=1
+LateralMult=1.5
+SourceMovement=0
+SourceSpeed=5
+SourceAccelerate=10
+SourceFriction=4
+SourceAirAccelerate=10
+
+[Vehicle]
+Enabled=1
+YawLimit=110
+PitchUpLimit=80
+Recenter=1
+RecenterOnlyMovingForward=1
+RecenterSpeed=80
+PopWindows=1
+LightsThroughGlass=1
+AutoLookBack=1
+LookBackSpeed=0.03
+LookBackOffset=0.4
+DriveByCamera=0
+DriveBySideOnlyShooting=0
+HideGun=1
+PassengersLook=1
+RadioBoost=0.15
+PadAbsoluteLook=1
+PadLookSpeed=150
+PadFullScale=60
+
+[Body]
+CinematicOnFoot=0
+CinematicInVehicle=0
+CinematicSmoothness=80
+HeadPitchOffset=3
+CrouchRoll=1
+SprintFollowHeading=1
+SprintRecenterPitch=1
+JetpackRecenter=1
+JetpackRecenterSpeed=80
+HideGoggles=1
+HeadInShadow=1
+HeadFollowsView=1
+HeadTurnLimit=70
+
+[Weapons]
+
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/fastman92limitAdjuster_GTASA.ini
+; fastman92limitAdjuster_GTASA.ini
+
+[DYNAMIC LIMITS]
+; ColModels (10150)
+; Number of different collisions that can be loaded.
+#ColModels = 10150
+
+; VehicleStructs (50)
+; Max number of vehicles with different IDs loaded.
+#VehicleStructs = 50
+
+; rwObjectInstances (1500)
+#rwObjectInstances = 1500
+
+; Matrices (900)
+#Matrices = 900
+
+; PtrNode Singles (75000)
+#PtrNode Singles = 75000
+
+; PtrNode Doubles (6000)
+#PtrNode Doubles = 6000
+
+; EntryInfoNodes (500)
+#EntryInfoNodes = 500
+
+[IPL]
+; Buildings (14000)
+#Buildings = 14000
+
+; Dummies (3500)
+#Dummies = 3500
+
+; Entity index array (40)
+#Entity index array = 40
+
+; Entry exits (455)
+#Entry exits = 455
+
+[IDE LIMITS]
+; IDE Objects Type 1 (14000)
+#IDE Objects Type 1 = 14000
+
+; IDE Objects Type 2 (70)
+#IDE Objects Type 2 = 70
+
+; Timed Objects (169)
+#Timed Objects = 169
+
+; Hier Objects (92)
+; Clump models
+#Hier Objects = 92
+
+; Vehicle Models (212)
+#Vehicle Models = 212
+
+; Ped Models (278)
+#Ped Models = 278
+
+; Weapon Models (51)
+#Weapon Models = 51
+
+; 2DFX Effects (100)
+#2DFX Effects = 100
+
+[MAP LIMITS]
+; Enable path debugging (0)
+; Make sure to increase 'OTHER LIMITS -> Coronas', because the path debugging registers a large number of coronas to be rendered.
+#Enable path debugging = 0
+
+; Paths map size (6000)
+; This option requires a new set of files if map size is changed!!!
+#Paths map size = 6000
+
+; Water map size (6000)
+#Water map size = 6000
+
+; Renderware world map size (20000)
+#Renderware world map size = 20000
+
+; World map size (6000)
+#
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/texdb/gta3/gta3.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=2 defaultstream=0
+"ahoodfence2" width=128 height=128 img=b92ca30d png=72b88910 hassibling=1 streammode=1
+"barbersflr1_LA" width=128 height=128 img=2aa65633 png=c82d517e streammode=1
+"BistroMenu" width=128 height=128 img=0199aea4 png=978656c4 streammode=1
+"Bow_Abattoir_Conc2" width=128 height=128 img=cbefb957 png=fa137d0a detailtile=60 hasdetail=9 streammode=1
+"Cabinet" width=128 height=128 img=882a97d3 png=b86365fa streammode=1
+"Cakes" width=128 height=128 img=406ea38c png=502d818c streammode=1
+"Candle_Holder" width=128 height=128 img=afd23c4c png=e9d91042 streammode=1
+"Coffemachine" width=128 height=128 img=2195b786 png=8fce2348 streammode=1
+"concretebig3_256" width=128 height=128 img=d103bf9a png=566e1043 streammode=1
+"Cutlery" width=128 height=128 img=9480683c png=cbc4feaa alphamode=2 streammode=1
+"deco_chair_1" width=256 height=256 img=a4a43cac png=7bdeae94 streammode=1
+"DinerFloor" width=128 height=128 img=338e19fc png=f6ddf3e5 streammode=1
+"Marble" width=128 height=128 img=098dede5 png=3342b63e streammode=1
+"Marble2" width=128 height=128 img=32ea419d png=23f6a0d2 streammode=1
+"marblekb_256128" width=128 height=128 img=24a6f2a5 png=2804a070 streammode=1
+"mottled_grey_64HV" width=64 height=64 img=16e98127 png=6c311ba3 streammode=1
+"mp_snow" width=128 height=128 img=fd56e885 png=6f98875e streammode=1
+"Panel" width=128 height=128 img=bff2213d png=e5fed392 streammode=1
+"Plate" width=128 height=128 img=b7e87ed4 png=3d815
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/texdb/mobile/mobile.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=4 defaultstream=1
+"accelerate" width=256 height=256 png=c7ae034e img=b553f4d8 alphamode=2
+"brake" width=256 height=256 png=49ce3b74 img=c485e917 alphamode=2
+"cam-toggle" width=256 height=256 png=0ed84e63 img=60b161b1 alphamode=2
+"crouch" width=256 height=256 png=56000f2a img=6686772c alphamode=2
+"enterandexit" width=256 height=256 png=755a0704 img=44e745c3 alphamode=2
+"handbrake" width=256 height=256 png=8d98569c img=514e853c alphamode=2
+"horn" width=256 height=256 png=0d22c2b5 img=4b95f6e4 alphamode=2
+"hud_analognub" width=64 height=64 png=cdfd4045 img=06baac36 alphamode=2
+"hud_bicycle" width=256 height=256 png=347903cd img=5f44bf28 alphamode=2
+"hud_bike" width=256 height=256 png=0f0871ca img=b7d22f7c alphamode=2
+"hud_boat" width=256 height=256 png=49f281ae img=269e4ff6 alphamode=2
+"hud_car" width=256 height=256 png=8077273e img=c0cf2eba alphamode=2
+"hud_Cellphone" width=256 height=256 png=ede021cd img=53fd5206 alphamode=2
+"hud_check" width=256 height=256 png=e78e36e2 img=48dec4da alphamode=2
+"hud_chopper" width=256 height=256 png=9cf6c0e3 img=12555186 alphamode=2
+"hud_circle" width=256 height=256 png=78ae2e95 img=59bca6f9 alphamode=2
+"hud_crouch" width=256 height=256 png=56000f2a img=6686772c alphamode=2
+"hud_left" width=256 height=256 png=d23074cf img=74bc355c alphamode=2
+"hud_lockon" width=256 height=256 png=4b609217 img=375d0945 alphamode=2
+"hud_monstertruck" width=256 height=256 png=25cf3418 img=ea4193cc alphamode=
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/texdb/txd/txd.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=2 defaultstream=0
+"gunshell" width=32 height=32 png=87b9337a img=dec5747d alphamode=2
+"splash_up1" width=32 height=32 png=6868df3b img=c41a03e1
+"splash_up2" width=32 height=32 png=373ddf50 img=fba8e613
+"boatwake1" width=64 height=64 png=6ac21d21 img=4a873835
+"fireball6" width=32 height=32 png=b64adb4f img=18a39f42 alphamode=2
+"wjet6" width=64 height=64 png=da85031e img=9fd35ff3 alphamode=2
+"sphere_CJ" width=64 height=64 png=05ded91a img=43edfd17 alphamode=2
+"cloudmasked" width=64 height=64 png=2d834f77 img=b6ecb22b alphamode=2
+"pointlight" width=32 height=32 png=47e43bc7 img=63a23642 alphamode=2
+"smoke" width=32 height=32 png=9c8824e9 img=1baf62c4 alphamode=2
+"gensplash" width=64 height=64 png=a0e713d0 img=e43d0e96 alphamode=2
+"boatsplash" width=64 height=64 png=7d1d1f61 img=b40cbc53 alphamode=2
+"bubbles" width=32 height=32 png=14404e56 img=f8d848d6 alphamode=2
+"wjet4" width=128 height=128 png=d0751815 img=f3e2e79b alphamode=2
+"carsplash_02" width=64 height=64 png=d50ed369 img=02ab0dbb alphamode=2
+"splash_up" width=32 height=32 png=77189b02 img=c11b0d74
+"collisionsmoke" width=64 height=64 png=54d0b32e img=91c8c53e alphamode=2
+"beastie" width=16 height=16 png=40cbbcec img=4e2d4509 alphamode=2
+"wjet2" width=64 height=64 png=f126d967 img=8ec3e584 alphamode=2
+"wgush1" width=64 height=64 png=010c0eb3 img=f7917da6 alphamode=2
+"gameleaf01_64" width=64 height=64 png=c9edab2b img=c5eee7a5 alphamode=1
+"cement" width=32 height=32 p
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/texdb/menu/menu.txt
+cat=0 name=Default onfoot=5 slow=5 fast=5 defaultformat=4 defaultstream=1
+"menu_smalllogo" width=256 height=256 png=015bd676 img=293f4934 alphamode=2
+"menu_adjback" width=512 height=256 png=38ed5e44 img=f8619f25
+"menu_adjback2" width=512 height=256 png=7d60be6d img=c3452732
+"menu_bgmap" width=1024 height=1024 img=721d52 alphamode=2
+"menu_char0" width=320 height=720 img=a4982042 mipmode=0 alphamode=2
+"menu_char1" width=320 height=720 img=8c644ad4 mipmode=0 alphamode=2
+"menu_char2" width=320 height=720 img=c39d8cf5 mipmode=0 alphamode=2
+"menu_char3" width=320 height=720 img=49422d2e mipmode=0 alphamode=2
+"menu_char4" width=320 height=720 img=868af218 mipmode=0 alphamode=2
+"menu_char5" width=320 height=720 img=1c87096f mipmode=0 alphamode=2
+"menu_char6" width=320 height=720 img=abea2b27 mipmode=0 alphamode=2
+"menu_char7" width=320 height=720 img=e92e4801 mipmode=0 alphamode=2
+"menu_char8" width=320 height=720 img=bff4e6e1 mipmode=0 alphamode=2
+"menu_main1" width=1024 height=576 img=403527b2 mipmode=0 alphamode=2
+"menu_main2" width=1024 height=576 img=b23105b6 mipmode=0 alphamode=2
+"menu_main3" width=1024 height=576 img=a3d16a1c mipmode=0 alphamode=2
+"menu_main4" width=1024 height=576 img=afe692ca mipmode=0 alphamode=2
+"menu_mainaudio" width=64 height=64 img=a2456c2f alphamode=2
+"menu_mainbriefs" width=64 height=64 img=49f06309 alphamode=2
+"menu_maincontrols" width=64 height=64 img=9e462d01 alphamode=2
+"menu_maindelete" width=64 height=64 img=913be08f alphamode=2
+"menu_maindispla
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/Adjustable.cfg
+;User defined touch control placement. This file contains only positions that have
+; been modified by the user and is loaded on top of the defaults file.
+PositionAndScale 616, 247, SCALE_LARGEST ; WIDGET_POSITION_ENTER_CAR
+PositionAndScale 573, 308, SCALE_LARGE ; WIDGET_POSITION_TARGETING_AND_ATTACK
+PositionAndScale 553, 236, SCALE_LARGE ; WIDGET_POSITION_VC_SHOOT
+PositionAndScale 106, 230, SCALE_LARGE ; WIDGET_POSITION_VC_SHOOT_ALT
+PositionAndScale 548, 155, SCALE_LARGE ; WIDGET_POSITION_SWAP_WEAPONS
+PositionAndScale 30, 169, SCALE_LARGER ; WIDGET_POSITION_MISSION_START_AND_MISSION_CANCEL
+PositionAndScale 604, 364, SCALE_LARGEST_PHONE ; WIDGET_POSITION_ACCELERATE
+PositionAndScale 522, 364, SCALE_LARGEST_PHONE ; WIDGET_POSITION_BRAKE
+PositionAndScale 560, 283, SCALE_LARGER ; WIDGET_POSITION_HANDBRAKE_AND_AIR_SHOOT
+PositionAndScale 50, 364, SCALE_LARGEST_PHONE ; WIDGET_POSITION_VEHICLE_STEER_LEFT
+PositionAndScale 136, 364, SCALE_LARGEST_PHONE ; WIDGET_POSITION_VEHICLE_STEER_RIGHT
+PositionAndScale 94, 283, SCALE_LARGER ; WIDGET_POSITION_HORN
+PositionAndScale 621, 134, SCALE_LARGE ; WIDGET_POSITION_CAM_TOGGLE
+PositionAndScale 35, 263, SCALE_LARGER ; WIDGET_POSITION_VEHICLE_SHOOT_LEFT
+PositionAndScale 157, 265, SCALE_LARGER ; WIDGET_POSITION_VEHICLE_SHOOT_RIGHT
+PositionAndScale 510, 251, SCALE_LARGE ; WIDGET_POSITION_CAR_SHOOT
+PositionAndScale 603, 377, SCALE_LARGER ; WIDGET_POSITION_BUTTON_SPRINT_AND_SWIM
+PositionAndScale 611, 150, SCALE_LARGE ; WIDGET_POSITION_PHONE
+PositionAnd
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/files/data/handling.cfg
+; Author: Bill Henderson
+; Created 10/12/1999
+;
+; > COMMENTS <
+; ------------
+; TWEAK AT YOUR OWN RISK
+;
+; > UNITS <
+; ---------
+; vehicle identifier 14 characters max
+; dimensions in metres
+; mass in Kg
+; velocity in Km/h
+; acceleration/deceleration in ms-2
+; multipliers x1.0 is default
+; angles in degrees
+; Levels :- (L)ow, (M)edium, (H)igh
+; buoyancy = percent submerged (> 100% vehicle sinks)
+; engine type :- (P)etrol, (D)iesel, (E)lectric
+; engine drive :- (F)ront, (R)ear, (4)-wheel drive
+;
+; > FIELD DESCRIPTIONS <
+; ----------------------
+; (A) vehicle identifier			[14 characters max]
+; (B) fMass					[1.0 to 50000.0]
+; (C) fTurnMass				//was////Dimensions.x				[0.0 > x > 20.0]
+; (D) fDragMult				//was////Dimensions.y				[0.0 > x > 20.0]
+; (E) (not used)			//was////Dimensions.z,				[0.0 > x > 20.0]
+; (F) CentreOfMass.x				[-10.0 > x > 10.0]
+; (G) CentreOfMass.y				[-10.0 > x > 10.0]
+; (H) CentreOfMass.z				[-10.0 > x > 10.0]
+; (I) nPercentSubmerged				[10 to 120]
+; (J) fTractionMultiplier			[0.5 to 2.0]
+; (K) fTractionLoss                             [0.0 > x > 1.0]
+; (L) fTractionBias                             [0.0 > x > 1.0]
+; (M) TransmissionData.nNumberOfGears		[1 to 4]
+; (N) TransmissionData.fMaxVelocity		[5.0 to 150.0]
+; (O) TransmissionData.fEngineAcceleration	[0.1 to 10.0]
+; (P) TransmissionData.fEngineInertia		[0.0 to 50.0]
+; (Q) TransmissionData.nDriveType		[F/R/4]
+; (R) TransmissionData.nEngineType		[P/D/E]
+; (S) fBrakeDeceleration			[0.1 to 10.0]
+; (T) fBrak
+=== x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/ZyZGfx/boot.txt
+ok
+game reached
+

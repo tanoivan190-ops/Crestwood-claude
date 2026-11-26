@@ -1,0 +1,11 @@
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libMoreSettings.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libheadlight.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libSAUtils64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libheadlight64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libZyZFirstPerson64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libMoreSettings64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libZyZGfx64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/lib0saspeedo64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libNazaaReflections64.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libSA.VehLight.Adjuster.so
+x/gta-sa-aml-remastered-android-16-no_1794549081_524091/Android_unprotected/data/com.rockstargames.gtasa/mods/libSAUtils.so

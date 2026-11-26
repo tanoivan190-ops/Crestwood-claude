@@ -28,7 +28,7 @@ public final class NativeHud {
     public static final String HIDE_HTML_JS =
             "(function(){var d=document.documentElement;if(d.classList.contains('cw-native-hud'))return;"
             + "d.classList.add('cw-native-hud');window.CwNativeHud=1;"
-            + "var f=document.querySelector('.literal-speedometer-frame');if(f){try{f.src='about:blank';}catch(e){}f.remove();}"
+            // [v53] on GARDE notre compteur (speedo2, page HTML) : le compteur natif du dev est desactive
             // [v37] minimap native : la minimap HTML ne calcule plus rien (sinon deux GPS en meme temps)
             + "window.Minimap={update:function(){}};"
             + "window.MinimapBridge={setBlips:function(){},setWaypoint:function(){},clearWaypoint:function(){},setZoom:function(){},distanceLeft:function(){return -1;}};"
@@ -187,7 +187,7 @@ public final class NativeHud {
             if (minimap.getVisibility() != mw) minimap.setVisibility(mw);
         }
         if (speedo != null) {
-            int want = show && inVehicle ? View.VISIBLE : View.GONE;
+            int want = View.GONE;   // [v53] compteur natif remplace par notre speedo2
             if (speedo.getVisibility() != want) speedo.setVisibility(want);
         }
     }

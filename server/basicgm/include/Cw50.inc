@@ -459,7 +459,7 @@ stock Gg_LinkOld(playerid, const params[], pw = 0)
 	new q[200];
 	format(q, sizeof q, "SELECT name, salt, hash FROM accounts WHERE name = '%s' LIMIT 1", user);
 	new DBResult:r = db_query(g_AuthDB, q);
-	if (db_num_rows(r) < 1) { db_free_result(r); return Auth_Reply(playerid, "error", "Ancien personnage", "Ce personnage n'existe pas."); }
+	if (db_num_rows(r) < 1) { db_free_result(r); printf("[AUTH] connexion : personnage '%s' introuvable", user); return Auth_Reply(playerid, "error", "Ancien personnage", "Ce personnage n'existe pas."); }
 	new real[MAX_PLAYER_NAME + 1], salt[24], hash[24], check[24];
 	db_get_field(r, 0, real, sizeof real);
 	db_get_field(r, 1, salt, sizeof salt);
@@ -473,6 +473,7 @@ stock Gg_LinkOld(playerid, const params[], pw = 0)
 	Auth_Hash(pass, salt, check, sizeof check);
 	if (strcmp(check, hash, false) != 0)
 	{
+		printf("[AUTH] connexion : mauvais mot de passe pour '%s'", real);
 		g_AuthFails[playerid]++;
 		if (g_AuthFails[playerid] >= AUTH_MAX_FAILS)
 		{

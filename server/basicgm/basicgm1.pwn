@@ -1937,6 +1937,7 @@ stock Auth_OnCommand(playerid, const cmdtext[])
 		if (g_AuthDB == DB:0) return 1;
 		new idx = 9, action[16];
 		Bank_NextToken(cmdtext, idx, action, sizeof action);
+		if (strcmp(action, "spawnsel", true) && strcmp(action, "gpreview", true)) printf("[AUTH] action '%s' recue du joueur %d", action, playerid);
 		// "open" : l'application redemande l'ecran de connexion (le premier dialogue a pu arriver trop tot)
 		if (!strcmp(action, "open", true))
 		{

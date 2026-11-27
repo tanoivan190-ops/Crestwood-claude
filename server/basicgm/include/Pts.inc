@@ -158,6 +158,44 @@ stock Pts_OpenDB()
 }
 
 // Recharge tous les points et remplit les tableaux des systemes (banque, 24/7, essence, location, emplois)
+// [v30b] nos systemes poses aux emplacements du gamemode MTA ECLIPSE (une seule fois ; un point deja
+//        pose a moins de 12 m par le staff n'est pas double). Deplacables ensuite avec /points.
+stock Pts_SeedOne(type, const name[], Float:x, Float:y, Float:z, Float:a)
+{
+	new q[260], DBResult:r, n = 0;
+	format(q, sizeof q, "SELECT COUNT(*) FROM cw_points WHERE type = %d AND (x - %f) * (x - %f) + (y - %f) * (y - %f) < 144.0", type, x, x, y, y);
+	r = db_query(g_PtDB, q);
+	if (r != DBResult:0)
+	{
+		new f[12];
+		if (db_num_rows(r) > 0)
+		{
+			db_get_field(r, 0, f, sizeof f);
+			n = strval(f);
+		}
+		db_free_result(r);
+	}
+	if (n > 0) return 0;
+	format(q, sizeof q, "INSERT INTO cw_points (type, sub, name, x, y, z, a) VALUES (%d, 0, '%s', %f, %f, %f, %f)", type, name, x, y, z, a);
+	db_free_result(db_query(g_PtDB, q));
+	return 1;
+}
+
+stock Pts_SeedMta()
+{
+	new n = 0;
+	// superettes / magasins (EC-ShopSystem : saved_shops.json)
+	n += Pts_SeedOne(PT_SHOP, "Superette Idlewood", 1925.9453, -1769.9150, 13.5468, 178.2);
+	n += Pts_SeedOne(PT_SHOP, "Superette Glen Park", 2056.0352, -1097.1826, 24.6085, 180.0);
+	n += Pts_SeedOne(PT_SHOP, "Tabac Ganton", 2140.5049, -1731.0840, 13.5615, 178.4);
+	n += Pts_SeedOne(PT_SHOP, "Bar de la plage", 416.2129, -1846.8018, 4.4611, 271.6);
+	// pompes de la station Idlewood (mapping MTA Igs)
+	n += Pts_SeedOne(PT_PUMP, "", 1941.6560, -1768.9000, 13.6406, 0.0);
+	n += Pts_SeedOne(PT_PUMP, "", 1941.6560, -1776.4000, 13.6406, 0.0);
+	printf("[POINTS] v30b : %d point(s) du MTA ajoute(s) (superettes, pompes).", n);
+	return n;
+}
+
 stock Pts_LoadAll()
 {
 	if (!g_PtJobOrigDone)
@@ -173,6 +211,7 @@ stock Pts_LoadAll()
 	g_BankCount = 0; g_ShopCount = 0; g_SvcPumpCount = 0; g_SvcRentCount = 0;
 	for (new j = 1; j <= JOB_COUNT; j++) g_JobPlaced[j] = 0;
 	if (!Pts_OpenDB()) return 0;
+	if (Cw_OnceDB(g_PtDB, "mta_points_v30")) Pts_SeedMta();   // [v30b] emplacements du gamemode MTA ECLIPSE
 	new DBResult:res = db_query(g_PtDB, "SELECT id, type, sub, name, x, y, z, a FROM cw_points ORDER BY id");
 	if (res == DBResult:0) return 0;
 	new rows = db_num_rows(res), f[40];

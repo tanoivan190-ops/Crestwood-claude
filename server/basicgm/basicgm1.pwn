@@ -1334,6 +1334,12 @@ stock Interact_Key(playerid)
 	new bikeKey = Bike_InteractKey(playerid);    // [v25] location de velo (200)
 	if (bikeKey) return bikeKey;
 
+	new pgKey = Pg_InteractKey(playerid);        // [v30c] bureau bodycam (210)
+	if (pgKey) return pgKey;
+
+	new c44Key = Cw44_InteractKey(playerid);     // [v44] casino (220)
+	if (c44Key) return c44Key;
+
 	new garKey = Garage_InteractKey(playerid);   // module GARAGES (garage 90)
 	if (garKey) return garKey;
 
@@ -1403,6 +1409,8 @@ stock Interact_Send(playerid, key)
 		case 170: format(json, sizeof json, "{\"show\":1,\"id\":\"talk\",\"label\":\"Parler\"}");
 		case 190: format(json, sizeof json, "{\"show\":1,\"id\":\"clothes\",\"label\":\"Vetements\"}");
 		case 200: format(json, sizeof json, "{\"show\":1,\"id\":\"bike\",\"label\":\"Location de velo\"}");
+		case 210: format(json, sizeof json, "{\"show\":1,\"id\":\"police\",\"label\":\"Bodycam\"}");
+		case 220: format(json, sizeof json, "{\"show\":1,\"id\":\"shop\",\"label\":\"Casino\"}");
 		case 141: format(json, sizeof json, "{\"show\":1,\"id\":\"rob\",\"label\":\"Pirater\"}");
 		case 142: format(json, sizeof json, "{\"show\":1,\"id\":\"rob\",\"label\":\"Prendre\"}");
 		case 20:  format(json, sizeof json, "{\"show\":1,\"id\":\"vehicle_lock\",\"label\":\"Verrouiller\"}");
@@ -1444,7 +1452,7 @@ stock Interact_IsAuto(key)
 {
 	switch (key)
 	{
-		case 10, 30, 50, 60, 70, 71, 90, 110, 150, 160, 190, 200: return 1;
+		case 10, 30, 50, 60, 70, 71, 90, 110, 150, 160, 190, 200, 220: return 1;
 	}
 	return 0;
 }
@@ -1478,6 +1486,8 @@ stock Interact_Do(playerid)
 		case 17:               Npc_Talk(playerid);           // [v18] PNJ
 		case 19:               Cs_Use(playerid);             // [v21] magasin de vetements
 		case 20:               Bike_Use(playerid);           // [v25] location de velo
+		case 21:               Bc_Open(playerid);            // [v30c] bureau bodycam
+		case 22:               Cas_Open(playerid);           // [v44] casino
 	}
 	// met a jour l'icone tout de suite (banque ouverte -> cachee, cadenas -> nouveau libelle)
 	Interact_Refresh(playerid);
@@ -3609,6 +3619,7 @@ stock Locker_GearJson(t, out[], size)
 		case FACTION_GOVERNMENT: format(out, size, "[\"deagle\",\"Desert Eagle\",\"70 balles\"],[\"gilet\",\"Gilet pare-balles\",\"armure 100\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
 		case FACTION_MEDIC:      format(out, size, "[\"soin\",\"Trousse de soin\",\"sante 100\"],[\"bandages\",\"Bandages\",\"x3 inventaire\"],[\"extincteur\",\"Extincteur\",\"\"]");
 		case FACTION_MECHANIC:   format(out, size, "[\"extincteur\",\"Extincteur\",\"\"],[\"soin\",\"Trousse de soin\",\"sante 100\"]");
+		case FACTION_FIRE:       format(out, size, "[\"extincteur\",\"Extincteur\",\"500\"],[\"soin\",\"Trousse de soin\",\"sante 100\"],[\"gilet\",\"Tenue ignifugee\",\"armure 100\"],[\"bandages\",\"Bandages\",\"x3 inventaire\"]");
 		case FACTION_NEWS:       format(out, size, "[\"camera\",\"Appareil photo\",\"\"]");
 	}
 	return 1;
@@ -3664,8 +3675,21 @@ stock Locker_Send(playerid, dialogid, ok, const msg[])
 	}
 	else female = (g_ClothSkin[playerid] == CLOTH_SKIN_FEMALE) ? 1 : 0;
 	Locker_GearJson(Fac_Type(playerid), gear, sizeof gear);
-	format(json, sizeof json, "{\"fac\":%d,\"facName\":\"%s\",\"rank\":%d,\"rankName\":\"%s\",\"uniform\":%d,\"female\":%d,\"belt\":%d,\"vest\":%d,\"hat\":%d,\"police\":%d,\"ok\":%d,\"msg\":\"%s\",\"stock\":%d,\"gear\":[%s]}",
-		fac, fname, g_FacRank[playerid], rname, uniform, female, belt, vest, hat, (Fac_Type(playerid) == FACTION_POLICE) ? 1 : 0, ok, msg, C23_StockOf(Fac_Type(playerid)), gear);
+	// [v56] tenues de la faction : [[index, skin], ...] + celle portee
+	new outfits[64], part[16], t = Fac_Type(playerid), worn = -1;
+	outfits[0] = 0;
+	if (t > FACTION_NONE && t <= FACTION_TYPE_MAX)
+	{
+		for (new i = 0; i < LOCKER_OUTFITS; i++)
+		{
+			if (!g_LkOutfit[t][i]) continue;
+			format(part, sizeof part, "%s[%d,%d]", outfits[0] ? (",") : (""), i, g_LkOutfit[t][i]);
+			strcat(outfits, part, sizeof outfits);
+			if (g_RpXUni[playerid] == g_LkOutfit[t][i]) worn = i;
+		}
+	}
+	format(json, sizeof json, "{\"fac\":%d,\"facName\":\"%s\",\"type\":%d,\"rank\":%d,\"rankName\":\"%s\",\"uniform\":%d,\"female\":%d,\"belt\":%d,\"vest\":%d,\"hat\":%d,\"police\":%d,\"ok\":%d,\"msg\":\"%s\",\"stock\":%d,\"outfits\":[%s],\"worn\":%d,\"gear\":[%s]}",
+		fac, fname, t, g_FacRank[playerid], rname, uniform, female, belt, vest, hat, (t == FACTION_POLICE) ? 1 : 0, ok, msg, C23_StockOf(t), outfits, worn, gear);
 	return ShowPlayerDialog(playerid, dialogid, DIALOG_STYLE_MSGBOX, "@locker", json, "OK", "");
 }
 
@@ -3718,13 +3742,12 @@ stock Locker_Action(playerid, const params[])
 	}
 	else if (Fac_Type(playerid) != FACTION_POLICE && !strcmp(action, "wear", true))
 	{
-		// autres factions : uniforme simple (skin SA de la faction)
+		// [v56] autres factions : tenue choisie dans la liste du vestiaire (index 0..2)
 		new tok[4];
 		Bank_NextToken(params, idx, tok, sizeof tok);
 		g_LockerLast[playerid] = (now == 0 ? 1 : now);
-		RpX_WearUniform(playerid, tok[0] == '1');
-		format(msg, sizeof msg, "Tenue de service enfilee.");
-		ok = 1;
+		if (RpX_WearOutfit(playerid, strval(tok))) { format(msg, sizeof msg, "Tenue de service enfilee."); ok = 1; }
+		else format(msg, sizeof msg, "Tenue indisponible pour ta faction.");
 	}
 	else if (Fac_Type(playerid) != FACTION_POLICE && !strcmp(action, "civil", true))
 	{
@@ -5305,6 +5328,7 @@ stock Pol_Jail(target, minutes)
 		format(query, sizeof query, "INSERT OR REPLACE INTO jail (name, jail_until) VALUES ('%s', %d)", name, g_PolJailUntil[target]);
 		db_free_result(db_query(g_PolDB, query));
 	}
+	Jus_OnJail(target, minutes);   // [v41] casier judiciaire
 	return Pol_SendToPrison(target);
 }
 
@@ -5583,6 +5607,7 @@ stock Pol_Action(playerid, const params[])
 			format(label, sizeof label, "Arrestation - %d min", minutes);
 			Pol_AddRecord(tname, "a", label, oname);
 			Pol_Jail(t, minutes);
+			Cw46_OnArrest(playerid);   // [v46] stats
 			format(line, sizeof line, "%s t'a arrete : detention de %d minute(s).", onice, minutes);
 			SendClientMessage(t, POL_COL_ERR, line);
 			format(line, sizeof line, "%s est place en detention (%d min).", tnice, minutes);
@@ -5770,7 +5795,7 @@ stock Pol_OnCommand(playerid, const cmdtext[])
 //  Staff    : /createfaction <type> <nom>   /editfaction <id> <option>
 //             /removefaction <id>           /setfaction <joueur> <id> [grade]
 //  Types    : police medic news government hitman federal mechanic
-//             terrorist army cardealer burger taxi
+//             terrorist army cardealer burger taxi fire justice (v41)
 //  Salaire  : verse sur le compte bancaire toutes les 30 minutes
 //             (selon le grade, /editfaction <id> paycheck <grade> <montant>)
 // ============================================================
@@ -5790,7 +5815,7 @@ forward FacX_Pay();
 new const g_FxTypeNames[][] =
 {
 	"none", "police", "medic", "news", "government", "hitman", "federal",
-	"mechanic", "terrorist", "army", "cardealer", "burger", "taxi"
+	"mechanic", "terrorist", "army", "cardealer", "burger", "taxi", "fire", "justice"
 };
 
 // ------------------------------------------------------------
@@ -5900,7 +5925,8 @@ stock Fx_SendTo(mode, fac, color, const text[])
 		else
 		{
 			new t = Fac_Type(i);
-			if (t != FACTION_POLICE && t != FACTION_MEDIC && t != FACTION_GOVERNMENT && t != FACTION_FEDERAL) continue;
+			if (t != FACTION_POLICE && t != FACTION_MEDIC && t != FACTION_GOVERNMENT && t != FACTION_FEDERAL
+				&& t != FACTION_FIRE && t != FACTION_JUSTICE && t != FACTION_ARMY) continue;   // [v41]
 		}
 		SendClientMessage(i, color, text);
 	}
@@ -6686,9 +6712,11 @@ public FacX_Pay()
 		if (rk < 1 || rk > MAX_FACTION_RANKS) continue;
 		new pay = g_FxPay[fac][rk];
 		if (pay <= 0) continue;
+		pay = Frp_PayMult(i, pay);   // [v41] etat d'urgence : x2 pour les services d'urgence
 		if (g_BankBalance[i] > BANK_MAX_MONEY - pay) continue;
 		g_BankBalance[i] += pay;
 		Bank_AddHistory(i, "Salaire de faction", pay);
+		Cw46_OnSalary(i, pay);   // [v46] stats
 		Bank_SavePlayer(i);
 		format(msg, sizeof msg, "Salaire de faction : +$%d verse sur votre compte bancaire.", pay);
 		SendClientMessage(i, FACX_COL_OK, msg);
@@ -7119,7 +7147,11 @@ stock Shop_OnCommand(playerid, const cmdtext[])
 #define JOB_BUS               3           // chauffeur de bus
 #define JOB_GARBAGE           4           // eboueur (Trashmaster)
 #define JOB_PIZZA             5           // livreur de pizzas (Pizzaboy)
-#define JOB_COUNT             5
+#define JOB_SWEEPER           6           // [v44] agent de proprete (balayeuse)
+#define JOB_TRUCKER           7           // [v44] routier (Benson)
+#define JOB_CASH              8           // [v44] convoyeur de fonds (Securicar)
+#define JOB_POST              9           // [v44] facteur (Faggio)
+#define JOB_COUNT             9
 
 #define JOB_RANGE             3.0         // distance du siege pour signer / prendre le service
 #define JOB_RESIGN_COOLDOWN   120000      // 2 min entre une demission et un nouveau contrat
@@ -7164,7 +7196,12 @@ new g_Jobs[JOB_COUNT + 1][E_JOB] =
 	{ 2183.0, -2265.0, 13.55, 414,  2195.6, -2269.4, 13.8, 225.0, 400, 145, "Livreur"},
 	{ 1754.0, -1894.0, 13.56, 431,  1765.0, -1890.0, 13.8, 270.0, 450, 105, "Chauffeur de bus"},
 	{ 2183.0, -1985.0, 13.55, 408,  2178.0, -1975.0, 13.8,   0.0, 350,  75, "Eboueur"},
-	{ 2105.5, -1806.5, 13.55, 448,  2098.0, -1800.0, 13.4,  90.0, 300, 139, "Livreur de pizzas"}
+	{ 2105.5, -1806.5, 13.55, 448,  2098.0, -1800.0, 13.4,  90.0, 300, 139, "Livreur de pizzas"},
+	// [v44] sieges provisoires : a placer en jeu avec le panneau /points
+	{ 2155.0, -1985.0, 13.55, 574,  2150.0, -1975.0, 13.5,   0.0, 300,  75, "Agent de proprete"},
+	{ 2215.0, -2240.0, 13.55, 499,  2225.0, -2250.0, 13.6, 225.0, 600,  51, "Routier"},
+	{ 1745.0, -1860.0, 13.58, 428,  1735.0, -1855.0, 13.5, 270.0, 700,  52, "Convoyeur de fonds"},
+	{ 2045.0, -1635.0, 13.55, 462,  2040.0, -1640.0, 13.5,  90.0, 250,  42, "Facteur"}
 };
 
 enum E_JSTEP
@@ -7212,7 +7249,35 @@ new g_JobSteps[][E_JSTEP] =
 	{JOB_PIZZA,    0, 2068.0, -1628.6, 13.9, JK_STOP,  60},
 	{JOB_PIZZA,    0, 2459.4, -1690.6, 13.5, JK_STOP,  60},
 	{JOB_PIZZA,    0, 2495.3, -1688.4, 13.8, JK_STOP,  60},
-	{JOB_PIZZA,    0, 2105.5, -1800.0, 13.4, JK_DRIVE,  0}
+	{JOB_PIZZA,    0, 2105.5, -1800.0, 13.4, JK_DRIVE,  0},
+
+	// [v44] Agent de proprete - balayeuse dans Ganton / Idlewood
+	{JOB_SWEEPER,  0, 2085.0, -1750.0, 13.4, JK_STOP,  70},
+	{JOB_SWEEPER,  0, 2218.0, -1745.0, 13.4, JK_STOP,  70},
+	{JOB_SWEEPER,  0, 2342.0, -1730.0, 13.4, JK_STOP,  70},
+	{JOB_SWEEPER,  0, 2440.0, -1660.0, 13.4, JK_STOP,  70},
+	{JOB_SWEEPER,  0, 2150.0, -1975.0, 13.5, JK_DRIVE,  0},
+
+	// [v44] Routier - grandes livraisons dans tout Los Santos
+	{JOB_TRUCKER,  0, 1832.3, -1849.0, 13.4, JK_STOP, 180},
+	{JOB_TRUCKER,  0,  812.0, -1622.0, 13.4, JK_STOP, 180},
+	{JOB_TRUCKER,  0, 1356.0, -1395.0, 13.4, JK_STOP, 180},
+	{JOB_TRUCKER,  0, 2421.6, -1225.0, 24.9, JK_STOP, 200},
+	{JOB_TRUCKER,  0, 2225.0, -2250.0, 13.6, JK_DRIVE,  0},
+
+	// [v44] Convoyeur de fonds - collecte des caisses
+	{JOB_CASH,     0, 1480.5, -1736.0, 13.4, JK_STOP, 200},
+	{JOB_CASH,     0, 1356.0, -1395.0, 13.4, JK_STOP, 200},
+	{JOB_CASH,     0, 1195.0, -1325.0, 13.4, JK_STOP, 200},
+	{JOB_CASH,     0, 1832.3, -1849.0, 13.4, JK_STOP, 200},
+	{JOB_CASH,     0, 1735.0, -1855.0, 13.5, JK_DRIVE,  0},
+
+	// [v44] Facteur - courrier de Grove Street et Ganton
+	{JOB_POST,     0, 2459.4, -1690.6, 13.5, JK_STOP,  70},
+	{JOB_POST,     0, 2495.3, -1688.4, 13.8, JK_STOP,  70},
+	{JOB_POST,     0, 2306.0, -1651.0, 14.3, JK_STOP,  70},
+	{JOB_POST,     0, 2068.0, -1628.6, 13.9, JK_STOP,  70},
+	{JOB_POST,     0, 2040.0, -1640.0, 13.5, JK_DRIVE,  0}
 };
 
 new g_JobFirst[JOB_COUNT + 1];
@@ -7362,7 +7427,7 @@ stock Job_Load(playerid)
 // ------------------------------------------------------------
 stock Job_Send(playerid, dialogid, ok, const msg[])
 {
-	new json[1400], name[MAX_PLAYER_NAME + 1], date[12], y, mo, d;
+	new json[2400], name[MAX_PLAYER_NAME + 1], date[12], y, mo, d;
 	Fx_RPName(playerid, name, sizeof name);
 	getdate(y, mo, d);
 	format(date, sizeof date, "%02d/%02d/%04d", d, mo, y);
@@ -7707,6 +7772,9 @@ stock Job_OnCheckpoint(playerid)
 			case JOB_BUS:     GameTextForPlayer(playerid, "~y~Montee des passagers...", JOB_WAIT_STOP_MS, 4);
 			case JOB_GARBAGE: GameTextForPlayer(playerid, "~y~Ramassage des poubelles...", JOB_WAIT_STOP_MS, 4);
 			case JOB_PIZZA:   GameTextForPlayer(playerid, "~y~Livraison de la pizza...", JOB_WAIT_STOP_MS, 4);
+			case JOB_SWEEPER: GameTextForPlayer(playerid, "~y~Nettoyage de la rue...", JOB_WAIT_STOP_MS, 4);
+			case JOB_CASH:    GameTextForPlayer(playerid, "~y~Collecte des fonds...", JOB_WAIT_STOP_MS, 4);
+			case JOB_POST:    GameTextForPlayer(playerid, "~y~Distribution du courrier...", JOB_WAIT_STOP_MS, 4);
 			default:          GameTextForPlayer(playerid, "~y~Dechargement...", JOB_WAIT_STOP_MS, 4);
 		}
 		Job_Wait(playerid, JOB_WAIT_STOP_MS);
@@ -8031,7 +8099,7 @@ stock Map_OnCommand(playerid, const cmdtext[])
 //  Ms_BeginZone / Ms_EndZone restent acceptes (ils ne font plus rien).
 // ============================================================
 
-#define MS_MAX_OBJ            11000       // objets de mapping au total ([v27] 9000 -> 11000)
+#define MS_MAX_OBJ            12500       // objets de mapping au total ([v27] 9000 -> 11000, capacite 12500 pour les mappings MTA) - [v32] streamer d'origine remis
 #define MS_MAX_MAT            6000        // textures personnalisees ([v27] 4400 -> 6000)
 #define MS_MAX_TXT            140         // textes sur objets
 #define MS_MAX_ZONES          900         // cases de MS_CELL x MS_CELL metres
@@ -8347,7 +8415,7 @@ public Ms_Tick()
 	for (new i = 0; i < MS_PLAYERS; i++)
 	{
 		if (!IsPlayerConnected(i) || IsPlayerNPC(i)) continue;
-		GetPlayerPos(i, x, y, z);
+		if (!Bc_ViewPos(i, x, y, z)) GetPlayerPos(i, x, y, z);   // [v33] bodycam : objets autour de l'agent regarde
 		new Float:dx = x - g_MsPLast[i][0], Float:dy = y - g_MsPLast[i][1], Float:dz = z - g_MsPLast[i][2];
 		g_MsPLast[i][0] = x; g_MsPLast[i][1] = y; g_MsPLast[i][2] = z;
 		if (dx * dx + dy * dy + dz * dz > MS_TP_DIST * MS_TP_DIST)
@@ -14927,6 +14995,7 @@ stock MapImp_RemoveBuildings(playerid)
 	RemoveBuildingForPlayer(playerid, 4586, 1405.117188, -1191.406250, 85.031303, 0.250000);   // SamsungShop
 	RemoveBuildingForPlayer(playerid, 4019, 1777.835900, -1773.906300, 12.523400, 77.0);       // [v19] StationService (newbuildsm01)
 	RemoveBuildingForPlayer(playerid, 4025, 1777.835900, -1773.906300, 12.523400, 77.0);       // [v19] StationService (LOD)
+	RemoveBuildingForPlayer(playerid, 4012, 1777.437500, -1782.304688, 12.625000, 5.0);        // [v42] StationService : batiment d'origine sous sa copie retexturee (piliers rouges qui clignotent)
 	RemoveBuildingForPlayer(playerid, 4006, 1394.359400, -1620.664100, 32.148440, 41.816235);   // MiniBanque
 	RemoveBuildingForPlayer(playerid, 4055, 1394.359400, -1620.664100, 32.148440, 41.816235);   // MiniBanque
 	return 1;
@@ -15194,20 +15263,21 @@ stock MapObj_OnCommand(playerid, const cmdtext[])
 #define AIDE_DIALOG_CAT       9621
 #define AIDE_DIALOG_PLACES    9622
 
-#define AIDE_CAT_COUNT        10
+#define AIDE_CAT_COUNT        11
 
 new g_AideCatName[AIDE_CAT_COUNT][32] =
 {
 	"Général", "Argent & banque", "Boutique & inventaire", "Emplois", "Véhicules",
-	"Factions", "Police", "Lieux & GPS", "Administration", "Gouvernement"
+	"Factions", "Police", "Lieux & GPS", "Administration", "Gouvernement", "Urgences, justice & FBI"
 };
 
 new g_AideCatIcon[AIDE_CAT_COUNT][10] =
 {
-	"{FFFFFF}", "{33CC33}", "{FFB454}", "{FFCC33}", "{7DB4FF}", "{BDF38B}", "{3B82FF}", "{FF6B72}", "{C2A2DA}", "{FFCC33}"
+	"{FFFFFF}", "{33CC33}", "{FFB454}", "{FFCC33}", "{7DB4FF}", "{BDF38B}", "{3B82FF}", "{FF6B72}", "{C2A2DA}", "{FFCC33}", "{FF7A1A}"
 };
 
-new g_AideMap[MAX_PLAYERS][AIDE_CAT_COUNT];   // ligne de la liste -> categorie (selon les droits)
+new g_AideMap[MAX_PLAYERS][AIDE_CAT_COUNT];
+new g_AideCur[MAX_PLAYERS];   // [v42] categorie ouverte (lancer une ligne)   // ligne de la liste -> categorie (selon les droits)
 
 stock Aide_Main(playerid)
 {
@@ -15225,7 +15295,7 @@ stock Aide_Main(playerid)
 	return ShowPlayerDialog(playerid, AIDE_DIALOG_MAIN, DIALOG_STYLE_LIST, "{33CCFF}Crestwood RP {FFFFFF}- Aide", list, "Ouvrir", "Fermer");
 }
 
-stock Aide_Cat(playerid, c)
+stock Aide_Cat(playerid, c, pick = -1)
 {
 	new t[3200], title[64];
 	format(title, sizeof title, "{33CCFF}Aide {FFFFFF}- %s", g_AideCatName[c]);
@@ -15235,6 +15305,8 @@ stock Aide_Cat(playerid, c)
 		case 0:
 		{
 			strcat(t, "{33CCFF}/aide\t{FFFFFF}Cette liste des commandes\n", sizeof t);
+			strcat(t, "{33CCFF}/tutoriel\t{FFFFFF}Maya (mairie) t'appelle et te guide dans la ville\n", sizeof t);
+			strcat(t, "{33CCFF}/groupe\t{FFFFFF}Mon groupe : tes stats, ton gang ou ta faction, les gains\n", sizeof t);
 			strcat(t, "{33CCFF}/interagir\t{FFFFFF}Agit avec ce qui est proche (icône de main)\n", sizeof t);
 			strcat(t, "{33CCFF}/vetements\t{FFFFFF}Changer d'apparence (aussi /skin)\n", sizeof t);
 			strcat(t, "{33CCFF}/entrer  /sortir\t{FFFFFF}Passer une porte (armurerie, studio, bunker)\n", sizeof t);
@@ -15296,14 +15368,17 @@ stock Aide_Cat(playerid, c)
 			strcat(t, "{BDF38B}/effectifs\t{FFFFFF}Membres de ta faction en ligne\n", sizeof t);
 			strcat(t, "{BDF38B}/r <texte>\t{FFFFFF}Radio de faction\n", sizeof t);
 			strcat(t, "{BDF38B}/d <texte>\t{FFFFFF}Radio des départements\n", sizeof t);
-			strcat(t, "{BDF38B}/changefskin <emplacement>\t{FFFFFF}Changer de tenue de faction", sizeof t);
+			strcat(t, "{BDF38B}/changefskin <emplacement>\t{FFFFFF}Changer de tenue de faction\n", sizeof t);
+			strcat(t, "{BDF38B}Factions RP\t{FFFFFF}Police, Sheriff, EMS, Pompiers, FBI, Armee, Gouvernement, Justice, News, Mecanos, Taxi", sizeof t);
 		}
 		case 6:
 		{
 			strcat(t, "{3B82FF}/vestiaire\t{FFFFFF}Vestiaire de police (tenue de service)\n", sizeof t);
 			strcat(t, "{3B82FF}Icône Police\t{FFFFFF}Menottes, fouille, amende, prison... (près d'un joueur)\n", sizeof t);
 			strcat(t, "{3B82FF}/unjail <id>\t{FFFFFF}Libérer un détenu\n", sizeof t);
-			strcat(t, "{3B82FF}/setprison  /setprisonexit\t{FFFFFF}Placer la cellule / la sortie de prison", sizeof t);
+			strcat(t, "{3B82FF}/setprison  /setprisonexit\t{FFFFFF}Placer la cellule / la sortie de prison\n", sizeof t);
+			strcat(t, "{3B82FF}/ticket\t{FFFFFF}Verbaliser un joueur proche (17 motifs, 500 a 10 000 $)\n", sizeof t);
+			strcat(t, "{3B82FF}/bodycam [on|off|stop]\t{FFFFFF}Ta camera ; les chefs regardent celles des agents", sizeof t);
 		}
 		case 7:
 		{
@@ -15334,8 +15409,14 @@ stock Aide_Cat(playerid, c)
 			strcat(t, "{FFCC33}/verifier <id>\t{FFFFFF}Voir les papiers et permis d'un joueur\n", sizeof t);
 			strcat(t, "{FFCC33}Double tap sur un joueur\t{FFFFFF}Menu d'interaction avec les actions du gouvernement", sizeof t);
 		}
+		case 10:
+		{
+			Frp_AideText(playerid, t, sizeof t);   // [v41] selon la faction du joueur
+		}
 	}
-	return ShowPlayerDialog(playerid, AIDE_DIALOG_CAT, DIALOG_STYLE_TABLIST_HEADERS, title, t, "Retour", "Fermer");
+	if (pick >= 0) return Aide_RunLine(playerid, t, pick);   // [v42] toucher une ligne = lancer la commande
+	g_AideCur[playerid] = c;
+	return ShowPlayerDialog(playerid, AIDE_DIALOG_CAT, DIALOG_STYLE_TABLIST_HEADERS, title, t, "Lancer", "Retour");
 }
 
 // Lieux : selectionner une ligne active le GPS
@@ -15398,7 +15479,8 @@ stock Aide_OnDialog(playerid, dialogid, response, listitem)
 		}
 		case AIDE_DIALOG_CAT:
 		{
-			if (response) Aide_Main(playerid);
+			if (!response) Aide_Main(playerid);
+			else if (listitem >= 0) Aide_Cat(playerid, g_AideCur[playerid], listitem);   // [v42]
 			return 1;
 		}
 		case AIDE_DIALOG_PLACES:
@@ -18413,13 +18495,16 @@ stock Ui_OwnsVehicle(playerid, v)
 
 stock Ui_OpenVehicle3D(playerid, v)
 {
-	if (!g_AuthLogged[playerid] || GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) return 0;
+	if (!g_AuthLogged[playerid]) return 0;
+	// [v38] la roue s'ouvre aussi DANS le vehicule (appui long sur son propre vehicule)
+	new inside = (GetPlayerVehicleID(playerid) == v && v > 0);
+	if (!inside && GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) return 0;
 	if (v <= 0 || v > MAX_VEHICLES || !GetVehicleModel(v)) return 0;
 	if (GetVehicleVirtualWorld(v) != GetPlayerVirtualWorld(playerid)) return 0;
 	new Float:x, Float:y, Float:z;
 	GetVehiclePos(v, x, y, z);
-	if (!IsPlayerInRangeOfPoint(playerid, UI_TAP_RANGE, x, y, z)) { SendClientMessage(playerid, UI_COL_ERR, "Interaction : rapproche-toi du vehicule."); return 0; }
-	new model = GetVehicleModel(v), vname[32], txt[360], plate[16];
+	if (!inside && !IsPlayerInRangeOfPoint(playerid, UI_TAP_RANGE, x, y, z)) { SendClientMessage(playerid, UI_COL_ERR, "Interaction : rapproche-toi du vehicule."); return 0; }
+	new model = GetVehicleModel(v), vname[32], txt[700], plate[16];
 	format(vname, sizeof vname, "%s", g_VehName[model - 400]);
 	if (Gar_DbOf(v)) format(plate, sizeof plate, "CW-%04d", Gar_DbOf(v)); else format(plate, sizeof plate, "%d", v);
 	g_UiVeh[playerid] = v;
@@ -18427,6 +18512,34 @@ stock Ui_OpenVehicle3D(playerid, v)
 	new engine, lights, alarm, doors, bonnet, boot, objective;
 	GetVehicleParamsEx(v, engine, lights, alarm, doors, bonnet, boot, objective);
 	format(txt, sizeof txt, "V|%d|%s|", v, vname);
+	new driver = inside && GetPlayerState(playerid) == PLAYER_STATE_DRIVER;
+	if (inside)
+	{
+		// [v38] dans le vehicule : moteur, condamner les portes, phares, ceinture, ejecter un passager
+		if (driver) strcat(txt, (engine == VEHICLE_PARAMS_ON) ? ("engine:Couper le moteur;") : ("engine:Démarrer;"), sizeof txt);
+		if (driver || Ui_OwnsVehicle(playerid, v))
+		{
+			strcat(txt, (doors == VEHICLE_PARAMS_ON) ? ("lock:Ouvrir les portes;") : ("lock:Condamner;"), sizeof txt);
+			strcat(txt, (lights == VEHICLE_PARAMS_ON) ? ("lights:Phares off;") : ("lights:Phares;"), sizeof txt);
+		}
+		strcat(txt, Cw_BeltOn(playerid) ? ("belt:Enlever ceinture;") : ("belt:Ceinture;"), sizeof txt);
+		if (driver)
+		{
+			new part[48], pn[MAX_PLAYER_NAME + 1];
+			for (new p = 0, mx = GetMaxPlayers(); p < mx; p++)
+			{
+				if (p == playerid || !IsPlayerConnected(p) || GetPlayerVehicleID(p) != v) continue;
+				new seat = GetPlayerVehicleSeat(p);
+				if (seat < 1 || seat > 3) continue;
+				GetPlayerName(p, pn, sizeof pn);
+				for (new c = 0; pn[c]; c++) { if (pn[c] == '_') { pn[c] = 0; break; } }   // prenom seulement
+				format(part, sizeof part, "eject_%c:Éjecter %s;", 'a' + seat - 1, pn);
+				strcat(txt, part, sizeof txt);
+			}
+		}
+		strcat(txt, "vinfo:Plaque;close:Fermer", sizeof txt);
+		return ShowPlayerDialog(playerid, UI_DIALOG_INTER3D, DIALOG_STYLE_MSGBOX, "@inter3d", txt, "OK", "");
+	}
 	if (Ui_OwnsVehicle(playerid, v))
 	{
 		strcat(txt, (engine == VEHICLE_PARAMS_ON) ? ("engine:Couper;") : ("engine:Démarrer;"), sizeof txt);   // [v20] demarrage a distance
@@ -18659,6 +18772,26 @@ stock Ui_Action(playerid, const params[])
 		for (new p = 0, mx = GetMaxPlayers(); p < mx; p++)
 			if (IsPlayerConnected(p) && GetPlayerVehicleID(p) == v && GetPlayerVehicleSeat(p) == 0) { Ui_Toast(playerid, 0, "Quelqu'un est deja au volant."); return 1; }
 		PutPlayerInVehicle(playerid, v, 0);
+		return 1;
+	}
+	// [v38] roue du vehicule (de l'interieur) : ceinture, ejecter le passager d'une place
+	if (!strcmp(action, "belt", true)) { Cw_OnCommand(playerid, "/ceinture"); return 1; }
+	if (!strcmp(action, "eject_", true, 6))
+	{
+		new v = GetPlayerVehicleID(playerid), seat = action[6] - 'a' + 1;
+		if (!v || GetPlayerState(playerid) != PLAYER_STATE_DRIVER) { Ui_Toast(playerid, 0, "Il faut etre au volant."); return 1; }
+		if (seat < 1 || seat > 3) return 1;
+		for (new p = 0, mx = GetMaxPlayers(); p < mx; p++)
+		{
+			if (p == playerid || !IsPlayerConnected(p) || GetPlayerVehicleID(p) != v || GetPlayerVehicleSeat(p) != seat) continue;
+			RemovePlayerFromVehicle(p);
+			new m[96], dn[MAX_PLAYER_NAME + 1], pn[MAX_PLAYER_NAME + 1];
+			GetPlayerName(playerid, dn, sizeof dn); GetPlayerName(p, pn, sizeof pn);
+			format(m, sizeof m, "%s t'a fait descendre du vehicule.", dn); Ui_Toast(p, 0, m);
+			format(m, sizeof m, "%s est descendu du vehicule.", pn); Ui_Toast(playerid, 1, m);
+			return 1;
+		}
+		Ui_Toast(playerid, 0, "Plus personne a cette place.");
 		return 1;
 	}
 	if (!strcmp(action, "engine", true) || !strcmp(action, "lock", true) || !strcmp(action, "boot", true) || !strcmp(action, "bonnet", true) || !strcmp(action, "doors", true) || !strcmp(action, "lights", true))
@@ -19825,6 +19958,10 @@ stock Job_SendObjectives(playerid)
 		case JOB_DELIVERY: { format(veh, sizeof veh, "ton camion de livraison"); format(stopTxt, sizeof stopTxt, "Livre les colis"); format(back, sizeof back, "Retourne au dépôt"); }
 		case JOB_BUS:      { format(veh, sizeof veh, "ton bus"); format(stopTxt, sizeof stopTxt, "Dessers les arrêts"); format(back, sizeof back, "Retourne au terminus"); }
 		case JOB_GARBAGE:  { format(veh, sizeof veh, "le camion-poubelle"); format(stopTxt, sizeof stopTxt, "Ramasse les poubelles"); format(back, sizeof back, "Va à la décharge"); }
+		case JOB_SWEEPER:  { format(veh, sizeof veh, "ta balayeuse"); format(stopTxt, sizeof stopTxt, "Nettoie les rues"); format(back, sizeof back, "Retourne au dépôt"); }
+		case JOB_TRUCKER:  { format(veh, sizeof veh, "ton camion"); format(stopTxt, sizeof stopTxt, "Livre les commerces"); format(back, sizeof back, "Retourne au dépôt"); }
+		case JOB_CASH:     { format(veh, sizeof veh, "le fourgon blindé"); format(stopTxt, sizeof stopTxt, "Collecte les fonds"); format(back, sizeof back, "Ramène les fonds"); }
+		case JOB_POST:     { format(veh, sizeof veh, "ton scooter"); format(stopTxt, sizeof stopTxt, "Distribue le courrier"); format(back, sizeof back, "Retourne à la poste"); }
 		default:           { format(veh, sizeof veh, "ton scooter"); format(stopTxt, sizeof stopTxt, "Livre les pizzas"); format(back, sizeof back, "Retourne à la pizzeria"); }
 	}
 	new inVeh = (g_JobVeh[playerid] != INVALID_VEHICLE_ID && IsPlayerInVehicle(playerid, g_JobVeh[playerid])) ? 1 : 0;
@@ -20200,6 +20337,8 @@ stock Marks_Send(playerid)
 	Npc_PushMarks();         // [v18] PNJ (18) : main bleue au-dessus de la tete
 	Cs_PushMarks();          // [v21] magasins de vetements (1) : t-shirt 3D
 	Bike_PushMarks();        // [v25] location de velo (19)
+	Pg_PushMarks();          // [v30c] garage auto + bureau bodycam
+	Cw44_PushMarks();        // [v44] casinos
 	if (g_MkChunk == 0 || g_MkN > 0) Mk_Flush();
 	g_MkTo = INVALID_PLAYER_ID;
 	return 1;
@@ -23431,7 +23570,7 @@ stock Phone_Call(playerid, const num[])
 {
 	if (!g_PhNum[playerid][0]) return Ph_Err(playerid, "Pas de carte SIM");
 	if (g_PhCallSt[playerid]) return Ph_Err(playerid, "Tu es deja en ligne");
-	if (!strcmp(num, "17") || !strcmp(num, "15") || !strcmp(num, "18")) return Ph_Err(playerid, "Utilise le bouton urgence");
+	if (!strcmp(num, "17") || !strcmp(num, "15") || !strcmp(num, "18") || !strcmp(num, "112")) return Ph_Err(playerid, "Utilise le bouton urgence");
 	if (!strcmp(num, g_PhNum[playerid])) return Ph_Err(playerid, "Tu ne peux pas t'appeler toi-meme");
 	Phone_AddRecent(playerid, num, 0);
 	new t = Phone_FindByNum(num);
@@ -23455,6 +23594,7 @@ stock Phone_Accept(playerid)
 	g_PhCallSt[playerid] = 3; g_PhCallSince[playerid] = now;
 	g_PhCallSt[c] = 3; g_PhCallSince[c] = now;
 	Phone_VoiceStart(playerid, c);
+	Frp_OnCall(g_PhNum[playerid], g_PhNum[c]);   // [v41] ecoute du FBI
 	Phone_CallEvent(playerid, "incall", g_PhNum[c]);
 	Phone_CallEvent(c, "incall", g_PhNum[playerid]);
 	SendClientMessage(playerid, PHONE_COL_INFO, "Appel en cours : maintiens le bouton micro pour parler.");
@@ -23471,6 +23611,7 @@ stock Phone_Sms(playerid, const num[], text[])
 	new q[300];
 	format(q, sizeof q, "INSERT INTO sms (snum, rnum, text, ts, rd) VALUES ('%s', '%s', '%s', %d, 0)", g_PhNum[playerid], num, text, gettime());
 	db_free_result(db_query(g_PhDB, q));
+	Frp_OnSms(g_PhNum[playerid], num, text);   // [v41] ecoute du FBI
 	new json[260];
 	format(json, sizeof json, "{\"ev\":\"sent\",\"to\":\"%s\"}", num);
 	Ph_Send(playerid, json);
@@ -23528,18 +23669,25 @@ stock Phone_Wave(playerid, const num[], amount)
 stock Phone_Sos(playerid, const svc[], text[])
 {
 	Ph_Clean(text);
-	new n = 0, line[180], name[MAX_PLAYER_NAME + 1], json[120];
+	new n = 0, line[180], name[MAX_PLAYER_NAME + 1], json[120], type = FACTION_NONE, tag[24];
 	Ph_Name(playerid, name, sizeof name);
-	if (!strcmp(svc, "police"))
+	// [v41] tous les services (avant : seule la police recevait l'appel)
+	if (!strcmp(svc, "police")) { type = FACTION_POLICE; format(tag, sizeof tag, "17 POLICE"); }
+	else if (!strcmp(svc, "medic")) { type = FACTION_MEDIC; format(tag, sizeof tag, "15 SAMU"); }
+	else if (!strcmp(svc, "fire")) { type = FACTION_FIRE; format(tag, sizeof tag, "18 POMPIERS"); }
+	else if (!strcmp(svc, "mech")) { type = FACTION_MECHANIC; format(tag, sizeof tag, "112 DEPANNAGE"); }
+	if (type != FACTION_NONE)
 	{
 		new Float:x, Float:y, Float:z;
 		GetPlayerPos(playerid, x, y, z);
-		format(line, sizeof line, "[17 POLICE] %s (%s) : %s", name, g_PhNum[playerid][0] ? g_PhNum[playerid] : ("sans numero"), text);
+		format(line, sizeof line, "[%s] %s (%s) : %s", tag, name, g_PhNum[playerid][0] ? g_PhNum[playerid] : ("sans numero"), text);
 		for (new i = 0, m = GetMaxPlayers(); i < m; i++)
 		{
-			if (!IsPlayerConnected(i) || !Fac_IsLaw(i)) continue;
+			if (!IsPlayerConnected(i) || !g_AuthLogged[i]) continue;
+			if (type == FACTION_POLICE ? !Fac_IsLaw(i) : (Fac_Type(i) != type)) continue;
 			SendClientMessage(i, PHONE_COL_SOS, line);
-			SetPlayerCheckpoint(i, x, y, z, 3.0);
+			if (type == FACTION_POLICE) SetPlayerCheckpoint(i, x, y, z, 3.0);
+			else Gps_Set(i, x, y);
 			n++;
 		}
 	}
@@ -23734,12 +23882,21 @@ public OnGameModeInit()
 	Cw22_OnInit();          // [v22] hotbar, prix
 	Cw23_OnInit();          // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
 	Cw25_OnInit();          // [v25] location de velo
+	Store_OnInit();         // [v30] Crestwood Store
+	Pg_OnInit();            // [v30c] amendes, reparation, bodycam (pages)
+	Ub_Init();              // [v32] Uber
+	Frp_OnInit();           // [v41] factions par defaut, pompiers, justice, FBI, armee
+	Cw41_OnInit();          // [v42] panneau de faction, commandes tapees
+	Cw44_OnInit();          // [v44] casino, bourse, evenements
+	Cw46_OnInit();          // [v46] stats de groupe, identifiants du jour, tutoriel
 	return 1;
 }
 
 public OnGameModeExit()
 {
 	Vie_OnExit();           // [v19]
+	Store_OnExit();         // [v30]
+	Pg_OnExit();            // [v30c]
 	Npc_OnExit();
 	Garage_OnExit();
 	Job_OnExit();
@@ -23898,6 +24055,7 @@ public OnVehicleDeath(vehicleid, killerid)
 	Job_OnVehicleDeath(vehicleid);
 	Npc_OnVehicleDeath(vehicleid);   // [v18] vehicule de quete
 	Cj_OnVehicleDeath(vehicleid);    // [v18] vehicule d'emploi
+	Frp_OnVehicleDeath(vehicleid);   // [v41] feu de vehicule (pompiers)
 	return 1;
 }
 
@@ -23980,13 +24138,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Ville_OnCommand(playerid, cmdtext)) return 1;  // [v19b] /course /mariage /oui /non /divorce
 	if (Cw21_OnCommand(playerid, cmdtext)) return 1;   // [v21] /cadeau /parrain /sondage /voter /meteo /afk
 	if (Cw22_OnCommand(playerid, cmdtext)) return 1;   // [v22] /hotbar
-
-	if (strcmp("/mycommand", cmdtext, true, 10) == 0)
-	{
-		// Do something here
-		return 1;
-	}
-	return 0;
+	if (Cmp_OnCommand(playerid, cmdtext)) return 1;    // [v31] /motor /radioact /sim /hudaction /setentree...
+	return Cmp_Unknown(playerid, cmdtext);              // [v31] message en francais + scriptfiles/commandes_inconnues.log
 }
 
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
@@ -24007,6 +24160,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 	Obj_OnStateChange(playerid, newstate, oldstate);
 	Cw23_OnStateChange(playerid, newstate);   // [v23] cargaison militaire
 	Npc_OnStateChange(playerid, newstate);
+	Ub_OnStateChange(playerid, newstate, oldstate);   // [v32] Uber
 	return 1;
 }
 
@@ -24154,6 +24308,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 // ============================================================
 //  TABLETTE RP (assets/rp) : serveur dans include/Rp.inc (etait present mais jamais inclus)
 // ============================================================
+#define RPX_COL_ME             0xC2A2DAFF   // [v30] avant Vie.inc / Ville.inc (sinon : undefined symbol)
 #include <Rp>
 #include <Promo>           // codes promo de la tablette RP
 #include <Law>             // centrale police / FBI / armee (tablette + commandes)
@@ -24172,6 +24327,10 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #include <PackShop>         // [v22] boutique : packs achetes sur le site, /livrer (staff)
 #include <Missions>         // [v30] missions d'arrivee (6), permis de conduire, plantations
 #include <Cw25>              // [v25] location de velo, telephone en main
+#include <Uber>              // [v32] Uber : chauffeurs avec leur voiture, taximetre
+#include <Compat>            // [v31] commandes de l'appli qui manquaient + commandes inconnues
+#include <Pages>             // [v30c] amendes police, reparation auto, bodycam, animations du MTA (pages)
+#include <Store>             // [v30] Crestwood Store (CrestCoins, Wave, vehicules, permis, kits, services)
 #include <HopitalEMS>        // [v24] hopital EMS (pack MTA SAMU47), actif avec /mapdata hopital on              // [v23] MDT, armee, EMS, assembleur, arene, craft, recyclage
 
 // ============================================================
@@ -24198,7 +24357,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 #define RPX_OFFER_SECONDS      40
 #define RPX_MAX_PRICE          100000
 #define RPX_HOSPITAL_FEE       250
-// (RPX_COL_ME est defini plus haut, pres de LIC_DRIVE : Vie.inc / Ville.inc en ont besoin avant)
+// RPX_COL_ME : defini avant les #include (utilise par Vie.inc / Ville.inc)
 #define RPX_COL_DO             0x9EC4E8FF
 #define RPX_COL_OOC            0xAFAFAFFF
 #define RPX_COL_INFO           0x33CCFFFF
@@ -24219,7 +24378,7 @@ new g_RpXBounty[MAX_PLAYERS];
 new g_RpXLastAnnonce[MAX_PLAYERS];
 
 // uniformes simples : {homme, femme} par type de faction (0..12)
-new const g_RpXUniSkin[13][2] =
+new const g_RpXUniSkin[FACTION_TYPE_MAX + 1][2] =
 {
 	{0, 0},       // aucune
 	{0, 0},       // police : vestiaire de police (tenues personnalisees)
@@ -24233,7 +24392,9 @@ new const g_RpXUniSkin[13][2] =
 	{287, 191},   // armee
 	{171, 172},   // concessionnaire
 	{205, 205},   // burger
-	{255, 263}    // taxi
+	{255, 263},   // taxi
+	{277, 278},   // [v41] pompiers
+	{147, 141}    // [v41] justice
 };
 
 stock RpX_Name(playerid, out[], size)
@@ -24389,10 +24550,23 @@ public RpX_UniformBack(playerid)
 	return 1;
 }
 
+// [v56] tenue n du vestiaire (g_LkOutfit) ; compatibilite : 0 = homme, 1 = femme
+stock RpX_WearOutfit(playerid, n)
+{
+	new t = Fac_Type(playerid);
+	if (t <= FACTION_NONE || t > FACTION_TYPE_MAX || n < 0 || n >= LOCKER_OUTFITS) return 0;
+	new skin = g_LkOutfit[t][n];
+	if (!skin) return 0;
+	g_RpXUni[playerid] = skin;
+	if (g_LockerOpen[playerid]) Locker_Close(playerid, 1);
+	SetTimerEx("RpX_UniformSkin", 350, false, "i", playerid);
+	return 1;
+}
+
 stock RpX_WearUniform(playerid, female)
 {
 	new t = Fac_Type(playerid);
-	if (t <= FACTION_NONE || t > 12) return 0;
+	if (t <= FACTION_NONE || t > FACTION_TYPE_MAX) return 0;
 	new skin = g_RpXUniSkin[t][female ? 1 : 0];
 	if (!skin) return 0;
 	g_RpXUni[playerid] = skin;
@@ -24560,7 +24734,7 @@ stock RpX_OnCommand(playerid, const cmdtext[])
 	if ((a = RpX_Arg(cmdtext, "/112")) != -1 || (a = RpX_Arg(cmdtext, "/appel")) != -1)
 	{
 		new idx = a, svc[12];
-		if (!Bank_NextToken(cmdtext, idx, svc, sizeof svc)) return SendClientMessage(playerid, RPX_COL_INFO, "/112 police|medecin|mecano|taxi <message>"), 1;
+		if (!Bank_NextToken(cmdtext, idx, svc, sizeof svc)) return SendClientMessage(playerid, RPX_COL_INFO, "/112 police|medecin|pompiers|mecano|taxi <message>"), 1;
 		while (cmdtext[idx] == ' ') idx++;
 		new text[100];
 		if (cmdtext[idx]) format(text, sizeof text, "%s", cmdtext[idx]);
@@ -24569,7 +24743,8 @@ stock RpX_OnCommand(playerid, const cmdtext[])
 		else if (!strcmp(svc, "medecin", true) || !strcmp(svc, "samu", true)) RpX_CallService(playerid, FACTION_MEDIC, "MEDECIN", text);
 		else if (!strcmp(svc, "mecano", true)) RpX_CallService(playerid, FACTION_MECHANIC, "MECANO", text);
 		else if (!strcmp(svc, "taxi", true)) RpX_CallService(playerid, FACTION_TAXIDRIVER, "TAXI", text);
-		else SendClientMessage(playerid, RPX_COL_INFO, "/112 police|medecin|mecano|taxi <message>");
+		else if (!strcmp(svc, "pompiers", true) || !strcmp(svc, "feu", true)) RpX_CallService(playerid, FACTION_FIRE, "POMPIERS", text);   // [v41]
+		else SendClientMessage(playerid, RPX_COL_INFO, "/112 police|medecin|pompiers|mecano|taxi <message>");
 		return 1;
 	}
 	if ((a = RpX_Arg(cmdtext, "/prime")) != -1)
@@ -24753,3 +24928,9 @@ stock Id_DoSet(playerid, const params[])
 	SetTimerEx("Auth_Finish", 900, false, "i", playerid);
 	return 1;
 }
+
+#include <Frp>             // [v41] factions par defaut + pompiers + justice + FBI + armee
+#include <Cw41>            // [v41b] interactions directes, panneau de faction
+#include <Cw44>            // [v44] casino, bourse, evenements
+#include <Cw46>            // [v46] stats de groupe, identifiants du jour, tutoriel
+#include <Cw47>            // [v47] interactions de faction en plus

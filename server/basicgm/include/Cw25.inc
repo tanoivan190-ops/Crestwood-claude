@@ -32,7 +32,7 @@ forward Bike_Tick();
 stock Bike_Build(i)
 {
 	if (g_BikeLabel[i] != Text3D:INVALID_3DTEXT_ID) Delete3DTextLabel(g_BikeLabel[i]);
-	g_BikeLabel[i] = Create3DTextLabel("Location de velo\n{9CC1FF}Approche-toi : BMX 500 $ / heure", 0xFFFFFFFF, g_BikePos[i][0], g_BikePos[i][1], g_BikePos[i][2] + 0.5, 12.0, 0, 1);
+	g_BikeLabel[i] = Create3DTextLabel("Location de velo\n{9CC1FF}Approche-toi : BMX 500 $ / heure", 0xFFFFFFFF, g_BikePos[i][0], g_BikePos[i][1], g_BikePos[i][2] + 0.5, 4.0, 0, 1);   // [v30] visible seulement tout pres
 	return 1;
 }
 
@@ -308,12 +308,12 @@ stock Svc_BuildLabels()
 	for (new i = 0; i < SVC_MAX_PUMPS; i++)
 	{
 		if (g_SvcPumpLabel[i] != Text3D:INVALID_3DTEXT_ID) { Delete3DTextLabel(g_SvcPumpLabel[i]); g_SvcPumpLabel[i] = Text3D:INVALID_3DTEXT_ID; }
-		if (i < g_SvcPumpCount) g_SvcPumpLabel[i] = Create3DTextLabel("Station-service\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_SvcPumps[i][0], g_SvcPumps[i][1], g_SvcPumps[i][2] + 0.4, 12.0, 0, 1);
+		if (i < g_SvcPumpCount) g_SvcPumpLabel[i] = Create3DTextLabel("Station-service\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_SvcPumps[i][0], g_SvcPumps[i][1], g_SvcPumps[i][2] + 0.4, 4.0, 0, 1);   // [v30] visible seulement tout pres
 	}
 	for (new i = 0; i < SVC_MAX_RENT; i++)
 	{
 		if (g_SvcRentLabel[i] != Text3D:INVALID_3DTEXT_ID) { Delete3DTextLabel(g_SvcRentLabel[i]); g_SvcRentLabel[i] = Text3D:INVALID_3DTEXT_ID; }
-		if (i < g_SvcRentCount) g_SvcRentLabel[i] = Create3DTextLabel("Location de vehicules\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_SvcRentPts[i][0], g_SvcRentPts[i][1], g_SvcRentPts[i][2] + 0.4, 12.0, 0, 1);
+		if (i < g_SvcRentCount) g_SvcRentLabel[i] = Create3DTextLabel("Location de vehicules\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_SvcRentPts[i][0], g_SvcRentPts[i][1], g_SvcRentPts[i][2] + 0.4, 4.0, 0, 1);   // [v30] visible seulement tout pres
 	}
 	return 1;
 }

@@ -246,7 +246,7 @@ stock Npc_Spawn(i)
 	}
 	new txt[96];
 	format(txt, sizeof txt, "%s\n{C9D1D9}%s", g_NpcName[i], g_NpcRoleName[g_NpcRole[i]]);
-	g_NpcLabel[i] = Create3DTextLabel(txt, NPC_COL, g_NpcPos[i][0], g_NpcPos[i][1], g_NpcPos[i][2] + 1.12, 12.0, g_NpcVw[i], 1);
+	g_NpcLabel[i] = Create3DTextLabel(txt, NPC_COL, g_NpcPos[i][0], g_NpcPos[i][1], g_NpcPos[i][2] + 1.12, 5.0, g_NpcVw[i], 1);   // [v30] visible seulement tout pres
 	Npc_UpdateLabel(i);
 	return 1;
 }

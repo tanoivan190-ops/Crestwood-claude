@@ -487,7 +487,7 @@ new Text3D:g_CsLabel[VET_MAX] = {Text3D:INVALID_3DTEXT_ID, ...};
 stock Cs_Build(i)
 {
 	if (g_CsLabel[i] != Text3D:INVALID_3DTEXT_ID) Delete3DTextLabel(g_CsLabel[i]);
-	g_CsLabel[i] = Create3DTextLabel("Magasin de vetements\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_VetPos[i][0], g_VetPos[i][1], g_VetPos[i][2] + 0.4, 12.0, -1, 1);
+	g_CsLabel[i] = Create3DTextLabel("Magasin de vetements\n{9CC1FF}Approche-toi et touche la main", 0xFFFFFFFF, g_VetPos[i][0], g_VetPos[i][1], g_VetPos[i][2] + 0.4, 4.0, -1, 1);   // [v30] visible seulement tout pres
 	return 1;
 }
 
@@ -512,6 +512,16 @@ stock Cs_Use(playerid)
 {
 	if (Locker_InUniform(playerid)) return Cw_Notify(playerid, "warning", "Vetements", "Remets ta tenue civile au vestiaire avant d'essayer des vetements."), 1;
 	return Cloth_OnCommand(playerid, "/vetements");
+}
+
+// [v30] le joueur est-il dans (ou devant) un magasin de vetements ?
+stock Cs_NearShop(playerid, Float:range)
+{
+	for (new i = 0; i < g_VetCount; i++)
+	{
+		if (IsPlayerInRangeOfPoint(playerid, range, g_VetPos[i][0], g_VetPos[i][1], g_VetPos[i][2])) return 1;
+	}
+	return 0;
 }
 
 stock Cs_PushMarks()

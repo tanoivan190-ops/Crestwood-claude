@@ -521,6 +521,8 @@ stock Fine_Give(playerid, target, amount, const reason[])
 	format(q, sizeof q, "INSERT INTO c23_fines (name, amount, reason, author, ts) VALUES ('%s', %d, '%s', '%s', %d)", name, amount, rs, by, gettime());
 	C23_Exec(q);
 	Cw_Fmt(amount, a, sizeof a);
+	format(m, sizeof m, "Amende de %s $ : %s", a, rs);
+	Jus_Record(name, "amende", m, by);   // [v41] casier judiciaire
 	format(m, sizeof m, "Amende de ~r~%s $~w~ : %s. Paie avec ~b~/payeramende tout~w~.", a, rs);
 	Cw_Notify(target, "denied", "Amende", m, 8000);
 	if (playerid != INVALID_PLAYER_ID) { format(m, sizeof m, "Amende de %s $ envoyee.", a); Cw_Notify(playerid, "success", "MDT", m, 3500); }

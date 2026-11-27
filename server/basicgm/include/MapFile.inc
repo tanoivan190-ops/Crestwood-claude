@@ -237,6 +237,7 @@ stock MapFile_LoadAll()
 			new c = line[i];
 			if (c == '\r' || c == '\n') break;
 			if (c == ' ' && !j) continue;
+			if ((c == ' ' || c == 9 || c == '#') && j) break;   // [v47] commentaire en fin de ligne
 			if (c == '/' || c == 92) { j = 0; break; }   // pas de chemins : fichiers du dossier uniquement
 			name[j++] = c;
 		}

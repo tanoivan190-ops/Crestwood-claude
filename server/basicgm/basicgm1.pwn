@@ -1581,7 +1581,7 @@ stock Auth_InitDB()
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN birth TEXT NOT NULL DEFAULT ''"));
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN origin TEXT NOT NULL DEFAULT ''"));
 	db_free_result(db_query(g_AuthDB, "ALTER TABLE accounts ADD COLUMN gender INTEGER NOT NULL DEFAULT -1"));
-	print("[AUTH] Base de comptes prete. VERSION SANS-GOOGLE v5 (connexion pseudo + mot de passe)");
+	print("[AUTH] Base de comptes prete. VERSION SANS-GOOGLE v6 (connexion pseudo + mot de passe)");
 	return 1;
 }
 
@@ -24265,6 +24265,7 @@ stock Cmd_TypedGate(playerid, cmdtext[])
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+	if (!g_AuthLogged[playerid]) printf("[CMD] joueur %d (pas connecte) envoie : %.26s", playerid, cmdtext);   // [v55] diagnostic connexion (mot de passe coupe)
 	if (Cmd_TypedGate(playerid, cmdtext)) return 1;   // [v30] commandes tapees
 	if (Auth_OnCommand(playerid, cmdtext)) return 1;
 	if (Cw41_OnCommand(playerid, cmdtext)) return 1;   // [v41b] /tc (chat), /facact, /personnage, /accepterdemande

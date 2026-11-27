@@ -567,7 +567,8 @@ stock Cw41_OnConnect(playerid)
 stock Cw41_OnInit()
 {
 	Fp_InitDB();
-	g_SlashOpen = Frp_GetSetting("slash_open", 1);   // [v53] ouvert par defaut : les pages (connexion, HUD) passent par ce filtre
+	g_SlashOpen = 1;   // [v54] toujours ouvert : la valeur enregistree en base (0) bloquait la connexion
+	// (ancien reglage : Frp_GetSetting("slash_open", 1))   // [v53] ouvert par defaut : les pages (connexion, HUD) passent par ce filtre
 	return 1;
 }
 
@@ -1017,7 +1018,7 @@ stock Fp_Action(playerid, const params[])
 // ============================================================
 stock Tc_Allowed(const cmd[])
 {
-	static const ok[][] = {"/aide", "/help", "/commandes", "/cmds"};
+	static const ok[][] = {"/aide", "/help", "/commandes", "/cmds", "/authact"};   // [v54] /authact = pages de connexion : toujours autorise
 	new n = 0;
 	while (cmd[n] && cmd[n] != ' ') n++;
 	for (new i = 0; i < sizeof ok; i++) if (strlen(ok[i]) == n && !strcmp(cmd, ok[i], true, n)) return 1;

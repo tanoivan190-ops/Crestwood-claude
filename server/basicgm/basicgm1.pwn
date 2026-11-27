@@ -1554,6 +1554,28 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 
 #define AUTH_COL_ERR          0xFF4444FF
 
+new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
+
+// vrai une seule fois par base et par cle (operations de maintenance a faire une fois)
+stock Cw_OnceDB(DB:db, const key[])
+{
+	if (db == DB:0) return 0;
+	db_free_result(db_query(db, "CREATE TABLE IF NOT EXISTS cw_meta (k TEXT PRIMARY KEY, v TEXT)"));
+	new q[160];
+	format(q, sizeof q, "SELECT v FROM cw_meta WHERE k = '%s'", key);
+	new DBResult:r = db_query(db, q);
+	new done = 0;
+	if (r != DBResult:0)
+	{
+		if (db_num_rows(r) > 0) done = 1;
+		db_free_result(r);
+	}
+	if (done) return 0;
+	format(q, sizeof q, "INSERT OR REPLACE INTO cw_meta (k, v) VALUES ('%s', '1')", key);
+	db_free_result(db_query(db, q));
+	return 1;
+}
+
 new DB:g_AuthDB;
 new g_AuthLogged[MAX_PLAYERS];
 // [v13] identite du personnage (demandee apres la premiere connexion) : naissance, origine, genre -> corps

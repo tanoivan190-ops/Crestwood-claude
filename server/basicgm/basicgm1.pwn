@@ -15375,6 +15375,18 @@ stock Aide_Cat(playerid, c, pick = -1)
 			strcat(t, "\n{33CCFF}/parrain\t{FFFFFF}Indiquer ton parrain (2 500 $ pour toi, 5 000 $ pour lui)", sizeof t);
 			strcat(t, "\n{33CCFF}/meteo  /afk\t{FFFFFF}Meteo et prevision  |  Absent (etiquette [AFK])", sizeof t);
 			strcat(t, "\n{33CCFF}/mariage <id>\t{FFFFFF}Se marier devant la mairie (/oui, /non, /divorce)", sizeof t);
+			strcat(t, "\n{33CCFF}/amendes\t{FFFFFF}Tes amendes de police : payer une amende ou tout payer", sizeof t);
+			strcat(t, "\n{33CCFF}/reparation\t{FFFFFF}Garage auto d'Idlewood : reparation en 24 s (2 500 $)", sizeof t);
+			strcat(t, "\n{33CCFF}/anim\t{FFFFFF}Animations (bouton du HUD) : plus de 170 animations dont celles du MTA", sizeof t);
+			strcat(t, "\n{33CCFF}/store\t{FFFFFF}Crestwood Store : CrestCoins, vehicules, permis, kits", sizeof t);
+			strcat(t, "\n{33CCFF}/sim\t{FFFFFF}Ton numero de telephone (ou GPS vers le 24/7 pour la puce)", sizeof t);
+			strcat(t, "\n{33CCFF}/casino\t{FFFFFF}Casino : machines a sous, roulette, blackjack (GPS vers le plus proche)", sizeof t);
+			strcat(t, "\n{33CCFF}/bourse\t{FFFFFF}Bourse de Crestwood : acheter et vendre des actions", sizeof t);
+			strcat(t, "\n{33CCFF}/evenements\t{FFFFFF}Evenements du staff : derby, survie, rassemblement", sizeof t);
+			strcat(t, "\n{33CCFF}/emplois\t{FFFFFF}Metiers (9) : bucheron, livreur, bus, eboueur, pizza, proprete, routier, convoyeur, facteur", sizeof t);
+			strcat(t, "\n{33CCFF}Toucher un joueur\t{FFFFFF}Bisou, danse, bras de fer, des, papiers, observer... (il accepte en te touchant)", sizeof t);
+			strcat(t, "\n{33CCFF}/accepterdemande\t{FFFFFF}Accepter ce qu'un joueur te propose (ou /refuserdemande)", sizeof t);
+			strcat(t, "\n{33CCFF}/uber\t{FFFFFF}Chauffeur Uber avec ta voiture : en ligne, accepter, terminer, retirer (aussi dans l'appli)", sizeof t);
 		}
 		case 1:
 		{
@@ -18514,16 +18526,19 @@ stock Ui_OpenPlayer3D(playerid, target)
 	new Float:x, Float:y, Float:z;
 	GetPlayerPos(target, x, y, z);
 	if (!IsPlayerInRangeOfPoint(playerid, UI_TAP_RANGE, x, y, z)) { SendClientMessage(playerid, UI_COL_ERR, "Interaction : rapproche-toi de ce joueur."); return 0; }
-	new tname[MAX_PLAYER_NAME + 1], txt[420];
+	new tname[MAX_PLAYER_NAME + 1], txt[1000], pre[96];
 	Fx_RPName(target, tname, sizeof tname);
 	for (new i = 0; tname[i]; i++) if (tname[i] == '|' || tname[i] == ';' || tname[i] == ':') tname[i] = ' ';
 	g_UiTarget[playerid] = target;
 	g_UiOpen[playerid] = 0;   // pas de page HTML : les messages vont dans le chat
 	// [v18] 5e champ : options du menu (action:Libelle;...), choisies par le serveur
 	new law = Fac_IsLaw(playerid), gov = Gov_Is(playerid);
-	format(txt, sizeof txt, "%d|%s|%d|%d|hello:Serrer la main;hug:Accolade;five:Check;money:Donner de l'argent;papers:Montrer mes papiers;number:Donner mon numéro", target, tname, law ? 1 : 0, gov ? 1 : 0);
+	Int_ReqItems(playerid, target, pre, sizeof pre);   // [v41b] "Accepter : ..." quand il te propose quelque chose
+	format(txt, sizeof txt, "%d|%s|%d|%d|%shello:Serrer la main;hug:Accolade;five:Check;money:Donner de l'argent;papers:Montrer mes papiers;number:Donner mon numéro", target, tname, law ? 1 : 0, gov ? 1 : 0, pre);
+	Int_PlayerItems(playerid, target, txt, sizeof txt);   // [v41b] interactions directes
 	if (law) strcat(txt, ";police:Contrôle de police", sizeof txt);
 	if (gov) strcat(txt, ";gov_check:Vérifier ses licences;gov_give:Délivrer une licence;gov_take:Retirer une licence", sizeof txt);
+	Frp_UiPlayerItems(playerid, target, txt, sizeof txt);   // [v41] casier, proces
 	strcat(txt, ";close:Fermer", sizeof txt);
 	return ShowPlayerDialog(playerid, UI_DIALOG_INTER3D, DIALOG_STYLE_MSGBOX, "@inter3d", txt, "OK", "");
 }
@@ -18599,6 +18614,8 @@ stock Ui_OpenVehicle3D(playerid, v)
 	else if (doors != VEHICLE_PARAMS_ON) strcat(txt, "enter:Monter;", sizeof txt);
 	strcat(txt, "vinfo:Plaque;", sizeof txt);
 	if (Fac_IsLaw(playerid)) strcat(txt, "vcheck:Contrôle;", sizeof txt);
+	Frp_UiVehItems(playerid, v, txt, sizeof txt);   // [v41] traceur FBI
+	Int_VehItems(playerid, v, txt, sizeof txt);     // [v41b] remettre sur roues, crocheter, reparer
 	strcat(txt, "close:Fermer", sizeof txt);
 	return ShowPlayerDialog(playerid, UI_DIALOG_INTER3D, DIALOG_STYLE_MSGBOX, "@inter3d", txt, "OK", "");
 }
@@ -18683,6 +18700,8 @@ stock Ui_Action(playerid, const params[])
 	if (!strcmp(action, "close", true)) { g_UiOpen[playerid] = 0; return 1; }
 	if (g_UiLast[playerid] != 0 && now - g_UiLast[playerid] < UI_COOLDOWN_MS) return 1;
 	g_UiLast[playerid] = (now == 0 ? 1 : now);
+	if (Frp_UiAction(playerid, action)) return 1;   // [v41]
+	if (Int_UiAction(playerid, action)) return 1;   // [v41b] interactions directes
 
 	// ---- Gouvernement (sur le joueur choisi) ----
 	if (!strcmp(action, "gov_give", true) || !strcmp(action, "gov_take", true) || !strcmp(action, "gov_check", true))
@@ -24010,6 +24029,14 @@ public OnPlayerConnect(playerid)
 	Cw22_OnConnect(playerid);  // [v22]
 	Cw23_OnConnect(playerid);  // [v23]
 	Cw25_OnConnect(playerid);  // [v25]
+	Store_OnConnect(playerid);  // [v30]
+	Pg_OnConnect(playerid);     // [v30c]
+	Cmp_OnConnect(playerid);    // [v31]
+	Ub_OnConnect(playerid);     // [v32]
+	Frp_OnConnect(playerid);    // [v41]
+	Cw41_OnConnect(playerid);   // [v41b]
+	Cw44_OnConnect(playerid);   // [v44]
+	Cw46_OnConnect(playerid);   // [v46]
 	g_CwLastVeh[playerid] = 0;
 	return 1;
 }
@@ -24028,6 +24055,13 @@ public OnPlayerDisconnect(playerid, reason)
 	Cw21_OnDisconnect(playerid);  // [v21] coupe le drone, retire [AFK]
 	Cw23_OnDisconnect(playerid);  // [v23] arene, civiere, assembleur, radar
 	Cw25_OnDisconnect(playerid);  // [v25] velo loue, telephone
+	Store_OnDisconnect(playerid);  // [v30]
+	Pg_OnDisconnect(playerid);     // [v30c]
+	Ub_OnDisconnect(playerid);     // [v32]
+	Frp_OnDisconnect(playerid);    // [v41]
+	Cw41_OnDisconnect(playerid);   // [v41b]
+	Cw44_OnDisconnect(playerid);   // [v44]
+	Cw46_OnDisconnect(playerid);   // [v46]
 	Phone_OnDisconnect(playerid);
 	Voice_OnDisconnect(playerid);
 	Garage_OnDisconnect(playerid);
@@ -24070,12 +24104,17 @@ public OnPlayerSpawn(playerid)
 	Cw22_OnSpawn(playerid);     // [v22] hotbar renvoyee
 	Cw_OnSpawn(playerid);      // [v15] en dernier : blesse -> remis a terre sur place
 	Cw23_OnSpawn(playerid);    // [v23] arene : reapparition dans l'arene (apres tout le reste)
+	Frp_OnSpawn(playerid);     // [v41] mandat d'arret actif -> avis de recherche
+	Cw44_OnSpawn(playerid);    // [v44] retour apres un evenement
+	Cw46_OnSpawn(playerid);    // [v46] identifiant du jour, tutoriel
 	return 1;
 }
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
 	new inArena = Cw23_OnDeath(playerid, killerid);   // [v23] arene PvP : pas de perte d'argent ni d'inconscience
+	if (Cw44_OnDeath(playerid)) inArena = 1;          // [v44] evenement (survie / derby)
+	if (!inArena) Cw46_OnDeath(playerid, killerid);   // [v46] stats (eliminations, gangs)
 	if (!inArena) Bank_OnDeath(playerid);
 	Pol_OnDeath(playerid);
 	Shop_Close(playerid, true);
@@ -24143,6 +24182,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 {
 	if (Cmd_TypedGate(playerid, cmdtext)) return 1;   // [v30] commandes tapees
 	if (Auth_OnCommand(playerid, cmdtext)) return 1;
+	if (Cw41_OnCommand(playerid, cmdtext)) return 1;   // [v41b] /tc (chat), /facact, /personnage, /accepterdemande
+	if (Frp_OnCommand(playerid, cmdtext)) return 1;    // [v41] pompiers, justice, FBI, armee
+	if (Cw44_OnCommand(playerid, cmdtext)) return 1;   // [v44] casino, bourse, evenements
+	if (Cw46_OnCommand(playerid, cmdtext)) return 1;   // [v46] /groupe, /tutoriel, /tuto
+	if (Store_OnCommand(playerid, cmdtext)) return 1;  // [v30] Crestwood Store
+	if (Pg_OnCommand(playerid, cmdtext)) return 1;     // [v30c]
+	if (Ub_OnCommand(playerid, cmdtext)) return 1;     // [v32] Uber (chauffeurs, taximetre)
 	if (RpX_OnCommand(playerid, cmdtext)) return 1;
 	if (Rp_OnCommand(playerid, cmdtext)) return 1;     // tablette RP (/rp, /menu, /rpact)
 	if (Cw25_OnCommand(playerid, cmdtext)) return 1;   // [v25] /c25, /telmain, /rendrevelo

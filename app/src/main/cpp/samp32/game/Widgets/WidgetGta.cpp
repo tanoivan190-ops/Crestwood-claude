@@ -209,6 +209,10 @@ static const char* Crestwood_ButtonIcon(int id)
         case WIDGET_EXIT_TARGETING: return "models/buttons/aim.png";
         case WIDGET_BUTTON_CROUCH: return "models/buttons/crouch.png";
         case WIDGET_BUTTON_DIVE: return "models/buttons/jump.png";
+        case WIDGET_ACCELERATE: return "models/buttons/accel.png";
+        case WIDGET_BRAKE: return "models/buttons/brake.png";
+        case WIDGET_HORN: return "models/buttons/horn.png";
+        case WIDGET_HANDBRAKE: return "models/buttons/handbrake.png";
         default: return nullptr;
     }
 }

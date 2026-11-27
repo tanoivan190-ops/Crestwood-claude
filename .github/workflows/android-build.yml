@@ -2,7 +2,7 @@ name: Android Build
 
 on:
   push:
-    branches: [ "main", "v22", "v23-actions" ]
+    branches: [ "main", "v22", "v23-conduite" ]
   workflow_dispatch:
 
 permissions:
@@ -44,11 +44,11 @@ jobs:
           name: crestwood-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Publier l'APK dans la release V23-actions
-        if: github.ref == 'refs/heads/v23-actions'
+      - name: Publier l'APK dans la release V23-conduite
+        if: github.ref == 'refs/heads/v23-conduite'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/*.apk CrestwoodRP-V23-actions.apk
-          gh release delete V23-actions -y --cleanup-tag -R ${{ github.repository }} || true
-          gh release create V23-actions CrestwoodRP-V23-actions.apk -R ${{ github.repository }} --target v23-actions --prerelease --title "APK V22 corrige" --notes "Source V22 (Anzo) + file de rendu 4 Mo (32 et 64 bits), intro 8 photos sans texte du haut, icone Viser."
+          cp app/build/outputs/apk/debug/*.apk CrestwoodRP-V23-conduite.apk
+          gh release delete V23-conduite -y --cleanup-tag -R ${{ github.repository }} || true
+          gh release create V23-conduite CrestwoodRP-V23-conduite.apk -R ${{ github.repository }} --target v23-conduite --prerelease --title "APK V22 corrige" --notes "V23 + boutons de conduite (accelerateur, frein, klaxon, frein a main)"

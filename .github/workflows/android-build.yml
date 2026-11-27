@@ -2,7 +2,7 @@ name: Android Build
 
 on:
   push:
-    branches: [ "main", "v22" ]
+    branches: [ "main", "v22", "v23-actions" ]
   workflow_dispatch:
 
 permissions:
@@ -44,11 +44,11 @@ jobs:
           name: crestwood-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Publier l'APK dans la release V22-corrige
-        if: github.ref == 'refs/heads/v22'
+      - name: Publier l'APK dans la release V23-actions
+        if: github.ref == 'refs/heads/v23-actions'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/*.apk CrestwoodRP-V22-corrige.apk
-          gh release delete V22-corrige -y --cleanup-tag -R ${{ github.repository }} || true
-          gh release create V22-corrige CrestwoodRP-V22-corrige.apk -R ${{ github.repository }} --target v22 --prerelease --title "APK V22 corrige" --notes "Source V22 (Anzo) + file de rendu 4 Mo (32 et 64 bits), intro 8 photos sans texte du haut, icone Viser."
+          cp app/build/outputs/apk/debug/*.apk CrestwoodRP-V23-actions.apk
+          gh release delete V23-actions -y --cleanup-tag -R ${{ github.repository }} || true
+          gh release create V23-actions CrestwoodRP-V23-actions.apk -R ${{ github.repository }} --target v23-actions --prerelease --title "APK V22 corrige" --notes "Source V22 (Anzo) + file de rendu 4 Mo (32 et 64 bits), intro 8 photos sans texte du haut, icone Viser."

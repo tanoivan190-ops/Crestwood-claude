@@ -2952,7 +2952,9 @@ stock Cloth_OnCommand(playerid, const cmdtext[])
 #define FACTION_CARDEALER       10
 #define FACTION_BURGER          11
 #define FACTION_TAXIDRIVER      12
-#define FACTION_TYPE_MAX        12          // dernier type de faction (voir /createfaction)
+#define FACTION_FIRE            13          // [v41] pompiers
+#define FACTION_JUSTICE         14          // [v41] justice (juges, avocats, procureurs)
+#define FACTION_TYPE_MAX        14          // dernier type de faction (voir /createfaction)
 
 #define MAX_FACTIONS            20          // ids 1..19 (0 = civil)
 #define MAX_FACTION_RANKS       20          // grades 1..N (N = nombre de grades de la faction)
@@ -2967,6 +2969,28 @@ stock Cloth_OnCommand(playerid, const cmdtext[])
 #define LOCKER_COOLDOWN_MS      1500
 
 // Modeles de police (apparence du client : 280 homme, 246 femme)
+// [v56] tenues du vestiaire par type de faction (jusqu'a 3, 0 = vide). EMS : tenues SAMU 250 / 275
+//       livrees dans l'APK (assets/skins, remplacement natif : jamais le skin GTA d'origine).
+//       Police : vestiaire personnalise (modele + ceinture / gilet / casquette), pas cette table.
+#define LOCKER_OUTFITS          3
+new const g_LkOutfit[15][LOCKER_OUTFITS] =
+{
+	{0, 0, 0},          // aucune
+	{0, 0, 0},          // police (vestiaire personnalise)
+	{250, 275, 0},      // medecin / EMS : SAMU 1, SAMU 2
+	{187, 141, 0},      // journaliste
+	{147, 150, 0},      // gouvernement
+	{127, 93, 0},       // tueur a gages
+	{286, 141, 0},      // FBI
+	{50, 192, 0},       // mecanicien
+	{121, 41, 0},       // terroriste
+	{287, 191, 0},      // armee
+	{171, 172, 0},      // concessionnaire
+	{205, 205, 0},      // burger
+	{255, 263, 0},      // taxi
+	{277, 278, 0},      // pompiers
+	{147, 141, 0}       // justice
+};
 #define LOCKER_SKIN_POLICE_M    280
 #define LOCKER_SKIN_POLICE_F    246
 

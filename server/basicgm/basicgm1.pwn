@@ -8051,6 +8051,34 @@ stock Job_OnCommand(playerid, const cmdtext[])
 		printf("[POSITION] %s", m);
 		return 1;
 	}
+	// [v23] outils staff : /tp x y z [interieur]  et  /arme <id arme> [munitions]
+	if (!strcmp(cmdtext, "/tp ", true, 4) || !strcmp(cmdtext, "/arme ", true, 6))
+	{
+		if (!IsPlayerAdmin(playerid) && Admin_Level(playerid) < 1) { Job_Msg(playerid, JOB_COL_ERR, "Reserve au staff."); return 1; }
+		new isTp = !strcmp(cmdtext, "/tp ", true, 4), idx = isTp ? 4 : 6, t1[24], t2[24], t3[24], t4[24];
+		Bank_NextToken(cmdtext, idx, t1, sizeof t1);
+		Bank_NextToken(cmdtext, idx, t2, sizeof t2);
+		Bank_NextToken(cmdtext, idx, t3, sizeof t3);
+		Bank_NextToken(cmdtext, idx, t4, sizeof t4);
+		new m[96];
+		if (isTp)
+		{
+			if (!t3[0]) { Job_Msg(playerid, JOB_COL_ERR, "Utilisation : /tp x y z   (ex : /tp 1958.3 -2181.6 13.5)"); return 1; }
+			SetPlayerInterior(playerid, strval(t4));
+			if (IsPlayerInAnyVehicle(playerid) && GetPlayerState(playerid) == PLAYER_STATE_DRIVER) SetVehiclePos(GetPlayerVehicleID(playerid), floatstr(t1), floatstr(t2), floatstr(t3));
+			else SetPlayerPos(playerid, floatstr(t1), floatstr(t2), floatstr(t3));
+			Job_Msg(playerid, JOB_COL_OK, "Teleporte.");
+		}
+		else
+		{
+			new w = strval(t1), ammo = t2[0] ? strval(t2) : 200;
+			if (w < 1 || w > 46 || (w >= 19 && w <= 21) || w == 35 || w == 36 || w == 37 || w == 38) { Job_Msg(playerid, JOB_COL_ERR, "Utilisation : /arme <id> [balles]   (ex : /arme 24 200 = Desert Eagle)"); return 1; }
+			GivePlayerWeapon(playerid, w, ammo);
+			format(m, sizeof m, "Arme %d (%d balles) recue.", w, ammo);
+			Job_Msg(playerid, JOB_COL_OK, m);
+		}
+		return 1;
+	}
 	return 0;
 }
 

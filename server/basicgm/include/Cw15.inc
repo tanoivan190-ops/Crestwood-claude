@@ -699,6 +699,8 @@ stock Cw_Revive(playerid, Float:hp = 50.0)
 	return 1;
 }
 
+stock Cw_InjFresh(playerid) { return g_CwInjured[playerid] == 1; }   // [v23] vient de tomber (spawn en cours)
+
 stock Cw_ToHospital(playerid, const why[])
 {
 	if (g_CwInjured[playerid] != 2) return 0;

@@ -24238,7 +24238,7 @@ public OnPlayerDisconnect(playerid, reason)
 forward Cw_PlaceSpawnDo(playerid, kind);
 stock Cw_PlaceSpawn(playerid)
 {
-	if (g_CwInjured[playerid] == 1) { g_CwDied[playerid] = 0; return 1; }   // vient de tomber : remis a terre sur place par le systeme de blessure
+	if (Cw_InjFresh(playerid)) { g_CwDied[playerid] = 0; return 1; }   // vient de tomber : remis a terre sur place par le systeme de blessure
 	if (g_CwHospSp[playerid] || g_CwDied[playerid]) { g_CwHospSp[playerid] = 0; g_CwDied[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
 	else if (g_CwFirstSp[playerid]) { g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 1); }
 	return 1;

@@ -4980,7 +4980,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
             case "draw_dist": return 100;
             case "post_fx": return 1;
             case "voice_btn": return 1;
-            case "cw_buttons": return 1;
+            case "cw_buttons": return 0;   // anciennes touches par defaut
             case "res_scale": return 100;
             case "gfx_preset": return 2;
             case "hud_scale": return 100;
@@ -5028,7 +5028,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
 
     private void applySavedGameSettings() {
         SharedPreferences sp = getSharedPreferences("display_settings", MODE_PRIVATE);
-        if (!sp.contains("cw_buttons_v23")) { sp.edit().putInt("cw_cw_buttons", 1).putBoolean("cw_buttons_v23", true).apply(); }   // [v23] force les icones une fois
+        if (!sp.contains("cw_buttons_v23b")) { sp.edit().putInt("cw_cw_buttons", 0).putBoolean("cw_buttons_v23b", true).apply(); }   // remet les anciennes touches une fois
         try { applyGameSetting(3, CW_DRAW_DIST); } catch (Throwable ignored) { }
         for (String k : GAME_SETTING_KEYS) {
             if ("gfx_preset".equals(k) || "draw_dist".equals(k)) continue;

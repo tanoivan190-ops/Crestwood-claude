@@ -98,7 +98,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
     try { if (window.AndroidHUD && window.AndroidHUD.onHudAction) window.AndroidHUD.onHudAction(action, JSON.stringify(payload || {})); }
     catch (e) { console.log(e); }
   }
-  var V = { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 1, res_scale: 100, gfx_preset: 2, aspect: "16:9", screen: "" };
+  var V = { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 0, res_scale: 100, gfx_preset: 2, aspect: "16:9", screen: "" };
   try {
     var q = new URLSearchParams(location.search).get("s");
     if (q) { var o = JSON.parse(q); for (var k in o) V[k] = o[k]; }
@@ -175,7 +175,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
       if (v !== Number(V[r.k])) apply(r.k, v);
     } else if (r.t === "btn") {
       send("settings:reset", {});
-      V = Object.assign(V, { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 1, res_scale: 100, gfx_preset: 2, aspect: "16:9" });
+      V = Object.assign(V, { fps_counter: 0, fps_limit: 120, draw_dist: 100, post_fx: 1, voice_btn: 1, cw_buttons: 0, res_scale: 100, gfx_preset: 2, aspect: "16:9" });
       toast("Paramètres réinitialisés");
     }
     render();

@@ -1555,6 +1555,23 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 #define AUTH_COL_ERR          0xFF4444FF
 
 new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
+new Float:g_TpHp[MAX_PLAYERS];
+new g_TpTicks[MAX_PLAYERS];
+forward Cw_TpFall(playerid);
+public Cw_TpFall(playerid)
+{
+	if (!IsPlayerConnected(playerid)) return 1;
+	new Float:vx, Float:vy, Float:vz;
+	GetPlayerVelocity(playerid, vx, vy, vz);
+	g_TpTicks[playerid]++;
+	if ((g_TpTicks[playerid] > 3 && vz > -0.02) || g_TpTicks[playerid] > 57)
+	{
+		SetPlayerHealth(playerid, g_TpHp[playerid] > 0.0 ? g_TpHp[playerid] : 100.0);
+		return 1;
+	}
+	SetTimerEx("Cw_TpFall", 700, false, "i", playerid);
+	return 1;
+}
 
 // vrai une seule fois par base et par cle (operations de maintenance a faire une fois)
 stock Cw_OnceDB(DB:db, const key[])
@@ -8049,6 +8066,26 @@ stock Job_OnCommand(playerid, const cmdtext[])
 		format(m, sizeof m, "Position : %.2f, %.2f, %.2f  angle %.1f  (interieur %d, monde %d)", x, y, z, a, GetPlayerInterior(playerid), GetPlayerVirtualWorld(playerid));
 		Job_Msg(playerid, JOB_COL_INFO, m);
 		printf("[POSITION] %s", m);
+		return 1;
+	}
+	// [v23] /tpcarte x y : teleportation depuis la carte (staff). On arrive en hauteur, protege, puis on tombe jusqu'au sol.
+	if (!strcmp(cmdtext, "/tpcarte ", true, 9))
+	{
+		if (!IsPlayerAdmin(playerid) && Admin_Level(playerid) < 1) { Job_Msg(playerid, JOB_COL_ERR, "Reserve au staff."); return 1; }
+		new i2 = 9, a1[16], a2[16];
+		Bank_NextToken(cmdtext, i2, a1, sizeof a1);
+		Bank_NextToken(cmdtext, i2, a2, sizeof a2);
+		if (!a2[0]) return 1;
+		new Float:hp;
+		GetPlayerHealth(playerid, hp);
+		g_TpHp[playerid] = hp;
+		g_TpTicks[playerid] = 0;
+		SetPlayerInterior(playerid, 0);
+		SetPlayerVirtualWorld(playerid, 0);
+		SetPlayerHealth(playerid, 99999.0);
+		SetPlayerPos(playerid, floatstr(a1), floatstr(a2), 400.0);
+		SetTimerEx("Cw_TpFall", 700, false, "i", playerid);
+		Job_Msg(playerid, JOB_COL_OK, "Teleportation en cours...");
 		return 1;
 	}
 	// [v23] outils staff : /tp x y z [interieur]  et  /arme <id arme> [munitions]

@@ -7636,12 +7636,49 @@ stock Job_ClearCarry(playerid)
 	return 1;
 }
 
+// [v23] Points de livraison varies : a chaque tournee, les arrets sont tires au hasard dans tout Los Santos
+new Float:g_JobPool[][3] =
+{
+	{1832.3, -1849.0, 13.4}, {2306.0, -1651.0, 14.3}, {2421.6, -1225.0, 24.9}, {812.0, -1622.0, 13.4},
+	{1356.0, -1395.0, 13.4}, {1195.0, -1325.0, 13.4}, {1480.5, -1736.0, 13.4}, {2068.0, -1628.6, 13.9},
+	{2459.4, -1690.6, 13.5}, {2495.3, -1688.4, 13.8}, {2105.5, -1800.0, 13.4}, {1925.9, -1769.9, 13.5},
+	{2140.5, -1731.1, 13.5}, {2440.0, -1660.0, 13.4}, {2342.0, -1730.0, 13.4}, {2218.0, -1745.0, 13.4},
+	{2085.0, -1750.0, 13.4}, {1823.3, -1928.4, 13.4}
+};
+new g_JobRIdx[MAX_PLAYERS][8];     // arret tire pour l'etape (index + 1, 0 = pas encore tire)
+new g_JobRLast[MAX_PLAYERS];
+
+stock Job_RandomJob(job)
+{
+	return (job == JOB_DELIVERY || job == JOB_PIZZA || job == JOB_TRUCKER || job == JOB_POST || job == JOB_CASH || job == JOB_BUS);
+}
+
+stock Job_ClearRandom(playerid)
+{
+	for (new i = 0; i < 8; i++) g_JobRIdx[playerid][i] = 0;
+	g_JobRLast[playerid] = -1;
+	return 1;
+}
+
 stock Job_SetCheckpoint(playerid)
 {
 	new job = g_JobOf[playerid], Float:x, Float:y, Float:z;
-	if (g_JobStep[playerid] < 0 || g_JobStep[playerid] >= g_JobNum[job]) g_JobStep[playerid] = 0;
+	if (g_JobStep[playerid] < 0 || g_JobStep[playerid] >= g_JobNum[job]) { g_JobStep[playerid] = 0; Job_ClearRandom(playerid); }
 	new s = Job_StepPos(job, g_JobStep[playerid], x, y, z);
 	new kind = g_JobSteps[s][jsKind];
+	if (kind == JK_STOP && Job_RandomJob(job) && g_JobStep[playerid] < 8)
+	{
+		new st = g_JobStep[playerid];
+		if (!g_JobRIdx[playerid][st])
+		{
+			new n = sizeof g_JobPool, idx = random(n), tries = 0;
+			while (idx == g_JobRLast[playerid] && tries++ < 8) idx = random(n);
+			g_JobRIdx[playerid][st] = idx + 1;
+		}
+		new pi = g_JobRIdx[playerid][st] - 1;
+		g_JobRLast[playerid] = pi;
+		x = g_JobPool[pi][0]; y = g_JobPool[pi][1]; z = g_JobPool[pi][2];
+	}
 	DisablePlayerCheckpoint(playerid);
 	SetPlayerCheckpoint(playerid, x, y, z, (kind == JK_CUT || kind == JK_DROP) ? JOB_CP_FOOT : JOB_CP_VEH);
 	Gps_Set(playerid, x, y);
@@ -7675,7 +7712,7 @@ stock Job_Start(playerid, msg[], msgsize)
 	if (GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) { format(msg, msgsize, "Descends de ton vehicule."); return 0; }
 
 	g_JobOn[playerid] = 1;
-	g_JobStep[playerid] = 0;
+	g_JobStep[playerid] = 0; Job_ClearRandom(playerid);
 	g_JobShift[playerid] = 0;
 	g_JobBusy[playerid] = 0;
 	g_JobAway[playerid] = 0;
@@ -7761,7 +7798,7 @@ stock Job_Complete(playerid)
 			format(m, sizeof m, "Niveau %d atteint dans ce metier : +%d %% de paie !", lv, JOB_LEVEL_BONUS * (lv - 1));
 			Job_Msg(playerid, JOB_COL_OK, m);
 		}
-		g_JobStep[playerid] = 0;
+		g_JobStep[playerid] = 0; Job_ClearRandom(playerid);
 	}
 	Job_SetCheckpoint(playerid);
 	return 1;
@@ -7958,7 +7995,7 @@ stock Job_OnConnect(playerid)
 	g_JobRoutes[playerid] = 0;
 	g_JobEarned[playerid] = 0;
 	g_JobOn[playerid] = 0;
-	g_JobStep[playerid] = 0;
+	g_JobStep[playerid] = 0; Job_ClearRandom(playerid);
 	g_JobVeh[playerid] = INVALID_VEHICLE_ID;
 	g_JobCarry[playerid] = 0;
 	g_JobBusy[playerid] = 0;

@@ -24205,25 +24205,6 @@ public Cw_PlaceSpawnDo(playerid, kind)
 	SetCameraBehindPlayer(playerid);
 	return 1;
 }
-// [v23] degats des armes a feu : +50 % (le reste du systeme de blessure est inchange)
-public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
-{
-	if (issuerid != INVALID_PLAYER_ID && IsPlayerConnected(issuerid) && weaponid >= 22 && weaponid <= 34 && amount > 0.0)
-	{
-		new Float:extra = amount * 0.5, Float:arm, Float:hp;
-		GetPlayerArmour(playerid, arm);
-		if (arm > 0.0)
-		{
-			if (arm >= extra) { SetPlayerArmour(playerid, arm - extra); return 1; }
-			extra -= arm;
-			SetPlayerArmour(playerid, 0.0);
-		}
-		GetPlayerHealth(playerid, hp);
-		if (hp - extra > 1.0) SetPlayerHealth(playerid, hp - extra);
-	}
-	return 1;
-}
-
 public OnPlayerSpawn(playerid)
 {
 	Bank_OnSpawn(playerid);

@@ -349,6 +349,21 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			g_CwGzWarn[issuerid] = gettime();
 			SendClientMessage(issuerid, CW_COL_ERR, "Zone verte : impossible de blesser quelqu'un ici.");
 		}
+		return 1;
+	}
+	// [v23] degats des armes a feu : +50 %
+	if (issuerid != INVALID_PLAYER_ID && IsPlayerConnected(issuerid) && weaponid >= 22 && weaponid <= 34 && amount > 0.0)
+	{
+		new Float:extra = amount * 0.5, Float:arm, Float:hp2;
+		GetPlayerArmour(playerid, arm);
+		if (arm > 0.0)
+		{
+			if (arm >= extra) { SetPlayerArmour(playerid, arm - extra); return 1; }
+			extra -= arm;
+			SetPlayerArmour(playerid, 0.0);
+		}
+		GetPlayerHealth(playerid, hp2);
+		if (hp2 - extra > 1.0) SetPlayerHealth(playerid, hp2 - extra);
 	}
 	return 1;
 }

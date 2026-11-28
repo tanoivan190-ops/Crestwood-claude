@@ -15375,7 +15375,8 @@ new const g_IntPre[][E_INTPRE] =
 	{"Garage Wheel Arch Angels", "Garage",      3,  614.3889, -124.0991,  997.9950,    0.0,      0.0,    0.0,     95},
 	{"Garage Loco Low Co",       "Garage",      2,  612.5910,  -75.6370,  997.9920,    0.0,      0.0,    0.0,     95},
 	{"Garage Transfender",       "Garage",      1,  621.7850,  -12.5417, 1000.9220,    0.0,      0.0,    0.0,     95},
-	{"Commissariat LSPD (interieur)", "Police", 6,  246.4510,   65.5860, 1003.6410,    0.0,      0.0,    0.0,     29}
+	{"Commissariat LSPD (interieur)", "Police", 6,  246.4510,   65.5860, 1003.6410,    0.0,      0.0,    0.0,     29},
+	{"Mairie (bureaux du Planning)", "Mairie",    3,  374.6708,  173.8050, 1008.3893,    0.0,      0.0,    0.0,    0}
 };
 
 // Cree un portail depuis un preset ; retourne 1 si cree, 0 si plein

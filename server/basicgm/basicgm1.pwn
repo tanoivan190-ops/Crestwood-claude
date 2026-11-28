@@ -1556,6 +1556,7 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 
 new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
 new g_CwFirstSp[MAX_PLAYERS];
+new g_CwDied[MAX_PLAYERS];     // 1 = le joueur est mort (hors arene/evenement) : prochain spawn a l'hopital
 new g_CwHospSp[MAX_PLAYERS];   // 1 = prochain spawn a l'hopital (pose par Cw_ToHospital)
 new Float:g_TpHp[MAX_PLAYERS];
 new g_TpTicks[MAX_PLAYERS];
@@ -1911,6 +1912,7 @@ public Auth_Finish(playerid)
 {
 	if (!IsPlayerConnected(playerid) || !g_AuthLogged[playerid]) return 0;
 	Auth_Send(playerid, AUTH_DIALOG_CLOSE, "{}");
+	g_CwFirstSp[playerid] = 1;   // [v23] 1er spawn apres connexion : aeroport de Los Santos
 	SpawnPlayer(playerid);
 	return 1;
 }
@@ -7348,6 +7350,7 @@ new g_JobSteps[][E_JSTEP] =
 new g_JobFirst[JOB_COUNT + 1];
 new g_JobNum[JOB_COUNT + 1];
 new g_JobPickup[JOB_COUNT + 1];
+new Text3D:g_JobLabel[JOB_COUNT + 1] = {Text3D:INVALID_3DTEXT_ID, ...};
 new DB:g_JobDB;
 
 new g_JobLoaded[MAX_PLAYERS];
@@ -7971,9 +7974,24 @@ stock Job_OnInit()
 		g_JobPickup[j] = Cw_Pickup(JOB_PICKUP_MODEL, 1, g_Jobs[j][jbX], g_Jobs[j][jbY], g_Jobs[j][jbZ], -1);
 		new label[96];
 		format(label, sizeof label, "{FFCC33}%s\n{FFFFFF}Touche la main : contrat de travail", g_Jobs[j][jbName]);
-		Cw_Label(label, 0xFFFFFFFF, g_Jobs[j][jbX], g_Jobs[j][jbY], g_Jobs[j][jbZ] + 0.6, 15.0, 0, 1);
+		g_JobLabel[j] = Cw_Label(label, 0xFFFFFFFF, g_Jobs[j][jbX], g_Jobs[j][jbY], g_Jobs[j][jbZ] + 0.6, 15.0, 0, 1);
 	}
 	SetTimer("Job_Tick", 1000, true);
+	return 1;
+}
+
+// [v23] apres un deplacement de siege (/points) : la main et l'etiquette suivent le vrai siege
+stock Job_RefreshSeats()
+{
+	for (new j = 1; j <= JOB_COUNT; j++)
+	{
+		if (g_JobPickup[j] != -1) DestroyPickup(g_JobPickup[j]);
+		if (g_JobLabel[j] != Text3D:INVALID_3DTEXT_ID) Delete3DTextLabel(g_JobLabel[j]);
+		g_JobPickup[j] = Cw_Pickup(JOB_PICKUP_MODEL, 1, g_Jobs[j][jbX], g_Jobs[j][jbY], g_Jobs[j][jbZ], -1);
+		new label[96];
+		format(label, sizeof label, "{FFCC33}%s\n{FFFFFF}Touche la main : contrat de travail", g_Jobs[j][jbName]);
+		g_JobLabel[j] = Cw_Label(label, 0xFFFFFFFF, g_Jobs[j][jbX], g_Jobs[j][jbY], g_Jobs[j][jbZ] + 0.6, 15.0, 0, 1);
+	}
 	return 1;
 }
 
@@ -24169,8 +24187,9 @@ public OnPlayerConnect(playerid)
 	Cw41_OnConnect(playerid);   // [v41b]
 	Cw44_OnConnect(playerid);   // [v44]
 	Cw46_OnConnect(playerid);   // [v46]
-	g_CwFirstSp[playerid] = 1;
+	g_CwFirstSp[playerid] = 0;
 	g_CwHospSp[playerid] = 0;
+	g_CwDied[playerid] = 0;
 	g_CwLastVeh[playerid] = 0;
 	return 1;
 }
@@ -24219,7 +24238,8 @@ public OnPlayerDisconnect(playerid, reason)
 forward Cw_PlaceSpawnDo(playerid, kind);
 stock Cw_PlaceSpawn(playerid)
 {
-	if (g_CwHospSp[playerid]) { g_CwHospSp[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
+	if (g_CwInjured[playerid] == 1) { g_CwDied[playerid] = 0; return 1; }   // vient de tomber : remis a terre sur place par le systeme de blessure
+	if (g_CwHospSp[playerid] || g_CwDied[playerid]) { g_CwHospSp[playerid] = 0; g_CwDied[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
 	else if (g_CwFirstSp[playerid]) { g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 1); }
 	return 1;
 }
@@ -24230,7 +24250,7 @@ public Cw_PlaceSpawnDo(playerid, kind)
 	SetPlayerVirtualWorld(playerid, 0);
 	if (kind == 2)
 	{
-		SetPlayerPos(playerid, 1177.50, -1323.80, 14.05);   // hopital All Saints (devant l'entree)
+		SetPlayerPos(playerid, 1172.0, -1323.0, 15.4);   // hopital All Saints (devant la porte)
 		SetPlayerFacingAngle(playerid, 270.0);
 		SetPlayerHealth(playerid, 100.0);
 	}
@@ -24282,6 +24302,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	Ui_Close(playerid, true);
 	Job_OnDeath(playerid);
 	RpX_OnDeath(playerid, killerid);
+	if (!inArena) g_CwDied[playerid] = 1;
 	if (!inArena) Cw_OnDeath(playerid, killerid);   // [v15] inconscient au lieu de reapparaitre
 	Npc_OnDeath(playerid);            // [v18] quete echouee
 	Cj_OnDeath(playerid);             // [v18] emploi arrete
@@ -24399,6 +24420,34 @@ public OnPlayerCommandText(playerid, cmdtext[])
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
 	Pol_OnEnterVehicle(playerid);
+	// [v23] place conducteur deja prise : on monte comme passager, cote de la porte ou l'on se trouve
+	if (!ispassenger)
+	{
+		new drv = 0;
+		for (new q = 0, mx = GetMaxPlayers(); q < mx; q++)
+			if (q != playerid && IsPlayerConnected(q) && GetPlayerVehicleID(q) == vehicleid && GetPlayerVehicleSeat(q) == 0) { drv = 1; break; }
+		if (drv)
+		{
+			new Float:px, Float:py, Float:pz, Float:vx, Float:vy, Float:vz, Float:va;
+			GetPlayerPos(playerid, px, py, pz);
+			GetVehiclePos(vehicleid, vx, vy, vz);
+			GetVehicleZAngle(vehicleid, va);
+			new Float:dx = px - vx, Float:dy = py - vy;
+			new Float:fwd = dx * (-floatsin(va, degrees)) + dy * floatcos(va, degrees);
+			new Float:rgt = dx * floatcos(va, degrees) + dy * floatsin(va, degrees);
+			new want[4];
+			if (fwd >= 0.0) { want[0] = 1; want[1] = 2; want[2] = 3; want[3] = 4; }
+			else if (rgt > 0.0) { want[0] = 3; want[1] = 1; want[2] = 2; want[3] = 4; }
+			else { want[0] = 2; want[1] = 1; want[2] = 3; want[3] = 4; }
+			for (new k = 0; k < 4; k++)
+			{
+				new seat = want[k], used = 0;
+				for (new q = 0, mx = GetMaxPlayers(); q < mx; q++)
+					if (IsPlayerConnected(q) && GetPlayerVehicleID(q) == vehicleid && GetPlayerVehicleSeat(q) == seat) { used = 1; break; }
+				if (!used && PutPlayerInVehicle(playerid, vehicleid, seat)) break;
+			}
+		}
+	}
 	return 1;
 }
 

@@ -459,6 +459,7 @@ stock Pts_FindPoint(db)
 stock Pts_ReloadPoints()
 {
 	Pts_LoadAll();
+	Job_RefreshSeats();   // [v23] la main / l'etiquette des emplois suivent les sieges deplaces
 	Marks_SendAll();
 	return 1;
 }

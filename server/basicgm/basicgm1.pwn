@@ -24347,6 +24347,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (Frp_OnCommand(playerid, cmdtext)) return 1;    // [v41] pompiers, justice, FBI, armee
 	if (Cw44_OnCommand(playerid, cmdtext)) return 1;   // [v44] casino, bourse, evenements
 	if (Cw46_OnCommand(playerid, cmdtext)) return 1;   // [v46] /groupe, /tutoriel, /tuto
+	if (Cw_GiveAllCmd(playerid, cmdtext)) return 1;    // [v23] /toutdonner (staff)
 	if (Store_OnCommand(playerid, cmdtext)) return 1;  // [v30] Crestwood Store
 	if (Pg_OnCommand(playerid, cmdtext)) return 1;     // [v30c]
 	if (Ub_OnCommand(playerid, cmdtext)) return 1;     // [v32] Uber (chauffeurs, taximetre)
@@ -25187,3 +25188,36 @@ stock Id_DoSet(playerid, const params[])
 #include <Cw44>            // [v44] casino, bourse, evenements
 #include <Cw46>            // [v46] stats de groupe, identifiants du jour, tutoriel
 #include <Cw47>            // [v47] interactions de faction en plus
+
+// ============================================================
+//  [v23] /toutdonner [id] : donne tout ce qu'il faut pour tout tester (staff niveau 7 ou RCON)
+//  permis (conduire, armes, poids lourds, navire), carte d'identite, tous les objets, 50 000 $,
+//  missions d'arrivee terminees.
+// ============================================================
+stock Cw_GiveAllCmd(playerid, const cmdtext[])
+{
+	if (strcmp(cmdtext, "/toutdonner", true, 11) != 0) return 0;
+	if (!IsPlayerAdmin(playerid) && Admin_Level(playerid) < 7) { SendClientMessage(playerid, 0xFF4444FF, "Reserve au staff (niveau 7 minimum)."); return 1; }
+	new idx = 11, tok[8], t = playerid;
+	Bank_NextToken(cmdtext, idx, tok, sizeof tok);
+	if (tok[0]) t = strval(tok);
+	if (t < 0 || t >= MAX_PLAYERS || !IsPlayerConnected(t) || !g_AuthLogged[t]) { SendClientMessage(playerid, 0xFF4444FF, "Joueur introuvable ou pas connecte. Utilisation : /toutdonner [id]"); return 1; }
+	for (new l = 0; l < LIC_COUNT; l++) Gov_SetLicense(playerid, t, l, 1);
+	Mis_GiveLicense(t);
+	if (g_IdGender[t] != 0 && g_IdGender[t] != 1)
+	{
+		new name[MAX_PLAYER_NAME + 1], q[200];
+		GetPlayerName(t, name, sizeof name);
+		g_IdGender[t] = 0;
+		format(g_IdBirth[t], 12, "01/01/1995");
+		format(g_IdOrigin[t], 26, "Los Santos");
+		format(q, sizeof q, "UPDATE accounts SET birth = '%s', origin = '%s', gender = 0 WHERE name = '%s'", g_IdBirth[t], g_IdOrigin[t], name);
+		db_free_result(db_query(g_AuthDB, q));
+	}
+	Inv_Give(t, "all 5");
+	GivePlayerMoney(t, 50000);
+	if (g_MisStep[t] < MIS_FINISHED) { g_MisStep[t] = MIS_FINISHED; Mis_Save(t); Obj_Hide(t); }
+	SendClientMessage(t, 0x33CC33FF, "[Staff] Permis, identite, objets, 50 000 $ et missions d'arrivee : tout est donne.");
+	if (t != playerid) SendClientMessage(playerid, 0x33CC33FF, "Tout a ete donne au joueur.");
+	return 1;
+}

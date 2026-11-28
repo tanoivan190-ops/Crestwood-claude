@@ -212,6 +212,7 @@ stock Pts_LoadAll()
 	for (new j = 1; j <= JOB_COUNT; j++) g_JobPlaced[j] = 0;
 	if (!Pts_OpenDB()) return 0;
 	if (Cw_OnceDB(g_PtDB, "mta_points_v30")) Pts_SeedMta();   // [v30b] emplacements du gamemode MTA ECLIPSE
+	if (Cw_OnceDB(g_PtDB, "airport_rent_v23")) Pts_SeedOne(PT_RENT, "Location aeroport", 1945.0, -2178.0, 13.55, 90.0);   // [v23] location devant l'aeroport (deplacable avec /points)
 	new DBResult:res = db_query(g_PtDB, "SELECT id, type, sub, name, x, y, z, a FROM cw_points ORDER BY id");
 	if (res == DBResult:0) return 0;
 	new rows = db_num_rows(res), f[40];

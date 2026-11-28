@@ -1556,6 +1556,7 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 
 new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
 new g_CwFirstSp[MAX_PLAYERS];
+new g_CwHospSp[MAX_PLAYERS];   // 1 = prochain spawn a l'hopital (pose par Cw_ToHospital)
 forward Cw_PlaceSpawnDo(playerid, kind);
 stock Cw_PlaceSpawn(playerid)
 {

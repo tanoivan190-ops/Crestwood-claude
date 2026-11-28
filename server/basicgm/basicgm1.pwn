@@ -1557,32 +1557,6 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
 new g_CwFirstSp[MAX_PLAYERS];
 new g_CwHospSp[MAX_PLAYERS];   // 1 = prochain spawn a l'hopital (pose par Cw_ToHospital)
-forward Cw_PlaceSpawnDo(playerid, kind);
-stock Cw_PlaceSpawn(playerid)
-{
-	if (g_CwHospSp[playerid]) { g_CwHospSp[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
-	else if (g_CwFirstSp[playerid]) { g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 1); }
-	return 1;
-}
-public Cw_PlaceSpawnDo(playerid, kind)
-{
-	if (!IsPlayerConnected(playerid) || !g_AuthLogged[playerid]) return 1;
-	SetPlayerInterior(playerid, 0);
-	SetPlayerVirtualWorld(playerid, 0);
-	if (kind == 2)
-	{
-		SetPlayerPos(playerid, 1177.50, -1323.80, 14.05);   // hopital All Saints (devant l'entree)
-		SetPlayerFacingAngle(playerid, 270.0);
-		SetPlayerHealth(playerid, 100.0);
-	}
-	else
-	{
-		SetPlayerPos(playerid, 1958.33, -2181.69, 13.55);   // aeroport de Los Santos
-		SetPlayerFacingAngle(playerid, 90.0);
-	}
-	SetCameraBehindPlayer(playerid);
-	return 1;
-}
 new Float:g_TpHp[MAX_PLAYERS];
 new g_TpTicks[MAX_PLAYERS];
 forward Cw_TpFall(playerid);
@@ -24205,6 +24179,32 @@ public OnPlayerDisconnect(playerid, reason)
 	return 1;
 }
 
+forward Cw_PlaceSpawnDo(playerid, kind);
+stock Cw_PlaceSpawn(playerid)
+{
+	if (g_CwHospSp[playerid]) { g_CwHospSp[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
+	else if (g_CwFirstSp[playerid]) { g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 1); }
+	return 1;
+}
+public Cw_PlaceSpawnDo(playerid, kind)
+{
+	if (!IsPlayerConnected(playerid) || !g_AuthLogged[playerid]) return 1;
+	SetPlayerInterior(playerid, 0);
+	SetPlayerVirtualWorld(playerid, 0);
+	if (kind == 2)
+	{
+		SetPlayerPos(playerid, 1177.50, -1323.80, 14.05);   // hopital All Saints (devant l'entree)
+		SetPlayerFacingAngle(playerid, 270.0);
+		SetPlayerHealth(playerid, 100.0);
+	}
+	else
+	{
+		SetPlayerPos(playerid, 1958.33, -2181.69, 13.55);   // aeroport de Los Santos
+		SetPlayerFacingAngle(playerid, 90.0);
+	}
+	SetCameraBehindPlayer(playerid);
+	return 1;
+}
 public OnPlayerSpawn(playerid)
 {
 	Bank_OnSpawn(playerid);

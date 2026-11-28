@@ -4320,21 +4320,3 @@ body.phone-camera-mode .id-camera-frame span { display: none; }
 .wheel-slot.s7 { left: 18.8%; top: 68.0%; }
 .wheel-slot.s8 { left: 14.5%; top: 43.7%; }
 .wheel-slot.s9 { left: 26.9%; top: 22.4%; }
-
-/* [v23] bouton "monter cote passager" */
-.passenger-door-button {
-  position: absolute;
-  right: max(118px, calc(env(safe-area-inset-right) + 118px));
-  top: 47vh;
-  z-index: 6;
-  width: 60px;
-  height: 60px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  background: rgba(7, 16, 20, 0.62);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  pointer-events: auto;
-}
-.vehicle-hud-active .passenger-door-button { display: none; }

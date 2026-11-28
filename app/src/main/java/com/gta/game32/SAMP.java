@@ -5017,6 +5017,7 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
 
     private void applySavedGameSettings() {
         SharedPreferences sp = getSharedPreferences("display_settings", MODE_PRIVATE);
+        if (!sp.contains("cw_buttons_v23")) { sp.edit().putInt("cw_cw_buttons", 1).putBoolean("cw_buttons_v23", true).apply(); }   // [v23] force les icones une fois
         try { applyGameSetting(3, CW_DRAW_DIST); } catch (Throwable ignored) { }
         for (String k : GAME_SETTING_KEYS) {
             if ("gfx_preset".equals(k) || "draw_dist".equals(k)) continue;

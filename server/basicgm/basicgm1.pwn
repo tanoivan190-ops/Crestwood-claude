@@ -2841,6 +2841,7 @@ stock Cloth_DoSave(playerid, const params[])
 	{
 		g_ClothFirst[playerid] = 0;
 		Cloth_Msg(playerid, CLOTH_COL_OK, "Bienvenue a Crestwood ! Ta tenue de depart est enregistree. Bouton TENUE ou /vetements pour la changer.");
+		SetTimerEx("Mis_ShowLater", 1500, false, "i", playerid);   // [v23] la 1re mission s'affiche (itineraire GPS) des que la tenue est enregistree
 	}
 	else Cloth_Msg(playerid, CLOTH_COL_OK, "Vetements : apparence enregistree dans ton compte.");
 	return 1;

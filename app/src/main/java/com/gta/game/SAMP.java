@@ -4932,7 +4932,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
             case "draw_dist": return 100;
             case "post_fx": return 1;
             case "voice_btn": return 1;
-            case "cw_buttons": return 0;   // [31/10] desactive par defaut
+            case "cw_buttons": return 1;   // [v23] actif par defaut
             case "res_scale": return 100;
             case "gfx_preset": return 2;
             case "hud_scale": return 100;
@@ -4981,6 +4981,7 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
     private void applySavedGameSettings() {
         SharedPreferences sp = getSharedPreferences("display_settings", MODE_PRIVATE);
         try { applyGameSetting(3, CW_DRAW_DIST); } catch (Throwable ignored) { }
+        if (!sp.contains("cw_buttons_v23")) { sp.edit().putInt("cw_cw_buttons", 1).putBoolean("cw_buttons_v23", true).apply(); }   // [v23] force les icones une fois
         for (String k : GAME_SETTING_KEYS) {
             if ("gfx_preset".equals(k) || "draw_dist".equals(k)) continue;
             // la limite FPS / la distance / l'echelle ne sont forcees que si le joueur les a changees

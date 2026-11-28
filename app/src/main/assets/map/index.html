@@ -145,6 +145,7 @@
       <div class="btn-row">
         <button class="btn ghost" id="clearWp" type="button" disabled>Effacer</button>
         <button class="btn" id="gps" type="button">Lancer le GPS</button>
+        <button class="btn ghost" id="tpBtn" type="button" disabled>Se téléporter (staff)</button>
       </div>
     </div>
   </aside>
@@ -510,6 +511,14 @@
   window.MapApp.clearWaypoint = clearWaypoint;
   refreshGpsBtn();
   clearBtn.addEventListener("click", clearWaypoint);
+  var tpBtn = document.getElementById("tpBtn");
+  function refreshTp() { tpBtn.disabled = !waypoint; }
+  var _setWp2 = setWaypoint, _clearWp2 = clearWaypoint;
+  setWaypoint = function (x, y) { _setWp2(x, y); refreshTp(); };
+  clearWaypoint = function () { _clearWp2(); refreshTp(); };
+  window.MapApp.setWaypoint = setWaypoint;
+  window.MapApp.clearWaypoint = clearWaypoint;
+  tpBtn.addEventListener("click", function () { if (waypoint) send("map:tp", JSON.stringify({ x: waypoint.x, y: waypoint.y })); });
   document.getElementById("zin").addEventListener("click", function () { var r = box(); zoomAt(1.5, r.width / 2, r.height / 2); });
   document.getElementById("zout").addEventListener("click", function () { var r = box(); zoomAt(1 / 1.5, r.width / 2, r.height / 2); });
   document.getElementById("zfit").addEventListener("click", fit);

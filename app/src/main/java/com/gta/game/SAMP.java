@@ -4796,6 +4796,17 @@ public class SAMP extends GTASA implements HeightProvider.HeightListener {
                 openInteractionPage("map/index.html");
                 return;
             }
+            if ("map:tp".equals(action)) {
+                // [v23] staff : teleportation au point touche sur la carte (le serveur verifie le niveau staff)
+                try {
+                    JSONObject o = new JSONObject(payload == null || payload.isEmpty() ? "{}" : payload);
+                    if (o.has("x") && o.has("y")) sendHudCommand("/tpcarte " + Math.round(o.getDouble("x")) + " " + Math.round(o.getDouble("y")));
+                } catch (Exception e) {
+                    Log.e(TAG, "map:tp", e);
+                }
+                closeConfig();
+                return;
+            }
             if ("map:gps".equals(action)) {
                 // payload {"x":..,"y":..} = point choisi sur la carte (efface a l'arrivee), {"clear":1} = effacer
                 try {

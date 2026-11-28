@@ -39,7 +39,8 @@
 #define NPC_ROLE_COURIER      5
 #define NPC_ROLE_GUARD        6
 #define NPC_ROLE_GOV          7           // etat civil : carte d'identite (formulaire + signature)
-#define NPC_ROLE_COUNT        8
+#define NPC_ROLE_JOB          8           // [v23] employeur : contrat de travail du metier le plus proche
+#define NPC_ROLE_COUNT        9
 #define NPC_DIALOG_IDFORM     9880        // "@idform" -> panneau natif (formulaire + signature)
 #define NPC_ID_FEE            500         // renouvellement (la 1re carte est gratuite)
 #define NPC_ID_YEARS          10
@@ -65,8 +66,8 @@
 #define Q_SCOOTER_REWARD      5000
 #define Q_TICK_MS             500
 
-new const g_NpcRoleName[NPC_ROLE_COUNT][16] = { "Ambiance", "Vendeur", "Banquier", "Guide", "Instructeur", "Coursier", "Securite", "Etat civil" };
-new const g_NpcRoleKey[NPC_ROLE_COUNT][12] = { "ambiance", "vendeur", "banquier", "guide", "instructeur", "coursier", "securite", "etatcivil" };
+new const g_NpcRoleName[NPC_ROLE_COUNT][16] = { "Ambiance", "Vendeur", "Banquier", "Guide", "Instructeur", "Coursier", "Securite", "Etat civil", "Employeur" };
+new const g_NpcRoleKey[NPC_ROLE_COUNT][12] = { "ambiance", "vendeur", "banquier", "guide", "instructeur", "coursier", "securite", "etatcivil", "employeur" };
 new const g_NpcAnimName[NPC_ANIM_COUNT][20] = { "Aucune", "Bras croises", "Fume", "Appuye au mur", "Au telephone", "Discute", "Comptoir", "Assis", "Danse", "Garde", "Mecano", "Pense" };
 new const g_NpcAnimLib[NPC_ANIM_COUNT][16] = { "", "COP_AMBIENT", "SMOKING", "GANGS", "PED", "GANGS", "INT_SHOP", "PED", "DANCING", "COP_AMBIENT", "CAR", "COP_AMBIENT" };
 new const g_NpcAnimId[NPC_ANIM_COUNT][24] = { "", "Coplook_loop", "M_smklean_loop", "leanIDLE", "phone_talk", "prtial_gngtlkA", "shop_loop", "SEAT_idle", "dnce_M_a", "Coplook_nod", "Fixn_Car_Loop", "Coplook_think" };
@@ -183,6 +184,7 @@ stock Npc_RoleFromName(const s[])
 	if (!strcmp(s, "banque", true)) return NPC_ROLE_BANK;
 	if (!strcmp(s, "scooter", true)) return NPC_ROLE_GUIDE;
 	if (!strcmp(s, "garde", true)) return NPC_ROLE_GUARD;
+	if (!strcmp(s, "job", true) || !strcmp(s, "emploi", true) || !strcmp(s, "travail", true)) return NPC_ROLE_JOB;
 	if (!strcmp(s, "gouvernement", true) || !strcmp(s, "mairie", true) || !strcmp(s, "identite", true)) return NPC_ROLE_GOV;
 	return -1;
 }
@@ -306,6 +308,32 @@ stock Npc_PushMarks()
 	return 1;
 }
 
+// [v23] PNJ poses automatiquement une seule fois (deplacables / supprimables par le staff : /pnj)
+stock Npc_SeedRow(const name[], skin, role, anim, Float:x, Float:y, Float:z, Float:a)
+{
+	new q[300], clean[24];
+	Npc_Clean(name, clean, sizeof clean);
+	format(q, sizeof q, "INSERT INTO npcs (name, skin, role, anim, x, y, z, a, interior, vw) VALUES ('%s', %d, %d, %d, %f, %f, %f, %f, 0, 0)", clean, skin, role, anim, x, y, z, a);
+	Npc_Exec(q);
+	return 1;
+}
+
+stock Npc_SeedDefault()
+{
+	if (g_NpcDB == DB:0) return 0;
+	if (!Cw_OnceDB(g_NpcDB, "default_npcs_v23")) return 0;
+	new const skins[8] = {50, 16, 8, 202, 253, 255, 305, 27};
+	for (new j = 1; j <= JOB_COUNT; j++)
+	{
+		if (!g_JobPlaced[j]) continue;
+		Npc_SeedRow("Employeur", skins[j % 8], NPC_ROLE_JOB, 1, g_Jobs[j][jbX] + 1.3, g_Jobs[j][jbY], g_Jobs[j][jbZ], 90.0);
+	}
+	for (new k = 0; k < g_ShopCount; k++)
+		Npc_SeedRow("Vendeur", 211, NPC_ROLE_VENDOR, 6, g_Shops[k][shX] + 1.3, g_Shops[k][shY], g_Shops[k][shZ], 90.0);
+	Npc_SeedRow("Etat civil", 150, NPC_ROLE_GOV, 6, 1481.0, -1745.0, 13.55, 180.0);
+	return 1;
+}
+
 stock Npc_OnInit()
 {
 	for (new i = 0; i < NPC_MAX; i++) { g_NpcActor[i] = INVALID_ACTOR_ID; g_NpcLabel[i] = Text3D:INVALID_3DTEXT_ID; }
@@ -313,6 +341,7 @@ stock Npc_OnInit()
 	if (g_NpcDB == DB:0) { print("[PNJ] base crestwood_npc.db impossible a ouvrir"); return 0; }
 	Npc_Exec("CREATE TABLE IF NOT EXISTS npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, skin INTEGER, role INTEGER, anim INTEGER, x REAL, y REAL, z REAL, a REAL, interior INTEGER, vw INTEGER)");
 	Npc_Exec("CREATE TABLE IF NOT EXISTS quests (name TEXT, quest INTEGER, done INTEGER DEFAULT 0, best INTEGER DEFAULT 0, ts INTEGER DEFAULT 0, PRIMARY KEY (name, quest))");
+	Npc_SeedDefault();   // [v23] PNJ par defaut (une fois)
 	Npc_Load();
 	SetTimer("Npc_Tick", Q_TICK_MS, true);
 	printf("[PNJ] %d PNJ charges.", g_NpcCount);
@@ -530,6 +559,7 @@ stock Npc_Line(i, out[], size)
 		case NPC_ROLE_PILOT: format(out, size, "Ecole de pilotage de Crestwood. Tu veux tes ailes ? Theorie puis vol d'examen.");
 		case NPC_ROLE_COURIER: format(out, size, "J'ai des colis urgents a livrer. Rapide et propre = gros pourboire.");
 		case NPC_ROLE_GUARD: format(out, size, "Circule. Ici, on garde les armes rangees.");
+		case NPC_ROLE_JOB: format(out, size, "Tu cherches du travail ? Signe ton contrat, je te donne les cles du vehicule de service.");
 		case NPC_ROLE_GOV: format(out, size, "Bonjour, service de l'etat civil de la Republique de Crestwood. Je vous ecoute.");
 		default:
 		{
@@ -620,6 +650,7 @@ stock Npc_Talk(playerid)
 			else strcat(list, "Faire ma carte d'identite {3DDC97}(gratuit)\n", sizeof list), g_NpcTalkOpt[playerid][n++] = 8;
 			strcat(list, "Passer le permis de conduire {3B82FF}(300 $)\n", sizeof list); g_NpcTalkOpt[playerid][n++] = 10;   // [v30]
 		}
+		case NPC_ROLE_JOB: strcat(list, "Voir le contrat de travail\n", sizeof list), g_NpcTalkOpt[playerid][n++] = 11;
 		case NPC_ROLE_COURIER:
 		{
 			if (g_QStreak[playerid] > 0) format(body, sizeof body, "Prendre un colis {3DDC97}(serie x%d)\n", g_QStreak[playerid] + 1);
@@ -1275,6 +1306,7 @@ stock Npc_OnDialog(playerid, dialogid, response, listitem)
 			case 8: Npc_IdForm(playerid);
 			case 9: Ui_ShowId(playerid, playerid);
 			case 10: Mis_StartLicenseQuiz(playerid);   // [v30]
+			case 11: Job_OpenContractNear(playerid);    // [v23] employeur
 		}
 		return 1;
 	}

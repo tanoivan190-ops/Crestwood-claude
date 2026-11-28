@@ -7221,7 +7221,7 @@ stock Shop_OnCommand(playerid, const cmdtext[])
 #define JOB_POST              9           // [v44] facteur (Faggio)
 #define JOB_COUNT             9
 
-#define JOB_RANGE             3.0         // distance du siege pour signer / prendre le service
+#define JOB_RANGE             5.0         // distance du siege pour signer / prendre le service
 #define JOB_RESIGN_COOLDOWN   120000      // 2 min entre une demission et un nouveau contrat
 #define JOB_LEVEL_ROUTES      10          // tournees par niveau
 #define JOB_LEVEL_MAX         5
@@ -7563,6 +7563,24 @@ stock Job_OpenContract(playerid)
 		return 0;
 	}
 	g_JobPage[playerid] = job;
+	Job_Send(playerid, JOB_DIALOG_OPEN, 1, "");
+	return 1;
+}
+
+// [v23] ouvre le contrat du metier dont le siege est le plus proche (appel depuis le PNJ employeur)
+stock Job_OpenContractNear(playerid)
+{
+	if (!g_AuthLogged[playerid] || !g_JobLoaded[playerid]) return 0;
+	new best = JOB_NONE, Float:bd = 144.0, Float:x, Float:y, Float:z;
+	GetPlayerPos(playerid, x, y, z);
+	for (new j = 1; j <= JOB_COUNT; j++)
+	{
+		if (!g_JobPlaced[j]) continue;
+		new Float:dx = x - g_Jobs[j][jbX], Float:dy = y - g_Jobs[j][jbY], Float:d = dx * dx + dy * dy;
+		if (d < bd) { bd = d; best = j; }
+	}
+	if (best == JOB_NONE) { Job_Msg(playerid, JOB_COL_ERR, "Aucun siege de metier a proximite."); return 0; }
+	g_JobPage[playerid] = best;
 	Job_Send(playerid, JOB_DIALOG_OPEN, 1, "");
 	return 1;
 }

@@ -1555,6 +1555,33 @@ stock Interact_OnCommand(playerid, const cmdtext[])
 #define AUTH_COL_ERR          0xFF4444FF
 
 new g_LgOn[MAX_PLAYERS];   // [v56] (scene de connexion du V30 : jamais active ici, garde pour Cw46.inc)
+new g_CwFirstSp[MAX_PLAYERS];
+forward Cw_PlaceSpawnDo(playerid, kind);
+stock Cw_PlaceSpawn(playerid)
+{
+	if (g_CwHospSp[playerid]) { g_CwHospSp[playerid] = 0; g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 2); }
+	else if (g_CwFirstSp[playerid]) { g_CwFirstSp[playerid] = 0; SetTimerEx("Cw_PlaceSpawnDo", 900, false, "ii", playerid, 1); }
+	return 1;
+}
+public Cw_PlaceSpawnDo(playerid, kind)
+{
+	if (!IsPlayerConnected(playerid) || !g_AuthLogged[playerid]) return 1;
+	SetPlayerInterior(playerid, 0);
+	SetPlayerVirtualWorld(playerid, 0);
+	if (kind == 2)
+	{
+		SetPlayerPos(playerid, 1177.50, -1323.80, 14.05);   // hopital All Saints (devant l'entree)
+		SetPlayerFacingAngle(playerid, 270.0);
+		SetPlayerHealth(playerid, 100.0);
+	}
+	else
+	{
+		SetPlayerPos(playerid, 1958.33, -2181.69, 13.55);   // aeroport de Los Santos
+		SetPlayerFacingAngle(playerid, 90.0);
+	}
+	SetCameraBehindPlayer(playerid);
+	return 1;
+}
 new Float:g_TpHp[MAX_PLAYERS];
 new g_TpTicks[MAX_PLAYERS];
 forward Cw_TpFall(playerid);
@@ -8086,6 +8113,34 @@ stock Job_OnCommand(playerid, const cmdtext[])
 		SetPlayerPos(playerid, floatstr(a1), floatstr(a2), 400.0);
 		SetTimerEx("Cw_TpFall", 700, false, "i", playerid);
 		Job_Msg(playerid, JOB_COL_OK, "Teleportation en cours...");
+		return 1;
+	}
+	// [v23] /monter : monte comme passager dans le vehicule le plus proche (places libres 1 a 3)
+	if (!strcmp(cmdtext, "/monter", true))
+	{
+		if (IsPlayerInAnyVehicle(playerid)) { Job_Msg(playerid, JOB_COL_ERR, "Tu es deja dans un vehicule."); return 1; }
+		new Float:px, Float:py, Float:pz, Float:vx, Float:vy, Float:vz, Float:best = 7.0, bv = 0;
+		GetPlayerPos(playerid, px, py, pz);
+		for (new v = 1; v < MAX_VEHICLES; v++)
+		{
+			if (!GetVehicleModel(v)) continue;
+			GetVehiclePos(v, vx, vy, vz);
+			new Float:d = floatsqroot((vx - px) * (vx - px) + (vy - py) * (vy - py) + (vz - pz) * (vz - pz));
+			if (d < best) { best = d; bv = v; }
+		}
+		if (!bv) { Job_Msg(playerid, JOB_COL_ERR, "Aucun vehicule a proximite."); return 1; }
+		new e1, l1, a1, d1, b1, t1, o1;
+		GetVehicleParamsEx(bv, e1, l1, a1, d1, b1, t1, o1);
+		if (d1 == 1) { Job_Msg(playerid, JOB_COL_ERR, "Le vehicule est verrouille."); return 1; }
+		new maxSeat = (GetVehicleModel(bv) == 431 || GetVehicleModel(bv) == 437) ? 8 : 3;
+		for (new seat = 1; seat <= maxSeat; seat++)
+		{
+			new used = 0;
+			for (new q = 0, mx = GetMaxPlayers(); q < mx; q++)
+				if (IsPlayerConnected(q) && GetPlayerVehicleID(q) == bv && GetPlayerVehicleSeat(q) == seat) { used = 1; break; }
+			if (!used) { PutPlayerInVehicle(playerid, bv, seat); return 1; }
+		}
+		Job_Msg(playerid, JOB_COL_ERR, "Plus de place libre.");
 		return 1;
 	}
 	// [v23] outils staff : /tp x y z [interieur]  et  /arme <id arme> [munitions]
@@ -24102,6 +24157,8 @@ public OnPlayerConnect(playerid)
 	Cw41_OnConnect(playerid);   // [v41b]
 	Cw44_OnConnect(playerid);   // [v44]
 	Cw46_OnConnect(playerid);   // [v46]
+	g_CwFirstSp[playerid] = 1;
+	g_CwHospSp[playerid] = 0;
 	g_CwLastVeh[playerid] = 0;
 	return 1;
 }
@@ -24172,6 +24229,7 @@ public OnPlayerSpawn(playerid)
 	Frp_OnSpawn(playerid);     // [v41] mandat d'arret actif -> avis de recherche
 	Cw44_OnSpawn(playerid);    // [v44] retour apres un evenement
 	Cw46_OnSpawn(playerid);    // [v46] identifiant du jour, tutoriel
+	Cw_PlaceSpawn(playerid);   // [v23] 1er spawn : aeroport de Los Santos ; apres coma : hopital All Saints
 	return 1;
 }
 

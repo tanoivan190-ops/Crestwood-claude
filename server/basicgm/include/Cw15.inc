@@ -684,6 +684,7 @@ stock Cw_Revive(playerid, Float:hp = 50.0)
 	return 1;
 }
 
+new g_CwHospSp[MAX_PLAYERS];   // [v23] 1 = le prochain spawn se fait a l'hopital de Los Santos
 stock Cw_ToHospital(playerid, const why[])
 {
 	if (g_CwInjured[playerid] != 2) return 0;
@@ -692,6 +693,7 @@ stock Cw_ToHospital(playerid, const why[])
 	ClearAnimations(playerid, 1);
 	TogglePlayerControllable(playerid, 1);
 	SendClientMessage(playerid, CW_COL_INFO, why);
+	g_CwHospSp[playerid] = 1;
 	SpawnPlayer(playerid);          // point de spawn normal (hopital / maison)
 	return 1;
 }

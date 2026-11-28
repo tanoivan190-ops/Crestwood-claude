@@ -4829,6 +4829,10 @@ public class SAMP extends GTASA implements CustomKeyboard.InputListener, HeightP
                 openInteractionPage("blazer/index.html");
                 return;
             }
+            if ("passenger:enter".equals(action)) {
+                sendHudCommand("/monter");   // [v23] monte cote passager
+                return;
+            }
             if ("map:open".equals(action)) {
                 openInteractionPage("map/index.html");
                 return;

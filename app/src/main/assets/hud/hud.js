@@ -599,6 +599,7 @@
     add("radio", radioButton);
     add("engine", engineButton);
     add("vehicleLock", vehicleLockButton);
+    add("passengerDoor", document.querySelector(".passenger-door-button"));
     add("animations", animationsButton);
     add("voice", voiceButton);
     add("interact", interactButton);
@@ -2519,6 +2520,12 @@
   engineButton?.addEventListener("pointerdown", (event) => {
     if (state.hudEditing) return;
     event.preventDefault();
+  });
+  document.querySelector(".passenger-door-button")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (state.hudEditing) return;
+    try { window.AndroidHUD?.onHudAction?.("passenger:enter", "{}"); } catch (_) { /* ignore */ }
   });
   vehicleLockButton?.addEventListener("click", (event) => {
     event.preventDefault();
